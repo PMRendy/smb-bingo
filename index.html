@@ -708,24 +708,61 @@ let currentPlayer = null;
 let adminTimer = null, adminCountdown = null, adminSecondsLeft = 0;
 let nextDrawAt = null;
 
-function loadDB() {
+// ════════════════════════════════════════════════════════════
+//  SHARED BACKEND — replaces localStorage so admin and every
+//  player see the SAME live game, not their own private copy.
+//  ⚠️ Set this to your deployed backend URL (the same Render
+//  service running server.js with the /state routes), e.g.:
+//  https://smb-bingo-proxy-v2.onrender.com
+// ════════════════════════════════════════════════════════════
+const BACKEND_URL = 'https://smb-bingo-proxy-v2.onrender.com';
+
+let _dbLoaded = false; // tracks whether the very first load has completed
+
+async function loadDB() {
   try {
-    const s = localStorage.getItem('smbBingoDB');
-    if (s) {
-      DB = { ...DB, ...JSON.parse(s) };
-    } else {
-      // First load — seed the roster
-      DB.players = buildDefaultPlayers();
-      saveDB();
+    const resp = await fetch(`${BACKEND_URL}/state`);
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    const remote = await resp.json();
+    if (remote && typeof remote === 'object') {
+      // First-ever load on a brand new backend — seed default roster
+      if (!remote.players || remote.players.length === 0) {
+        DB = { ...DB, ...remote, players: buildDefaultPlayers() };
+        await saveDB();
+      } else {
+        DB = { ...DB, ...remote };
+      }
     }
-  } catch(e) {
-    DB.players = buildDefaultPlayers();
+  } catch (e) {
+    console.error('loadDB: backend unreachable, falling back to local copy', e);
+    // Fallback so the UI doesn't fully break if the backend is briefly down
+    try {
+      const s = localStorage.getItem('smbBingoDB_fallback');
+      if (s) DB = { ...DB, ...JSON.parse(s) };
+      else DB.players = DB.players.length ? DB.players : buildDefaultPlayers();
+    } catch (e2) { DB.players = DB.players.length ? DB.players : buildDefaultPlayers(); }
+  }
+  _dbLoaded = true;
+}
+
+async function saveDB() {
+  try {
+    const resp = await fetch(`${BACKEND_URL}/state`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(DB),
+    });
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    // Keep a local fallback copy in case the backend is briefly unreachable later
+    try { localStorage.setItem('smbBingoDB_fallback', JSON.stringify(DB)); } catch(e){}
+  } catch (e) {
+    console.error('saveDB: failed to write to backend', e);
+    try { localStorage.setItem('smbBingoDB_fallback', JSON.stringify(DB)); } catch(e2){}
   }
 }
-function saveDB() {
-  try { localStorage.setItem('smbBingoDB', JSON.stringify(DB)); } catch(e){}
-}
-loadDB();
+
+// Initial load — everything that depends on DB waits for this
+const _initialLoadPromise = loadDB();
 
 // ════════════════════════════════════════════════════════════
 //  SCREEN ROUTING
@@ -771,7 +808,8 @@ function getPinValue(containerId) {
   return Array.from(document.getElementById(containerId).children).map(i=>i.value).join('');
 }
 
-function submitAdminPin() {
+async function submitAdminPin() {
+  await _initialLoadPromise; // ensure first backend load has completed
   const pin = getPinValue('adminPinInputs');
   if(pin === DB.adminPin) {
     showScreen('screen-admin');
@@ -780,13 +818,16 @@ function submitAdminPin() {
     document.getElementById('settingsWebhook').value = DB.webhookUrl;
     document.getElementById('settingsProxyUrl').value = DB.proxyUrl || '';
     document.getElementById('settingsInterval').value = DB.drawIntervalMin;
+    if(_adminPoll) clearInterval(_adminPoll);
+    _adminPoll = setInterval(()=>{ refreshAdminGame(); refreshRosterUI(); }, 5000);
   } else {
     document.getElementById('adminPinError').textContent='Maling PIN! Try ulit.';
     setTimeout(()=>document.getElementById('adminPinError').textContent='',2000);
   }
 }
 
-function submitPlayerPin() {
+async function submitPlayerPin() {
+  await _initialLoadPromise; // ensure first backend load has completed
   const pin = getPinValue('playerPinInputs');
   const matches = DB.players.filter(p=>p.pin===pin&&p.active!==false);
   if(matches.length===1){
@@ -823,7 +864,10 @@ function backToPinStep(){
   buildPinInputs('playerPinInputs','playerPinError');
 }
 
-function adminLogout() { showScreen('screen-landing'); }
+function adminLogout() {
+  if(_adminPoll){ clearInterval(_adminPoll); _adminPoll=null; }
+  showScreen('screen-landing');
+}
 function playerLogout() {
   if(window._playerPoll){ clearInterval(window._playerPoll); window._playerPoll=null; }
   currentPlayer=null;
@@ -847,7 +891,7 @@ function switchAdminTab(name) {
 // ════════════════════════════════════════════════════════════
 function generateId(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,6); }
 
-function addPlayer() {
+async function addPlayer() {
   const name = document.getElementById('newPlayerName').value.trim();
   const pin = document.getElementById('newPlayerPin').value.trim();
   const cards = parseInt(document.getElementById('newPlayerCards').value);
@@ -859,7 +903,7 @@ function addPlayer() {
   if(DB.players.some(p=>p.name.toLowerCase()===name.toLowerCase())){errEl.textContent='May player na may ganoong pangalan!';return;}
 
   DB.players.push({id:generateId(),name,pin,maxCards:cards,active:true});
-  saveDB();
+  await saveDB();
   errEl.textContent='';
   document.getElementById('newPlayerName').value='';
   document.getElementById('newPlayerPin').value='';
@@ -915,7 +959,7 @@ function openEditPlayer(id) {
   document.getElementById('editOverlay').classList.add('show');
 }
 
-function saveEditPlayer() {
+async function saveEditPlayer() {
   const id = document.getElementById('editPlayerId').value;
   const name = document.getElementById('editPlayerName').value.trim();
   const pin = document.getElementById('editPlayerPin').value.trim();
@@ -925,21 +969,21 @@ function saveEditPlayer() {
   if(dup){alert('Yung PIN ay ginagamit na ng ibang player!');return;}
   const p = DB.players.find(x=>x.id===id);
   if(p){Object.assign(p,{name,pin,maxCards:cards});}
-  saveDB();
+  await saveDB();
   document.getElementById('editOverlay').classList.remove('show');
   refreshRosterUI();
 }
 
-function togglePlayer(id){
+async function togglePlayer(id){
   const p=DB.players.find(x=>x.id===id);
   if(p) p.active=p.active===false?true:false;
-  saveDB(); refreshRosterUI();
+  await saveDB(); refreshRosterUI();
 }
 
-function deletePlayer(id){
+async function deletePlayer(id){
   if(!confirm('Tanggalin ang player na ito?')) return;
   DB.players=DB.players.filter(p=>p.id!==id);
-  saveDB(); refreshRosterUI();
+  await saveDB(); refreshRosterUI();
 }
 
 // ════════════════════════════════════════════════════════════
@@ -986,10 +1030,10 @@ function allNumbers(){
   return nums;
 }
 
-function adminNewPattern(){
+async function adminNewPattern(){
   const idx=Math.floor(Math.random()*PATTERNS.length);
   DB.game.pattern=PATTERNS[idx];
-  saveDB();
+  await saveDB();
   renderAdminPattern();
   adminLog(`Pattern changed: ${DB.game.pattern.name}`,'info');
 }
@@ -1082,7 +1126,7 @@ function checkWinManual(grid,pattern,marks){
   return pattern.cells.every((on,i)=> !on || grid[i]==='FREE' || !!marks[i]);
 }
 
-function adminStartGame(){
+async function adminStartGame(){
   if(DB.players.filter(p=>p.active!==false).length===0){
     alert('Walang active na player! Magdagdag muna ng players sa Roster tab.');return;
   }
@@ -1101,7 +1145,7 @@ function adminStartGame(){
     lastDrawAt:null,
     claimedBy:null,
   };
-  saveDB();
+  await saveDB();
   refreshAdminGame();
   adminLog('🎉 New game started! Lobby is open — waiting for players to RSVP.','ok');
   document.getElementById('adminGameBadge').style.display='inline-block';
@@ -1110,7 +1154,7 @@ function adminStartGame(){
 }
 
 // Player taps "I'm Playing This Round" — only works while lobby is open
-function playerRsvp(){
+async function playerRsvp(){
   if(!currentPlayer || !DB.game) return;
   const g = DB.game;
   if(!g.lobbyOpen){
@@ -1122,23 +1166,23 @@ function playerRsvp(){
   }
   g.rsvpPlayerIds.push(currentPlayer.id);
   g.playerCards[currentPlayer.id] = generatePlayerCards(currentPlayer, g.id);
-  saveDB();
+  await saveDB();
   playerLog(`Nakapag-RSVP ka na! Naghihintay na lang ng unang draw... 🎯`,'ok');
   postToSlack(buildRsvpMessage(currentPlayer.name, g.rsvpPlayerIds.length));
   refreshPlayerScreen();
 }
 
 // Lock the lobby — called automatically the moment the first ball is drawn
-function lockGameLobby(){
+async function lockGameLobby(){
   if(!DB.game || !DB.game.lobbyOpen) return;
   DB.game.lobbyOpen = false;
-  saveDB();
+  await saveDB();
   adminLog(`Lobby locked. ${DB.game.rsvpPlayerIds.length} player(s) joined this round.`,'info');
 }
 
-function adminDrawNumber(){
+async function adminDrawNumber(){
   if(!DB.game||!DB.game.active||DB.game.ended) return;
-  if(DB.game.lobbyOpen) lockGameLobby(); // first draw permanently closes RSVP for this round
+  if(DB.game.lobbyOpen) await lockGameLobby(); // first draw permanently closes RSVP for this round
   const called=new Set(DB.game.calledSet);
   const pool=allNumbers().filter(x=>!called.has(x.full));
   if(pool.length===0){adminLog('Lahat ng numero ay natawag na!','info');return;}
@@ -1146,7 +1190,7 @@ function adminDrawNumber(){
   DB.game.drawnNumbers.push(pick);
   DB.game.calledSet.push(pick.full);
   DB.game.lastDrawAt=Date.now();
-  saveDB();
+  await saveDB();
   refreshAdminGame();
   const callout=CALLOUTS[pick.full]||`${pick.full}!`;
   adminLog(`Drew: ${pick.full}`,'info');
@@ -1180,11 +1224,11 @@ function adminBingoClaim(){
   adminEndGame(claimant);
 }
 
-function adminEndGame(claimant){
+async function adminEndGame(claimant){
   if(!DB.game) return;
   DB.game.active=false;DB.game.ended=true;DB.game.claimedBy=claimant;
   DB.game.endedAt=Date.now();
-  saveDB();
+  await saveDB();
   clearInterval(adminTimer);clearInterval(adminCountdown);
   document.getElementById('adminDrawBtn').disabled=true;
   document.getElementById('adminBingoBtn').disabled=true;
@@ -1199,10 +1243,10 @@ function adminEndGame(claimant){
   refreshAdminGame();
 }
 
-function adminResetGame(){
+async function adminResetGame(){
   if(!confirm('I-reset ang laro? Mabubura ang kasalukuyang game.')) return;
   clearInterval(adminTimer);clearInterval(adminCountdown);
-  DB.game=null;saveDB();
+  DB.game=null;await saveDB();
   refreshAdminGame();
   document.getElementById('adminGameBadge').style.display='none';
   adminLog('Game reset.','info');
@@ -1211,7 +1255,10 @@ function adminResetGame(){
 // ════════════════════════════════════════════════════════════
 //  ADMIN UI REFRESH
 // ════════════════════════════════════════════════════════════
-function refreshAdminGame(){
+let _adminPoll = null;
+
+async function refreshAdminGame(){
+  await loadDB(); // pull latest shared state so player RSVPs/claims show live
   const g=DB.game;
   const startBtn=document.getElementById('adminStartBtn');
   const drawBtn=document.getElementById('adminDrawBtn');
@@ -1396,7 +1443,7 @@ function getShiftDateKey(){
   return d.toISOString().slice(0,10); // YYYY-MM-DD
 }
 
-function checkShiftRollover(){
+async function checkShiftRollover(){
   const g = DB.game;
   if(!g || !g.active || g.ended) return;
   const todayKey = getShiftDateKey();
@@ -1404,7 +1451,7 @@ function checkShiftRollover(){
     // New shift started — game continues, reopen RSVP for this fresh shift
     g.currentShiftKey = todayKey;
     g.lobbyOpen = true;
-    saveDB();
+    await saveDB();
     adminLog(`🌙 Bagong shift! Game continues from last night (${g.drawnNumbers.length} drawn so far). RSVP reopened for tonight.`,'info');
     postToSlack(`🌙 *Bagong shift, parehong laro!* Walang nanalo kagabi, kaya tuloy pa rin ang BINGO night ngayon!\n\n📋 Natawag na: ${g.drawnNumbers.map(x=>x.full).join(' · ')||'wala pa'}\n🎯 Pattern: *${g.pattern.name}*\n\n🙋 Mag-RSVP ulit kung gusto mong sumali ngayong gabi: ${PLAYER_PORTAL_LINK}`);
   }
@@ -1421,10 +1468,10 @@ function startAdminTimer(){
     adminSecondsLeft=Math.max(0,Math.round((nextDrawAt-Date.now())/1000));
     updateAdminTimerDisplay();
   },1000);
-  adminTimer=setInterval(()=>{
+  adminTimer=setInterval(async ()=>{
     if(!DB.game||!DB.game.active||DB.game.ended) return;
-    checkShiftRollover();
-    if(isWithinShift()) adminDrawNumber();
+    await checkShiftRollover();
+    if(isWithinShift()) await adminDrawNumber();
     else adminLog('Outside shift hours — auto-draw skipped.','info');
     nextDrawAt=Date.now()+ms;
   },ms);
@@ -1474,7 +1521,7 @@ function renderEmojiPalette(){
   });
 }
 
-function toggleCellMark(cardIndex, cellIndex){
+async function toggleCellMark(cardIndex, cellIndex){
   if(!currentPlayer || !DB.game) return;
   const g = DB.game;
   if(!g.playerMarks) g.playerMarks = {};
@@ -1487,7 +1534,7 @@ function toggleCellMark(cardIndex, cellIndex){
   } else {
     cellMarks[cellIndex] = getPlayerEmoji();
   }
-  saveDB();
+  await saveDB();
   refreshPlayerScreen();
 }
 
@@ -1511,9 +1558,9 @@ function renderRsvpPanel(g){
   }
 }
 
-function refreshPlayerScreen(){
+async function refreshPlayerScreen(){
   if(!currentPlayer) return; // guard: poll may fire after logout
-  loadDB(); // reload from storage
+  await loadDB(); // reload from shared backend
   // Re-sync currentPlayer from fresh DB so stale reference doesn't bite us
   const fresh = DB.players.find(p=>p.id===currentPlayer.id);
   if(!fresh){ currentPlayer=null; return; }
@@ -1588,8 +1635,8 @@ function refreshPlayerScreen(){
   }
 }
 
-function playerClaimBingo(){
-  loadDB();
+async function playerClaimBingo(){
+  await loadDB();
   const g=DB.game;
   if(!g||!g.active||g.ended||!currentPlayer) return;
 
@@ -1643,7 +1690,7 @@ function adminLog(msg,type='info'){
 // ════════════════════════════════════════════════════════════
 //  SETTINGS
 // ════════════════════════════════════════════════════════════
-function saveSettings(){
+async function saveSettings(){
   const pin=document.getElementById('settingsAdminPin').value.trim();
   const interval=parseInt(document.getElementById('settingsInterval').value);
   const webhook=document.getElementById('settingsWebhook').value.trim();
@@ -1653,7 +1700,7 @@ function saveSettings(){
   if(interval>=5&&interval<=60) DB.drawIntervalMin=interval;
   if(webhook) DB.webhookUrl=webhook;
   DB.proxyUrl=proxy; // can be cleared intentionally, so no truthy guard
-  saveDB();
+  await saveDB();
   document.getElementById('settingsSaved').textContent='✅ Settings saved!';
   setTimeout(()=>document.getElementById('settingsSaved').textContent='',3000);
 }
@@ -1862,7 +1909,7 @@ function openPinChange(){
   document.getElementById('pinChangeOverlay').classList.add('show');
 }
 
-function savePinChange(){
+async function savePinChange(){
   const cur=document.getElementById('pcCurrentPin').value.trim();
   const nw=document.getElementById('pcNewPin').value.trim();
   const conf=document.getElementById('pcConfirmPin').value.trim();
@@ -1888,7 +1935,7 @@ function savePinChange(){
     p.pinChanged=true;
     currentPlayer=p;
   }
-  saveDB();
+  await saveDB();
   document.getElementById('pinChangeOverlay').classList.remove('show');
   playerLog('✅ PIN matagumpay na napalitan! Tandaan ang bagong PIN mo.','ok');
   // Update welcome
@@ -1896,18 +1943,18 @@ function savePinChange(){
 }
 
 
-function adminResetPlayerPin(id){
+async function adminResetPlayerPin(id){
   if(!confirm('I-reset ang PIN ng player na ito sa 1234?')) return;
   const p=DB.players.find(x=>x.id===id);
   if(p){p.pin='1234';p.pinChanged=false;}
-  saveDB();refreshRosterUI();
+  await saveDB();refreshRosterUI();
 }
 
-function resetToDefaultRoster(){
+async function resetToDefaultRoster(){
   if(!confirm('I-reset ang buong roster sa default players? Mabubura ang lahat ng changes!')) return;
   DB.players=buildDefaultPlayers();
   DB.game=null;
-  saveDB();
+  await saveDB();
   refreshRosterUI();
   refreshAdminGame();
   alert('Roster reset to default!');
