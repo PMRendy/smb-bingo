@@ -425,8 +425,13 @@ textarea{resize:vertical;min-height:60px;}
             <input type="text" id="settingsAdminPin" maxlength="4" placeholder="Current: 0000"/>
           </div>
           <div>
-            <label>Draw Interval (minutes)</label>
-            <input type="number" id="settingsInterval" min="5" max="60" value="30"/>
+            <label>Draw Interval</label>
+            <select id="settingsInterval">
+              <option value="15">Every 15 minutes</option>
+              <option value="30" selected>Every 30 minutes</option>
+              <option value="45">Every 45 minutes</option>
+              <option value="60">Every 60 minutes</option>
+            </select>
           </div>
         </div>
         <div>
@@ -817,7 +822,7 @@ async function submitAdminPin() {
     refreshAdminGame();
     document.getElementById('settingsWebhook').value = DB.webhookUrl;
     document.getElementById('settingsProxyUrl').value = DB.proxyUrl || '';
-    document.getElementById('settingsInterval').value = DB.drawIntervalMin;
+    const sel=document.getElementById('settingsInterval'); if(sel) sel.value = DB.drawIntervalMin||30;
     if(_adminPoll) clearInterval(_adminPoll);
     _adminPoll = setInterval(()=>{ refreshAdminGame(); refreshRosterUI(); }, 5000);
   } else {
@@ -1697,7 +1702,7 @@ async function saveSettings(){
   const proxy=document.getElementById('settingsProxyUrl').value.trim();
   if(pin&&!/^\d{4}$/.test(pin)){alert('PIN ay dapat 4 digits!');return;}
   if(pin) DB.adminPin=pin;
-  if(interval>=5&&interval<=60) DB.drawIntervalMin=interval;
+  if([15,30,45,60].includes(interval)) DB.drawIntervalMin=interval;
   if(webhook) DB.webhookUrl=webhook;
   DB.proxyUrl=proxy; // can be cleared intentionally, so no truthy guard
   await saveDB();
