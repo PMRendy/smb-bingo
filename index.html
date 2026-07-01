@@ -374,7 +374,13 @@ textarea{resize:vertical;min-height:60px;}
                 <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;">Next Auto-Draw</div>
                 <div class="timer-val" id="adminTimerDisplay">30:00</div>
               </div>
-              <div style="font-size:10px;color:var(--muted);text-align:right;">Every 30 min<br>9PM–5AM PHT</div>
+              <div style="font-size:10px;color:var(--muted);text-align:right;" id="timerIntervalLabel">Every 30 min<br>9PM–5AM PHT</div>
+            </div>
+
+            <!-- Prize for this game -->
+            <div class="panel" style="padding:12px;margin-bottom:12px;background:var(--card-bg);" id="prizeSetupPanel">
+              <div class="panel-title" style="margin-bottom:8px;">🏆 Prize This Game</div>
+              <input type="text" id="prizeInput" placeholder="e.g. ₱500 GCash, Extra VL, Jollibee treat..." style="margin-bottom:0;"/>
             </div>
 
             <button class="btn btn-gold btn-full" id="adminStartBtn" onclick="adminStartGame()">🎉 Start New Game</button>
@@ -412,6 +418,14 @@ textarea{resize:vertical;min-height:60px;}
         <div id="dashboardContent">
           <div class="empty-state">No active game. Start a game from the Game Control tab.</div>
         </div>
+      </div>
+      <div class="panel">
+        <div class="panel-title">🏆 Winner Leaderboard</div>
+        <div id="leaderboardContent"><div class="empty-state">No games completed yet.</div></div>
+      </div>
+      <div class="panel">
+        <div class="panel-title">📋 Game History</div>
+        <div id="historyContent"><div class="empty-state">No game history yet.</div></div>
       </div>
     </div>
 
@@ -471,6 +485,14 @@ textarea{resize:vertical;min-height:60px;}
       <div style="font-size:11px;letter-spacing:3px;color:var(--teal);text-transform:uppercase;margin-bottom:4px;">🌙 Bayaning Puyat BINGO</div>
       <h2 id="playerName">Player</h2>
       <div class="welcome" id="playerWelcome">Welcome! Handa ka na ba? 🎯</div>
+      <div id="playerPrizeDisplay" style="display:none;background:rgba(245,200,66,.12);border:1px solid rgba(245,200,66,.3);border-radius:8px;padding:8px 14px;margin-top:8px;font-size:13px;text-align:center;">
+        🏆 <strong>Prize ngayong gabi:</strong> <span id="playerPrizeText" style="color:var(--gold);">—</span>
+      </div>
+      <div id="notifPermBox" style="margin-top:8px;text-align:center;display:none;">
+        <button class="btn btn-outline btn-sm" onclick="requestNotifPermission()" style="font-size:11px;">
+          🔔 Enable Draw Notifications
+        </button>
+      </div>
     </div>
 
     <!-- Live ball -->
@@ -1138,12 +1160,16 @@ async function adminStartGame(){
   const gameId=generateId();
   const pattern=resolveSelectedPattern();
 
+  const prizeEl = document.getElementById('prizeInput');
+  const prize = prizeEl ? prizeEl.value.trim() : '';
+
   DB.game={
     id:gameId,active:true,ended:false,
     lobbyOpen:true, // true until first ball is drawn — players can RSVP while this is true
     rsvpPlayerIds:[], // players who hit "I'm Playing This Round" before lock
     drawnNumbers:[],calledSet:[],
     pattern,
+    prize: prize || 'TBA',
     playerCards:{},   // populated lazily as players RSVP (or all at once when lobby locks)
     playerMarks:{}, // {playerId: {cardIndex: {cellIndex: emoji}}}
     startedAt:Date.now(),
@@ -1233,6 +1259,21 @@ async function adminEndGame(claimant){
   if(!DB.game) return;
   DB.game.active=false;DB.game.ended=true;DB.game.claimedBy=claimant;
   DB.game.endedAt=Date.now();
+
+  // Log to game history
+  if(!DB.gameHistory) DB.gameHistory=[];
+  DB.gameHistory.unshift({
+    id: DB.game.id,
+    date: new Date().toLocaleDateString('en-PH',{year:'numeric',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit',hour12:true}),
+    winner: claimant,
+    prize: DB.game.prize||'—',
+    pattern: DB.game.pattern?.name||'—',
+    draws: DB.game.drawnNumbers?.length||0,
+    players: (DB.game.rsvpPlayerIds||[]).length,
+  });
+  // Keep last 50 games
+  if(DB.gameHistory.length>50) DB.gameHistory=DB.gameHistory.slice(0,50);
+
   await saveDB();
   clearInterval(adminTimer);clearInterval(adminCountdown);
   document.getElementById('adminDrawBtn').disabled=true;
@@ -1401,31 +1442,86 @@ function makeBingoCardEl(agentName,cardLabel,grid,calledSet,pattern,isWinner,opt
 function refreshDashboard(){
   const g=DB.game;
   const el=document.getElementById('dashboardContent');
-  if(!g){el.innerHTML='<div class="empty-state">No active game.</div>';return;}
-  const calledSet=new Set(g.calledSet);
-  const activePlayers=DB.players.filter(p=>p.active!==false);
-  let rows='';
-  activePlayers.forEach(p=>{
-    const cards=g.playerCards[p.id]||[];
-    const wCards=cards.filter((c,ci)=>checkWin(c.grid,g.pattern,calledSet));
-    const matched=cards.map(c=>c.grid.filter((v,i)=>{
-      if(v==='FREE') return false;
-      return calledSet.has(`${LETTERS[Math.floor(i/5)]}${v}`);
-    }).length);
-    rows+=`<tr>
-      <td style="font-weight:600;">${p.name}</td>
-      <td>${cards.length}</td>
-      <td>${matched.join(' / ')} hits</td>
-      <td>${wCards.length>0?'<span class="winner-badge">🏆 BINGO!</span>':'—'}</td>
-    </tr>`;
-  });
-  el.innerHTML=`
-    <div class="info-box">Pattern: <strong>${g.pattern.name}</strong> · Drawn: <strong>${g.drawnNumbers.length}/75</strong> · ${g.ended?'<span style="color:var(--danger)">Ended</span>':'<span style="color:var(--success)">Live</span>'}</div>
-    <div style="overflow-x:auto;"><table class="roster-table">
-      <thead><tr><th>Player</th><th>Cards</th><th>Hits</th><th>Status</th></tr></thead>
-      <tbody>${rows}</tbody>
-    </table></div>
-  `;
+
+  // ── Live game dashboard ──
+  if(!g){
+    el.innerHTML='<div class="empty-state">No active game.</div>';
+  } else {
+    const calledSet=new Set(g.calledSet);
+    const activePlayers=DB.players.filter(p=>p.active!==false);
+    let rows='';
+    activePlayers.forEach(p=>{
+      const cards=g.playerCards[p.id]||[];
+      const wCards=cards.filter(c=>checkWin(c.grid,g.pattern,calledSet));
+      const matched=cards.map(c=>c.grid.filter((v,i)=>{
+        if(v==='FREE') return false;
+        return calledSet.has(`${LETTERS[Math.floor(i/5)]}${v}`);
+      }).length);
+      rows+=`<tr>
+        <td style="font-weight:600;">${p.name}</td>
+        <td>${cards.length}</td>
+        <td>${matched.join(' / ')} hits</td>
+        <td>${wCards.length>0?'<span class="winner-badge">🏆 BINGO!</span>':'—'}</td>
+      </tr>`;
+    });
+    el.innerHTML=`
+      <div class="info-box">Pattern: <strong>${g.pattern.name}</strong> · Prize: <strong>${g.prize||'—'}</strong> · Drawn: <strong>${g.drawnNumbers.length}/75</strong> · ${g.ended?'<span style="color:var(--danger)">Ended</span>':'<span style="color:var(--success)">Live</span>'}</div>
+      <div style="overflow-x:auto;"><table class="roster-table">
+        <thead><tr><th>Player</th><th>Cards</th><th>Hits</th><th>Status</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table></div>
+    `;
+  }
+
+  // ── Leaderboard ──
+  const lbEl = document.getElementById('leaderboardContent');
+  if(lbEl){
+    const history = DB.gameHistory||[];
+    if(history.length===0){
+      lbEl.innerHTML='<div class="empty-state">No games completed yet.</div>';
+    } else {
+      // Tally wins per player
+      const tally={};
+      history.forEach(h=>{
+        if(!h.winner) return;
+        tally[h.winner]=(tally[h.winner]||0)+1;
+      });
+      const sorted=Object.entries(tally).sort((a,b)=>b[1]-a[1]);
+      const medals=['🥇','🥈','🥉'];
+      const lbRows=sorted.map(([name,wins],i)=>`
+        <tr>
+          <td style="font-size:18px;">${medals[i]||'🎖️'}</td>
+          <td style="font-weight:700;">${name}</td>
+          <td style="color:var(--gold);font-weight:700;">${wins} win${wins!==1?'s':''}</td>
+        </tr>`).join('');
+      lbEl.innerHTML=`<div style="overflow-x:auto;"><table class="roster-table">
+        <thead><tr><th>#</th><th>Player</th><th>Wins</th></tr></thead>
+        <tbody>${lbRows}</tbody>
+      </table></div>`;
+    }
+  }
+
+  // ── Game History ──
+  const histEl = document.getElementById('historyContent');
+  if(histEl){
+    const history = DB.gameHistory||[];
+    if(history.length===0){
+      histEl.innerHTML='<div class="empty-state">No game history yet.</div>';
+    } else {
+      const histRows=history.map((h,i)=>`
+        <tr>
+          <td style="color:var(--muted);font-size:11px;">${h.date}</td>
+          <td style="font-weight:700;">${h.winner||'—'}</td>
+          <td style="color:var(--gold);">${h.prize||'—'}</td>
+          <td>${h.pattern||'—'}</td>
+          <td style="color:var(--muted);">${h.draws} draws · ${h.players} players</td>
+        </tr>`).join('');
+      histEl.innerHTML=`<div style="overflow-x:auto;"><table class="roster-table">
+        <thead><tr><th>Date</th><th>Winner</th><th>Prize</th><th>Pattern</th><th>Stats</th></tr></thead>
+        <tbody>${histRows}</tbody>
+      </table></div>`;
+    }
+  }
 }
 
 // ════════════════════════════════════════════════════════════
@@ -1462,8 +1558,14 @@ async function checkShiftRollover(){
   }
 }
 
+function updateTimerIntervalLabel(){
+  const label = document.getElementById('timerIntervalLabel');
+  if(label) label.innerHTML = `Every ${DB.drawIntervalMin} min<br>9PM–5AM PHT`;
+}
+
 function startAdminTimer(){
   clearInterval(adminTimer);clearInterval(adminCountdown);
+  updateTimerIntervalLabel();
   if(DB.game && !DB.game.currentShiftKey) DB.game.currentShiftKey = getShiftDateKey();
   const ms=DB.drawIntervalMin*60*1000;
   nextDrawAt=Date.now()+ms;
@@ -1592,6 +1694,18 @@ async function refreshPlayerScreen(){
   const cards=(hasRsvpd && g.playerCards[currentPlayer.id]) || [];
   const myMarks=(g.playerMarks&&g.playerMarks[currentPlayer.id])||{};
 
+  // Show prize
+  const prizeDisplay = document.getElementById('playerPrizeDisplay');
+  const prizeText = document.getElementById('playerPrizeText');
+  if(prizeDisplay && prizeText && g.prize && g.prize !== 'TBA'){
+    prizeDisplay.style.display='block';
+    prizeText.textContent = g.prize;
+  }
+
+  // Show notification permission button if not yet granted
+  const notifBox = document.getElementById('notifPermBox');
+  if(notifBox) notifBox.style.display = ('Notification' in window && Notification.permission==='default') ? 'block' : 'none';
+
   // Ball — players still see what was drawn, they just have to mark it themselves
   if(g.drawnNumbers.length>0){
     const last=g.drawnNumbers[g.drawnNumbers.length-1];
@@ -1601,6 +1715,12 @@ async function refreshPlayerScreen(){
     ball.innerHTML=`<div class="ball-letter" style="font-size:16px;">${last.letter}</div><div class="ball-number" style="font-size:34px;">${last.num}</div>`;
     document.getElementById('playerLastDraw').textContent=last.full;
     document.getElementById('playerTagline').textContent=CALLOUTS[last.full]||`${last.full}!`;
+
+    // Fire browser notification if this is a NEW draw (not one we already notified)
+    if(last.full !== (window._lastNotifiedDraw||null)){
+      window._lastNotifiedDraw = last.full;
+      fireDrawNotification(last);
+    }
   }
   document.getElementById('playerCalledSummary').textContent=
     `Called: ${g.drawnNumbers.map(x=>x.full).join(' · ')||'None yet'}`;
@@ -1706,6 +1826,7 @@ async function saveSettings(){
   if(webhook) DB.webhookUrl=webhook;
   DB.proxyUrl=proxy; // can be cleared intentionally, so no truthy guard
   await saveDB();
+  updateTimerIntervalLabel();
   document.getElementById('settingsSaved').textContent='✅ Settings saved!';
   setTimeout(()=>document.getElementById('settingsSaved').textContent='',3000);
 }
@@ -1761,10 +1882,11 @@ function buildStartMessage(){
     `🎯 *Pattern ngayong gabi:* ${p.name}\n\n` +
     `${grid}\n` +
     `_(🟨 = kailangang markahan · ⬛ = hindi kailangan)_\n\n` +
-    `⏰ Bawat 30 minuto, may bagong numero!\n` +
+    `🏆 *Prize ngayong gabi:* ${DB.game.prize||'TBA'}\n` +
+    `⏰ Bawat ${DB.drawIntervalMin||30} minuto, may bagong numero!\n` +
     `🙋 *Mag-RSVP muna!* Pindutin ang "I'm Playing This Round" sa player portal bago mag-umpisa ang unang draw — kapag nag-umpisa na, sarado na ang pagsali.\n` +
     `🏆 Manalo ka? I-click ang BINGO button sa iyong screen!\n\n` +
-    `Tara, mga Bayani — magkasama tayong susuong sa gabing ito! Para sa mga nag-iisang lumalaban at sa mga nanay na nagsasakripisyo, kasama namin kayo dito. Salamat sa pagpunta ngayong gabi at sa pakikipaglaban sa antok — hindi madali ang puyat, pero ginagawa niyo pa rin. Hindi kayo nag-iisa, pamilya rin tayo dito sa SMB. Let's make this shift one for the books! 💪🌙`;
+    `Mga Bayani — maraming salamat. Sa pagpunta, sa pagtiyaga, sa pagmahal sa trabaho kahit puyat. Tonight is yours — relax, enjoy, and let's BINGO! Work is better kapag masaya tayo. 💙🌙`;
 }
 
 function buildRsvpMessage(playerName, totalCount){
@@ -1786,14 +1908,15 @@ function buildWinMessage(claimant){
   const drawCount=g.drawnNumbers.length;
   const calledList=g.drawnNumbers.map(x=>x.full).join(' · ');
   const patternName=g.pattern.name;
+  const prize=g.prize||'—';
 
   const styles=[ buildHypeManWin, buildRoastWin, buildGameShowWin ];
   const pick=styles[Math.floor(Math.random()*styles.length)];
-  return pick(claimant, drawCount, calledList, patternName);
+  return pick(claimant, drawCount, calledList, patternName, prize);
 }
 
 // Style 1: WILD MANIC HYPE-MAN
-function buildHypeManWin(claimant, drawCount, calledList, patternName){
+function buildHypeManWin(claimant, drawCount, calledList, patternName, prize){
   const openers=[
     `🚨🚨🚨 STOP EVERYTHING! 🚨🚨🚨`,
     `📢📢📢 OOOOOOOH MY GAAAD! 📢📢📢`,
@@ -1808,13 +1931,13 @@ function buildHypeManWin(claimant, drawCount, calledList, patternName){
   ];
   return `${openers[Math.floor(Math.random()*openers.length)]}\n\n` +
     `${lines[Math.floor(Math.random()*lines.length)]}\n\n` +
-    `🎯 Pattern: *${patternName}*\n🎱 Natapos sa Draw #${drawCount}!\n📋 Called: ${calledList}\n\n` +
+    `🎯 Pattern: *${patternName}*\n🏆 Prize: *${prize}*\n🎱 Natapos sa Draw #${drawCount}!\n📋 Called: ${calledList}\n\n` +
     `LEVEL UP NA SI *${claimant.toUpperCase()}* SA LIFE! 🚀🚀🚀 Bayaning Puyat Champion ka na ngayong gabi! 👑🌙\n\n` +
     `_(Confetti emoji activated. Imagine it. 🎊🎊🎊)_`;
 }
 
 // Style 2: WITTY ROAST-STYLE (playful jabs, Filipino humor)
-function buildRoastWin(claimant, drawCount, calledList, patternName){
+function buildRoastWin(claimant, drawCount, calledList, patternName, prize){
   const roasts=[
     `Hala, si *${claimant}* pala may swerte sa BINGO — sa trabaho kaya, meron din? 😏 Char lang, congrats!`,
     `Grabe, mas mabilis pa mag-bingo si *${claimant}* kaysa mag-submit ng report. Pero okay lang, panalo eh! 😂`,
@@ -1828,12 +1951,12 @@ function buildRoastWin(claimant, drawCount, calledList, patternName){
   ];
   return `🏆 *MAY NANALO — AT GRABE ANG TIBAY NG SUWERTE!* 🏆\n\n` +
     `${roasts[Math.floor(Math.random()*roasts.length)]}\n\n${taunts[Math.floor(Math.random()*taunts.length)]}\n\n` +
-    `🎯 Pattern: *${patternName}*\n🎱 Draws: ${drawCount}\n📋 Called: ${calledList}\n\n` +
+    `🎯 Pattern: *${patternName}*\n🏆 Prize: *${prize}*\n🎱 Draws: ${drawCount}\n📋 Called: ${calledList}\n\n` +
     `Congrats talaga, *${claimant}*! Bayani ka ng gabi na 'to! 🌙🎊 (Treat naman jan sa susunod na payday, ha? 👀)`;
 }
 
 // Style 3: GAME-SHOW HOST DRAMA (epic build-up, suspense, big reveal)
-function buildGameShowWin(claimant, drawCount, calledList, patternName){
+function buildGameShowWin(claimant, drawCount, calledList, patternName, prize){
   const buildups=[
     `🎙️ *"Ladies and gentlemen... mga Bayaning Puyat..."* 🎙️`,
     `🎬 *The tension was UNBEARABLE. The office held its breath...* 🎬`,
@@ -1846,7 +1969,7 @@ function buildGameShowWin(claimant, drawCount, calledList, patternName){
   ];
   return `${buildups[Math.floor(Math.random()*buildups.length)]}\n\n` +
     `${reveals[Math.floor(Math.random()*reveals.length)]}\n\n` +
-    `🎯 Winning Pattern: *${patternName}*\n🎱 Sealed the deal on Draw #${drawCount}\n📋 Full call sheet: ${calledList}\n\n` +
+    `🎯 Winning Pattern: *${patternName}*\n🏆 Prize: *${prize}*\n🎱 Sealed the deal on Draw #${drawCount}\n📋 Full call sheet: ${calledList}\n\n` +
     `*Roll credits.* 🎬 *Cue the applause.* 👏👏👏 A legend is born tonight in the SMB Bayaning Puyat arena! 🌙🏆\n\n` +
     `_Same time tomorrow night? The crown is up for grabs again! 😏_`;
 }
@@ -1902,6 +2025,38 @@ async function postToSlack(text){
   renderCustomPatternEditor();
   syncPatternSetupAvailability();
 })();
+
+
+// ════════════════════════════════════════════════════════════
+//  BROWSER NOTIFICATIONS — alert players when a number drops
+//  even if they have the tab in the background
+// ════════════════════════════════════════════════════════════
+function requestNotifPermission(){
+  if(!('Notification' in window)) return;
+  Notification.requestPermission().then(perm=>{
+    const box = document.getElementById('notifPermBox');
+    if(box) box.style.display='none';
+    if(perm==='granted'){
+      new Notification('🎱 SMB BINGO', {
+        body: 'Notifications enabled! Maabisuhan ka kapag may bagong draw. 🌙',
+        icon: '🎱'
+      });
+    }
+    playerLog(perm==='granted' ? '🔔 Notifications enabled!' : 'Notifications not enabled — okay lang!','info');
+  });
+}
+
+function fireDrawNotification(pick){
+  if(!('Notification' in window) || Notification.permission!=='granted') return;
+  const callout = CALLOUTS[pick.full] || `${pick.full}!`;
+  try {
+    new Notification(`🎱 ${pick.full} — Bagong Draw!`, {
+      body: callout.replace(/[*_~]/g,'').substring(0,100),
+      tag: 'smb-bingo-draw', // replaces previous notif so they don't stack up
+      renotify: true,
+    });
+  } catch(e){ /* silently ignore if notifications aren't supported */ }
+}
 
 // ════════════════════════════════════════════════════════════
 //  PIN CHANGE (PLAYER SELF-SERVICE)
