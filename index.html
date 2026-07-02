@@ -380,7 +380,7 @@ textarea{resize:vertical;min-height:60px;}
             <!-- Prize for this game -->
             <div class="panel" style="padding:12px;margin-bottom:12px;background:var(--card-bg);" id="prizeSetupPanel">
               <div class="panel-title" style="margin-bottom:8px;">🏆 Prize This Game</div>
-              <input type="text" id="prizeInput" placeholder="e.g. ₱500 GCash, Extra VL, Jollibee treat..." style="margin-bottom:0;"/>
+              <input type="text" id="prizeInput" placeholder="Default: PHP 500 — type to override (e.g. Extra VL, Jollibee treat...)" style="margin-bottom:0;"/>
             </div>
 
             <button class="btn btn-gold btn-full" id="adminStartBtn" onclick="adminStartGame()">🎉 Start New Game</button>
@@ -1237,7 +1237,7 @@ async function adminStartGame(){
     rsvpPlayerIds:[], // players who hit "I'm Playing This Round" before lock
     drawnNumbers:[],calledSet:[],
     pattern,
-    prize: prize || 'TBA',
+    prize: prize || 'PHP 500',
     playerCards:{},   // populated lazily as players RSVP (or all at once when lobby locks)
     playerMarks:{}, // {playerId: {cardIndex: {cellIndex: emoji}}}
     startedAt:Date.now(),
