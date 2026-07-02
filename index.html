@@ -420,45 +420,23 @@ textarea{resize:vertical;min-height:60px;}
         </div>
       </div>
       <div class="panel">
-        <div class="panel-title">🏆 Winner Leaderboard</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+          <div class="panel-title" style="margin-bottom:0;">🏆 Winner Leaderboard</div>
+          <button class="btn btn-danger btn-sm" onclick="clearLeaderboard()">🗑️ Clear</button>
+        </div>
         <div id="leaderboardContent"><div class="empty-state">No games completed yet.</div></div>
       </div>
       <div class="panel">
-        <div class="panel-title">📋 Game History</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+          <div class="panel-title" style="margin-bottom:0;">📋 Game History</div>
+          <button class="btn btn-danger btn-sm" onclick="clearGameHistory()">🗑️ Clear</button>
+        </div>
         <div id="historyContent"><div class="empty-state">No game history yet.</div></div>
       </div>
     </div>
 
     <!-- TAB: SETTINGS -->
     <div class="tab-content" id="tab-settings">
-
-      <!-- AUTO-SCHEDULER -->
-      <div class="panel">
-        <div class="panel-title">⏰ Auto-Scheduler</div>
-        <div class="info-box">Set the times for automatic game flow. All times are PHT (9PM–5AM shift). The game will fire each step automatically — no need to manually click.</div>
-        <div class="grid-2">
-          <div>
-            <label>📢 Announcement Time (Slack invite sent)</label>
-            <input type="time" id="schedAnnounce" value="21:15"/>
-          </div>
-          <div>
-            <label>🔒 RSVP Lock Time</label>
-            <input type="time" id="schedRsvpLock" value="21:55"/>
-          </div>
-        </div>
-        <div class="grid-2">
-          <div>
-            <label>🎱 First Draw Time</label>
-            <input type="time" id="schedFirstDraw" value="22:15"/>
-          </div>
-          <div>
-            <label>🛑 Shift End Time (auto-reset if no winner)</label>
-            <input type="time" id="schedShiftEnd" value="05:00"/>
-          </div>
-        </div>
-        <div class="warn-box">⚠️ The scheduler only fires if the admin portal is open in the browser at the scheduled time. Keep the admin tab open during the shift for fully automatic operation.</div>
-        <button class="btn btn-teal btn-sm" onclick="saveSettings()">Save Schedule</button>
-      </div>
 
       <!-- CLOSING MESSAGE PREVIEW -->
       <div class="panel" id="closingMsgPanel">
@@ -768,10 +746,9 @@ const PATTERNS = [
 
 // Default roster — all start with PIN 1234. Jan Rome is seeded but inactive (per admin rule).
 const DEFAULT_ROSTER = [
-  'Francine','Gilda','Winnie','Paul John','Charles','Junalyn','Jenifer',
-  'Mitzi','Grace','Mary Jane','Issamari','Fatima','Rose Veronica Jane',
-  'Gretchen','Joshua Jhaysen','Diana Joy','Jubilee','Dianica','Jennylyn',
-  'Jan Benedict','Charlote','Cathlene','Clarisse','Jan Rome','Erika','Leira Lyn'
+  'Gilda','Winnie','Charlz','Juna','Jenifer','Mitzi','Skye','MJ',
+  'Issa','Fatima','Rose','Gretchen','JJ','Wence','Jubilee','Nica',
+  'Jenn','Ochi','Cha','Cath','Claire','Eri','Lei'
 ];
 
 function buildDefaultPlayers() {
@@ -780,7 +757,7 @@ function buildDefaultPlayers() {
     name,
     pin: '1234',
     maxCards: 3,
-    active: name !== 'Jan Rome', // Jan Rome excluded per standing rule
+    active: true,
     pinChanged: false,
   }));
 }
@@ -908,13 +885,9 @@ async function submitAdminPin() {
     document.getElementById('settingsWebhook').value = DB.webhookUrl;
     document.getElementById('settingsProxyUrl').value = DB.proxyUrl || '';
     const sel=document.getElementById('settingsInterval'); if(sel) sel.value = DB.drawIntervalMin||10;
-    document.getElementById('schedAnnounce').value = DB.schedAnnounce||'21:15';
-    document.getElementById('schedRsvpLock').value  = DB.schedRsvpLock||'21:55';
-    document.getElementById('schedFirstDraw').value = DB.schedFirstDraw||'22:15';
-    document.getElementById('schedShiftEnd').value  = DB.schedShiftEnd||'05:00';
+
     if(_adminPoll) clearInterval(_adminPoll);
     _adminPoll = setInterval(()=>{ refreshAdminGame(); refreshRosterUI(); }, 5000);
-    startScheduler(); // start auto-scheduler
   } else {
     document.getElementById('adminPinError').textContent='Maling PIN! Try ulit.';
     setTimeout(()=>document.getElementById('adminPinError').textContent='',2000);
@@ -1601,29 +1574,29 @@ function isWithinShift(){
   return h>=21||h<5;
 }
 
-// If a game carries over to a new shift without a winner, reopen the lobby
-// for that shift so players who didn't play last night can RSVP fresh —
-// but only if no balls have been drawn yet THIS shift (we track via lastShiftDate).
-function getShiftDateKey(){
-  // Treats 9PM–4:59AM as one "shift night", keyed by the date the shift started
-  const now = new Date();
-  const h = now.getHours();
-  const d = new Date(now);
-  if(h < 5) d.setDate(d.getDate()-1); // before 5AM still belongs to previous day's shift
-  return d.toISOString().slice(0,10); // YYYY-MM-DD
-}
+// 5AM PHT: auto-reset game, clear history, send closing message
+let _shiftResetFired = '';
 
 async function checkShiftRollover(){
-  const g = DB.game;
-  if(!g || !g.active || g.ended) return;
-  const todayKey = getShiftDateKey();
-  if(g.currentShiftKey !== todayKey){
-    // New shift started — game continues, reopen RSVP for this fresh shift
-    g.currentShiftKey = todayKey;
-    g.lobbyOpen = true;
+  const now = new Date();
+  const h = now.getHours();
+  const todayKey = now.toISOString().slice(0,10);
+
+  // Fire at 5AM exactly (once per day)
+  if(h === 5 && _shiftResetFired !== todayKey){
+    _shiftResetFired = todayKey;
+    adminLog('⏰ 5AM PHT — shift ended. Sending closing message and resetting game.','info');
+
+    // Send closing message (generate if not already done)
+    if(!_generatedClosingMsg) await generateClosingMessage();
+    await sendClosingMessage();
+
+    // Reset game only — history and leaderboard are preserved
+    DB.game = null;
     await saveDB();
-    adminLog(`🌙 Bagong shift! Game continues from last night (${g.drawnNumbers.length} drawn so far). RSVP reopened for tonight.`,'info');
-    postToSlack(`🌙 *Bagong shift, parehong laro!* Walang nanalo kagabi, kaya tuloy pa rin ang BINGO night ngayon!\n\n📋 Natawag na: ${g.drawnNumbers.map(x=>x.full).join(' · ')||'wala pa'}\n🎯 Pattern: *${g.pattern.name}*\n\n🙋 Mag-RSVP ulit kung gusto mong sumali ngayong gabi: ${PLAYER_PORTAL_LINK}`);
+    refreshAdminGame();
+    refreshRosterUI();
+    adminLog('✅ Game reset for new shift. History preserved.','ok');
   }
 }
 
@@ -1939,14 +1912,9 @@ async function saveSettings(){
   if([3,5,10,15,20,25,30].includes(interval)) DB.drawIntervalMin=interval;
   if(webhook) DB.webhookUrl=webhook;
   DB.proxyUrl=proxy;
-  // Scheduler times
-  DB.schedAnnounce = document.getElementById('schedAnnounce').value || '21:15';
-  DB.schedRsvpLock = document.getElementById('schedRsvpLock').value || '21:55';
-  DB.schedFirstDraw = document.getElementById('schedFirstDraw').value || '22:15';
-  DB.schedShiftEnd  = document.getElementById('schedShiftEnd').value  || '05:00';
+
   await saveDB();
   updateTimerIntervalLabel();
-  startScheduler(); // restart scheduler with new times
   document.getElementById('settingsSaved').textContent='✅ Settings saved!';
   setTimeout(()=>document.getElementById('settingsSaved').textContent='',3000);
 }
@@ -2149,104 +2117,22 @@ async function postToSlack(text){
 
 
 // ════════════════════════════════════════════════════════════
-//  AUTO-SCHEDULER — fires game steps at configured times
+//  HISTORY & LEADERBOARD MANAGEMENT
 // ════════════════════════════════════════════════════════════
-let _schedulerInterval = null;
-let _scheduledStepsFired = {}; // tracks which steps fired today to avoid double-firing
-
-function getTimeKey(){ return new Date().toISOString().slice(0,10); } // YYYY-MM-DD
-
-function timeToMinutes(timeStr){
-  // Convert "HH:MM" to minutes since midnight. Times before 8AM are treated as next-day (overnight shift)
-  if(!timeStr) return null;
-  const [h,m] = timeStr.split(':').map(Number);
-  return h * 60 + m;
+async function clearGameHistory(){
+  if(!confirm('Clear all game history? This cannot be undone.')) return;
+  DB.gameHistory = [];
+  await saveDB();
+  refreshDashboard();
+  adminLog('Game history cleared.','info');
 }
 
-function currentMinutes(){
-  const n = new Date();
-  return n.getHours() * 60 + n.getMinutes();
-}
-
-function startScheduler(){
-  if(_schedulerInterval) clearInterval(_schedulerInterval);
-  _scheduledStepsFired = {};
-  _schedulerInterval = setInterval(checkScheduler, 30000); // check every 30 seconds
-  checkScheduler(); // also check immediately
-}
-
-async function checkScheduler(){
-  const dateKey = getTimeKey();
-  if(!DB.schedAnnounce) return; // scheduler not configured yet
-  const now = currentMinutes();
-
-  // Helper: has this step fired today?
-  function fired(step){ return !!_scheduledStepsFired[dateKey + '_' + step]; }
-  function markFired(step){ _scheduledStepsFired[dateKey + '_' + step] = true; }
-
-  // Convert times — treat times < 480 (8AM) as post-midnight (add 24h for comparison only if current time is also post-midnight)
-  function resolveMin(t){
-    const m = timeToMinutes(t);
-    if(m === null) return null;
-    return m;
-  }
-
-  const nowAdj = now; // PHT current minutes since midnight
-
-  // ── STEP 1: Announce game (send Slack invite) ──
-  const announceMin = resolveMin(DB.schedAnnounce);
-  if(announceMin !== null && nowAdj >= announceMin && !fired('announce') && !DB.game){
-    markFired('announce');
-    adminLog('⏰ Scheduler: Sending game announcement...','info');
-    await adminStartGame();
-  }
-
-  // ── STEP 2: Lock RSVP ──
-  const rsvpLockMin = resolveMin(DB.schedRsvpLock);
-  if(rsvpLockMin !== null && nowAdj >= rsvpLockMin && !fired('rsvpLock') && DB.game && DB.game.lobbyOpen){
-    markFired('rsvpLock');
-    await lockGameLobby();
-    adminLog('⏰ Scheduler: RSVP locked.','info');
-  }
-
-  // ── STEP 3: First draw ──
-  const firstDrawMin = resolveMin(DB.schedFirstDraw);
-  if(firstDrawMin !== null && nowAdj >= firstDrawMin && !fired('firstDraw') && DB.game && DB.game.active && DB.game.drawnNumbers.length===0){
-    markFired('firstDraw');
-    adminLog('⏰ Scheduler: First draw!','info');
-    await adminDrawNumber();
-    startAdminTimer(); // start interval timer after first draw
-  }
-
-  // ── STEP 4: Shift end — auto-reset if no winner ──
-  const shiftEndMin = resolveMin(DB.schedShiftEnd);
-  // Auto-generate closing message 30 minutes before shift end
-  const preCloseMin = shiftEndMin !== null ? shiftEndMin - 30 : null;
-  if(preCloseMin !== null && nowAdj >= preCloseMin && !fired('preClose') && !_generatedClosingMsg){
-    markFired('preClose');
-    adminLog('⏰ Scheduler: Auto-generating closing message (30 min before shift end)...','info');
-    generateClosingMessage();
-  }
-
-  if(shiftEndMin !== null && nowAdj >= shiftEndMin && !fired('shiftEnd')){
-    markFired('shiftEnd');
-    adminLog('⏰ Scheduler: Shift ended.','info');
-    await handleShiftEnd();
-  }
-}
-
-async function handleShiftEnd(){
-  // Send closing message then reset
-  await sendClosingMessage();
-  if(DB.game && !DB.game.ended){
-    DB.game.active = false;
-    DB.game.ended = true;
-    DB.game.claimedBy = null;
-    DB.game.autoReset = true;
-    await saveDB();
-    refreshAdminGame();
-  }
-  adminLog('Shift ended. Game auto-reset for next shift.','info');
+async function clearLeaderboard(){
+  if(!confirm('Clear the leaderboard? This removes all win tallies.')) return;
+  DB.gameHistory = [];
+  await saveDB();
+  refreshDashboard();
+  adminLog('Leaderboard cleared.','info');
 }
 
 // ════════════════════════════════════════════════════════════
