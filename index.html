@@ -431,6 +431,47 @@ textarea{resize:vertical;min-height:60px;}
 
     <!-- TAB: SETTINGS -->
     <div class="tab-content" id="tab-settings">
+
+      <!-- AUTO-SCHEDULER -->
+      <div class="panel">
+        <div class="panel-title">⏰ Auto-Scheduler</div>
+        <div class="info-box">Set the times for automatic game flow. All times are PHT (9PM–5AM shift). The game will fire each step automatically — no need to manually click.</div>
+        <div class="grid-2">
+          <div>
+            <label>📢 Announcement Time (Slack invite sent)</label>
+            <input type="time" id="schedAnnounce" value="21:15"/>
+          </div>
+          <div>
+            <label>🔒 RSVP Lock Time</label>
+            <input type="time" id="schedRsvpLock" value="21:55"/>
+          </div>
+        </div>
+        <div class="grid-2">
+          <div>
+            <label>🎱 First Draw Time</label>
+            <input type="time" id="schedFirstDraw" value="22:15"/>
+          </div>
+          <div>
+            <label>🛑 Shift End Time (auto-reset if no winner)</label>
+            <input type="time" id="schedShiftEnd" value="05:00"/>
+          </div>
+        </div>
+        <div class="warn-box">⚠️ The scheduler only fires if the admin portal is open in the browser at the scheduled time. Keep the admin tab open during the shift for fully automatic operation.</div>
+        <button class="btn btn-teal btn-sm" onclick="saveSettings()">Save Schedule</button>
+      </div>
+
+      <!-- CLOSING MESSAGE PREVIEW -->
+      <div class="panel" id="closingMsgPanel">
+        <div class="panel-title">💬 Shift-End Closing Message Preview</div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:10px;">Auto-generated before shift end. Approve to send, or it sends automatically at shift end.</div>
+        <div id="closingMsgPreview" style="background:var(--card-bg);border-radius:8px;padding:12px;font-size:13px;color:var(--white);line-height:1.6;min-height:60px;white-space:pre-wrap;">Click "Generate" to preview tonight's closing message.</div>
+        <div class="flex-row" style="margin-top:10px;">
+          <button class="btn btn-teal btn-sm" onclick="generateClosingMessage()">✨ Generate</button>
+          <button class="btn btn-gold btn-sm" id="approveClosingBtn" onclick="approveAndSendClosing()" disabled>✅ Approve & Send Now</button>
+        </div>
+        <div id="closingMsgStatus" style="font-size:11px;color:var(--muted);margin-top:6px;"></div>
+      </div>
+
       <div class="panel">
         <div class="panel-title">⚙️ Game Settings</div>
         <div class="grid-2">
@@ -441,10 +482,13 @@ textarea{resize:vertical;min-height:60px;}
           <div>
             <label>Draw Interval</label>
             <select id="settingsInterval">
+              <option value="3">Every 3 minutes</option>
+              <option value="5">Every 5 minutes</option>
+              <option value="10" selected>Every 10 minutes</option>
               <option value="15">Every 15 minutes</option>
-              <option value="30" selected>Every 30 minutes</option>
-              <option value="45">Every 45 minutes</option>
-              <option value="60">Every 60 minutes</option>
+              <option value="20">Every 20 minutes</option>
+              <option value="25">Every 25 minutes</option>
+              <option value="30">Every 30 minutes</option>
             </select>
           </div>
         </div>
@@ -516,20 +560,39 @@ textarea{resize:vertical;min-height:60px;}
       <div id="rsvpPanelContent"></div>
     </div>
 
-    <!-- Player cards -->
-    <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;color:var(--teal);text-transform:uppercase;margin-bottom:10px;">Your Cards</div>
+    <!-- Pattern display for player -->
+    <div id="playerPatternDisplay" style="display:none;background:var(--deep);border:1px solid rgba(245,200,66,.15);border-radius:var(--r);padding:14px;margin-bottom:14px;text-align:center;">
+      <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;color:var(--teal);text-transform:uppercase;margin-bottom:6px;">Tonight's Winning Pattern</div>
+      <div style="font-size:14px;font-weight:700;color:var(--gold);margin-bottom:8px;" id="playerPatternName">—</div>
+      <div class="pattern-grid" id="playerPatternGrid" style="width:100px;gap:4px;"></div>
+    </div>
 
-    <div class="emoji-palette" id="emojiPalette"></div>
-    <div class="marking-hint">👆 I-tap ang numero para markahan. Tap ulit para tanggalin. <strong>Ikaw ang bahala sa pagmarka — kung hindi mo na-mark, ikaw ang nakaligtaan!</strong></div>
+    <!-- Card generation panel -->
+    <div id="cardGenPanel" style="display:none;background:var(--deep);border:1px solid rgba(46,202,213,.2);border-radius:var(--r);padding:16px;margin-bottom:14px;text-align:center;">
+      <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;color:var(--teal);text-transform:uppercase;margin-bottom:8px;">🎰 Generate Your Cards</div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:12px;">I-generate ang iyong cards. Pwede kang mag-generate ulit hanggang satisfied ka na, tapos i-lock in!</div>
+      <button class="btn btn-gold" style="width:100%;margin-bottom:8px;" onclick="generatePlayerCardsUI()">🎲 Generate Cards</button>
+      <div id="cardGenWrap" class="cards-wrap" style="margin-bottom:10px;"></div>
+      <div id="cardGenHint" style="font-size:11px;color:var(--muted);"></div>
+    </div>
 
-    <div class="cards-wrap" id="playerCardsWrap">
-      <div class="empty-state">Waiting for the host to start the game...</div>
+    <!-- Player cards (locked in) -->
+    <div id="playerCardsSection">
+      <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;color:var(--teal);text-transform:uppercase;margin-bottom:10px;">Your Cards</div>
+      <div class="emoji-palette" id="emojiPalette"></div>
+      <div class="marking-hint">👆 I-tap ang numero para markahan. Tap ulit para tanggalin. <strong>Ikaw ang bahala sa pagmarka — kung hindi mo na-mark, ikaw ang nakaligtaan!</strong></div>
+      <div class="cards-wrap" id="playerCardsWrap">
+        <div class="empty-state">Waiting for the host to start the game...</div>
+      </div>
     </div>
 
     <!-- BINGO claim -->
     <button class="bingo-claim-btn" id="playerBingoBtn" onclick="playerClaimBingo()" disabled>
       🏆 I GOT BINGO! 🏆
     </button>
+    
+    <!-- False BINGO tease -->
+    <div id="falseBingoTease" style="display:none;background:rgba(155,127,232,.15);border:1px solid rgba(155,127,232,.3);border-radius:10px;padding:16px;margin-top:10px;text-align:center;font-size:14px;color:var(--purple);font-weight:600;"></div>
 
     <div class="log-box" id="playerLog" style="margin-top:12px;"></div>
 
@@ -716,7 +779,7 @@ function buildDefaultPlayers() {
     id: 'default_' + idx,
     name,
     pin: '1234',
-    maxCards: 2,
+    maxCards: 3,
     active: name !== 'Jan Rome', // Jan Rome excluded per standing rule
     pinChanged: false,
   }));
@@ -726,7 +789,7 @@ let DB = {
   adminPin: '0000',
   webhookUrl: 'https://hooks.slack.com/services/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',
   proxyUrl: '',
-  drawIntervalMin: 30,
+  drawIntervalMin: 10,
   players: [],
   game: null,
 };
@@ -844,9 +907,14 @@ async function submitAdminPin() {
     refreshAdminGame();
     document.getElementById('settingsWebhook').value = DB.webhookUrl;
     document.getElementById('settingsProxyUrl').value = DB.proxyUrl || '';
-    const sel=document.getElementById('settingsInterval'); if(sel) sel.value = DB.drawIntervalMin||30;
+    const sel=document.getElementById('settingsInterval'); if(sel) sel.value = DB.drawIntervalMin||10;
+    document.getElementById('schedAnnounce').value = DB.schedAnnounce||'21:15';
+    document.getElementById('schedRsvpLock').value  = DB.schedRsvpLock||'21:55';
+    document.getElementById('schedFirstDraw').value = DB.schedFirstDraw||'22:15';
+    document.getElementById('schedShiftEnd').value  = DB.schedShiftEnd||'05:00';
     if(_adminPoll) clearInterval(_adminPoll);
     _adminPoll = setInterval(()=>{ refreshAdminGame(); refreshRosterUI(); }, 5000);
+    startScheduler(); // start auto-scheduler
   } else {
     document.getElementById('adminPinError').textContent='Maling PIN! Try ulit.';
     setTimeout(()=>document.getElementById('adminPinError').textContent='',2000);
@@ -1211,7 +1279,7 @@ async function lockGameLobby(){
   adminLog(`Lobby locked. ${DB.game.rsvpPlayerIds.length} player(s) joined this round.`,'info');
 }
 
-async function adminDrawNumber(){
+async function adminDrawNumber(fromScheduler=false){
   if(!DB.game||!DB.game.active||DB.game.ended) return;
   if(DB.game.lobbyOpen) await lockGameLobby(); // first draw permanently closes RSVP for this round
   const called=new Set(DB.game.calledSet);
@@ -1229,8 +1297,9 @@ async function adminDrawNumber(){
   postToSlack(buildDrawMessage(pick,DB.game.drawnNumbers.length,callout));
   // Check winners
   checkAllWinners();
-  // reset timer
-  startAdminTimer();
+  // Only reset the interval timer if this was a MANUAL draw (Item 4)
+  // Scheduler-fired draws do not interfere with the auto-draw timer
+  if(!fromScheduler) startAdminTimer();
 }
 
 function checkAllWinners(){
@@ -1653,15 +1722,33 @@ function renderRsvpPanel(g){
   const hasRsvpd = (g.rsvpPlayerIds||[]).includes(currentPlayer.id);
   panel.style.display = 'block';
 
-  if(hasRsvpd){
-    content.innerHTML = `<div style="color:var(--success);font-weight:700;font-size:14px;">✅ Nakapag-RSVP ka na! ${g.lobbyOpen ? 'Naghihintay ng unang draw...' : 'Laro na!'}</div>`;
+  // Check if player has any locked-in cards already
+  const hasCards = !!(DB.game?.playerCards?.[currentPlayer.id]?.length);
+
+  if(hasRsvpd && hasCards){
+    // Already RSVPd and cards are locked — show ready status
+    const cardGenPanel = document.getElementById('cardGenPanel');
+    if(cardGenPanel) cardGenPanel.style.display='none';
+    content.innerHTML = `<div style="color:var(--success);font-weight:700;font-size:14px;">✅ Handa ka na! ${g.lobbyOpen ? 'Naghihintay ng unang draw...' : 'Laro na! Mark mo na ang iyong cards!'}</div>`;
+  } else if(hasRsvpd && !hasCards){
+    // RSVPd but no cards yet — show generate button
+    const cardGenPanel = document.getElementById('cardGenPanel');
+    if(cardGenPanel) cardGenPanel.style.display='block';
+    content.innerHTML = `<div style="color:var(--teal);font-weight:700;font-size:14px;">✅ Nakapag-RSVP ka na! I-generate mo na ang iyong cards sa ibaba. 👇</div>`;
   } else if(g.lobbyOpen){
+    const cardGenPanel = document.getElementById('cardGenPanel');
+    if(cardGenPanel) cardGenPanel.style.display='none';
     content.innerHTML = `
       <div style="font-size:13px;color:var(--muted);margin-bottom:10px;">Sasali ka ba ngayong round? I-confirm bago mag-umpisa ang unang draw!</div>
       <button class="btn btn-gold" style="width:100%;" onclick="playerRsvp()">🙋 I'm Playing This Round</button>
     `;
+  } else if(!hasCards){
+    // Lobby closed but player never RSVP'd — still let them generate cards (Item 2)
+    const cardGenPanel = document.getElementById('cardGenPanel');
+    if(cardGenPanel) cardGenPanel.style.display='block';
+    content.innerHTML = `<div style="color:var(--gold);font-weight:700;font-size:14px;">⚠️ Late ka! RSVP ay sarado na — pero pwede ka pa ring sumali. I-generate ang iyong cards sa ibaba!</div>`;
   } else {
-    content.innerHTML = `<div style="color:var(--danger);font-weight:700;font-size:14px;">🔒 Sarado na ang RSVP — nag-umpisa na ang draws. Sa susunod na round ka na lang!</div>`;
+    content.innerHTML = `<div style="color:var(--success);font-weight:700;font-size:14px;">✅ Nakalaro ka na! Mark mo na ang iyong cards!</div>`;
   }
 }
 
@@ -1700,6 +1787,23 @@ async function refreshPlayerScreen(){
   if(prizeDisplay && prizeText && g.prize && g.prize !== 'TBA'){
     prizeDisplay.style.display='block';
     prizeText.textContent = g.prize;
+  }
+
+  // Show winning pattern on player screen (Item 9)
+  const patternDisplay = document.getElementById('playerPatternDisplay');
+  const patternNameEl = document.getElementById('playerPatternName');
+  const patternGridEl = document.getElementById('playerPatternGrid');
+  if(patternDisplay && g.pattern){
+    patternDisplay.style.display='block';
+    if(patternNameEl) patternNameEl.textContent = g.pattern.name;
+    if(patternGridEl){
+      patternGridEl.innerHTML='';
+      (g.pattern.cells||[]).forEach(on=>{
+        const d=document.createElement('div');
+        d.className=`pcell${on?' on':''}`;
+        patternGridEl.appendChild(d);
+      });
+    }
   }
 
   // Show notification permission button if not yet granted
@@ -1770,22 +1874,32 @@ async function playerClaimBingo(){
   const myMarks=(g.playerMarks&&g.playerMarks[currentPlayer.id])||{};
 
   // Find which of the player's cards they believe has won, and cross-check vs real calledSet
-  let claimedCardIndex=-1, verifiedAgainstReal=false;
+  let claimedCardIndex=-1, verifiedAgainstReal=false, hasManualWin=false;
   cards.forEach((card,ci)=>{
     const cardMarks=myMarks[ci]||{};
     if(checkWinManual(card.grid,g.pattern,cardMarks) && claimedCardIndex===-1){
       claimedCardIndex=ci;
       verifiedAgainstReal=checkWin(card.grid,g.pattern,calledSet);
+      hasManualWin=true;
     }
   });
 
+  // Item 8: If player has NOT actually completed the pattern with their marks, show tease
+  if(!hasManualWin){
+    showFalseBingoTease();
+    return;
+  }
+
+  // Item 8: If marks are wrong vs real called numbers, show tease
+  if(!verifiedAgainstReal){
+    showFalseBingoTease();
+    playerLog('⚠️ BINGO claim failed system check — marks may not match actually called numbers.','err');
+    return;
+  }
+
   playerLog(`Nag-claim ng BINGO si ${currentPlayer.name}! Hintayin ang admin na i-confirm... 🏆`,'ok');
 
-  const verifyLine = verifiedAgainstReal
-    ? '✅ _Cross-check: marks match the real called numbers._'
-    : '⚠️ _Cross-check: marks do NOT fully match the real called list — please verify manually before confirming!_';
-
-  postToSlack(`🙋 *BINGO CLAIM!*\n\n*${currentPlayer.name}* claims BINGO on Card ${claimedCardIndex+1}!\n\nPattern: *${g.pattern.name}*\nDraw #${g.drawnNumbers.length}\n\n${verifyLine}\n\n_Admin: Please verify on the Game Control tab and end the game! 🏆_`);
+  postToSlack(`🙋 *BINGO CLAIM!*\n\n*${currentPlayer.name}* claims BINGO on Card ${claimedCardIndex+1}!\n\nPattern: *${g.pattern.name}*\nDraw #${g.drawnNumbers.length}\n\n✅ _System verified: marks match the real called numbers!_\n\n_Admin: Please verify on the Game Control tab and end the game! 🏆_`);
 
   document.getElementById('playerBingoBtn').disabled=true;
   document.getElementById('playerBingoBtn').textContent='✅ Claimed! Waiting for admin...';
@@ -1822,11 +1936,17 @@ async function saveSettings(){
   const proxy=document.getElementById('settingsProxyUrl').value.trim();
   if(pin&&!/^\d{4}$/.test(pin)){alert('PIN ay dapat 4 digits!');return;}
   if(pin) DB.adminPin=pin;
-  if([15,30,45,60].includes(interval)) DB.drawIntervalMin=interval;
+  if([3,5,10,15,20,25,30].includes(interval)) DB.drawIntervalMin=interval;
   if(webhook) DB.webhookUrl=webhook;
-  DB.proxyUrl=proxy; // can be cleared intentionally, so no truthy guard
+  DB.proxyUrl=proxy;
+  // Scheduler times
+  DB.schedAnnounce = document.getElementById('schedAnnounce').value || '21:15';
+  DB.schedRsvpLock = document.getElementById('schedRsvpLock').value || '21:55';
+  DB.schedFirstDraw = document.getElementById('schedFirstDraw').value || '22:15';
+  DB.schedShiftEnd  = document.getElementById('schedShiftEnd').value  || '05:00';
   await saveDB();
   updateTimerIntervalLabel();
+  startScheduler(); // restart scheduler with new times
   document.getElementById('settingsSaved').textContent='✅ Settings saved!';
   setTimeout(()=>document.getElementById('settingsSaved').textContent='',3000);
 }
@@ -2026,6 +2146,352 @@ async function postToSlack(text){
   syncPatternSetupAvailability();
 })();
 
+
+
+// ════════════════════════════════════════════════════════════
+//  AUTO-SCHEDULER — fires game steps at configured times
+// ════════════════════════════════════════════════════════════
+let _schedulerInterval = null;
+let _scheduledStepsFired = {}; // tracks which steps fired today to avoid double-firing
+
+function getTimeKey(){ return new Date().toISOString().slice(0,10); } // YYYY-MM-DD
+
+function timeToMinutes(timeStr){
+  // Convert "HH:MM" to minutes since midnight. Times before 8AM are treated as next-day (overnight shift)
+  if(!timeStr) return null;
+  const [h,m] = timeStr.split(':').map(Number);
+  return h * 60 + m;
+}
+
+function currentMinutes(){
+  const n = new Date();
+  return n.getHours() * 60 + n.getMinutes();
+}
+
+function startScheduler(){
+  if(_schedulerInterval) clearInterval(_schedulerInterval);
+  _scheduledStepsFired = {};
+  _schedulerInterval = setInterval(checkScheduler, 30000); // check every 30 seconds
+  checkScheduler(); // also check immediately
+}
+
+async function checkScheduler(){
+  const dateKey = getTimeKey();
+  if(!DB.schedAnnounce) return; // scheduler not configured yet
+  const now = currentMinutes();
+
+  // Helper: has this step fired today?
+  function fired(step){ return !!_scheduledStepsFired[dateKey + '_' + step]; }
+  function markFired(step){ _scheduledStepsFired[dateKey + '_' + step] = true; }
+
+  // Convert times — treat times < 480 (8AM) as post-midnight (add 24h for comparison only if current time is also post-midnight)
+  function resolveMin(t){
+    const m = timeToMinutes(t);
+    if(m === null) return null;
+    return m;
+  }
+
+  const nowAdj = now; // PHT current minutes since midnight
+
+  // ── STEP 1: Announce game (send Slack invite) ──
+  const announceMin = resolveMin(DB.schedAnnounce);
+  if(announceMin !== null && nowAdj >= announceMin && !fired('announce') && !DB.game){
+    markFired('announce');
+    adminLog('⏰ Scheduler: Sending game announcement...','info');
+    await adminStartGame();
+  }
+
+  // ── STEP 2: Lock RSVP ──
+  const rsvpLockMin = resolveMin(DB.schedRsvpLock);
+  if(rsvpLockMin !== null && nowAdj >= rsvpLockMin && !fired('rsvpLock') && DB.game && DB.game.lobbyOpen){
+    markFired('rsvpLock');
+    await lockGameLobby();
+    adminLog('⏰ Scheduler: RSVP locked.','info');
+  }
+
+  // ── STEP 3: First draw ──
+  const firstDrawMin = resolveMin(DB.schedFirstDraw);
+  if(firstDrawMin !== null && nowAdj >= firstDrawMin && !fired('firstDraw') && DB.game && DB.game.active && DB.game.drawnNumbers.length===0){
+    markFired('firstDraw');
+    adminLog('⏰ Scheduler: First draw!','info');
+    await adminDrawNumber();
+    startAdminTimer(); // start interval timer after first draw
+  }
+
+  // ── STEP 4: Shift end — auto-reset if no winner ──
+  const shiftEndMin = resolveMin(DB.schedShiftEnd);
+  // Auto-generate closing message 30 minutes before shift end
+  const preCloseMin = shiftEndMin !== null ? shiftEndMin - 30 : null;
+  if(preCloseMin !== null && nowAdj >= preCloseMin && !fired('preClose') && !_generatedClosingMsg){
+    markFired('preClose');
+    adminLog('⏰ Scheduler: Auto-generating closing message (30 min before shift end)...','info');
+    generateClosingMessage();
+  }
+
+  if(shiftEndMin !== null && nowAdj >= shiftEndMin && !fired('shiftEnd')){
+    markFired('shiftEnd');
+    adminLog('⏰ Scheduler: Shift ended.','info');
+    await handleShiftEnd();
+  }
+}
+
+async function handleShiftEnd(){
+  // Send closing message then reset
+  await sendClosingMessage();
+  if(DB.game && !DB.game.ended){
+    DB.game.active = false;
+    DB.game.ended = true;
+    DB.game.claimedBy = null;
+    DB.game.autoReset = true;
+    await saveDB();
+    refreshAdminGame();
+  }
+  adminLog('Shift ended. Game auto-reset for next shift.','info');
+}
+
+// ════════════════════════════════════════════════════════════
+//  CLOSING MESSAGE GENERATOR (Claude API powered)
+// ════════════════════════════════════════════════════════════
+let _generatedClosingMsg = null;
+let _closingApproved = false;
+
+async function generateClosingMessage(){
+  const preview = document.getElementById('closingMsgPreview');
+  const approveBtn = document.getElementById('approveClosingBtn');
+  const statusEl = document.getElementById('closingMsgStatus');
+  if(preview) preview.textContent = '✨ Generating...';
+  if(approveBtn) approveBtn.disabled = true;
+  if(statusEl) statusEl.textContent = '';
+
+  const hasWinner = DB.game && DB.game.ended && DB.game.claimedBy;
+  const winner = hasWinner ? DB.game.claimedBy : null;
+  const prize = DB.game?.prize || 'a prize';
+  const draws = DB.game?.drawnNumbers?.length || 0;
+
+  const prompt = `You are writing a short, warm, inspirational end-of-shift message for an overnight BPO team in the Philippines called "Bayaning Puyat" (overnight heroes). The message is from their Project Manager, Sir Rendy.
+
+Context:
+- ${hasWinner ? `Tonight's BINGO winner was ${winner}, who won ${prize} after ${draws} draws.` : `No one won BINGO tonight after ${draws} draws. The game will continue next shift.`}
+- The team just finished an overnight shift (9PM–5AM PHT).
+- They are tired but dedicated.
+
+Write a closing message that:
+1. Starts with a short, punchy work/life quote (credited to its author) in italics
+2. Briefly acknowledges the night's BINGO result in a warm Taglish way
+3. Ends with a genuine, heartfelt message from Sir Rendy — 2-3 sentences max, thanking them for their dedication and reminding them work is better when we enjoy it together
+4. Tone: warm, non-corporate, slightly playful, Taglish, short overall (under 100 words total)
+5. Close with: 💙🌙 — Sir Rendy
+
+Return ONLY the message text, no preamble.`;
+
+  try {
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 1000,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+    const data = await resp.json();
+    const msg = data.content?.[0]?.text || 'Could not generate message.';
+    _generatedClosingMsg = msg;
+    _closingApproved = false;
+    if(preview) preview.textContent = msg;
+    if(approveBtn) approveBtn.disabled = false;
+    if(statusEl) statusEl.textContent = 'Message ready. Approve to send now, or it auto-sends at shift end.';
+    adminLog('✨ Closing message generated.','ok');
+  } catch(e) {
+    if(preview) preview.textContent = 'Could not generate — will use fallback message.';
+    adminLog('Closing message generation failed: ' + e.message, 'err');
+  }
+}
+
+function approveAndSendClosing(){
+  _closingApproved = true;
+  sendClosingMessage();
+}
+
+async function sendClosingMessage(){
+  const hasWinner = DB.game && DB.game.ended && DB.game.claimedBy;
+  let msg = _generatedClosingMsg;
+  if(!msg){
+    // Fallback if not generated
+    if(hasWinner){
+      msg = `_"The secret of getting ahead is getting started."_ — Mark Twain
+
+🏆 Congrats kay *${DB.game.claimedBy}* for winning BINGO tonight! Deserved na deserved!
+
+Mga Bayani — maraming salamat sa inyong dedikasyon ngayong gabi. Kita-kita ulit sa susunod na shift! 💙🌙 — Sir Rendy`;
+    } else {
+      msg = `_"Hard work beats talent when talent doesn't work hard."_ — Tim Notke
+
+Walang nanalo ngayong gabi — pero winner kayo lahat sa mata ni Sir Rendy! 🌙
+
+Salamat sa inyong pagtiyaga at pagmamahal sa trabaho. Tuloy ang laro sa susunod na shift — mas swerte na next time! 💙🌙 — Sir Rendy`;
+    }
+  }
+
+  const slackMsg = `🌙 *SMB BAYANING PUYAT — SHIFT CLOSED* 🌙
+
+${msg}`;
+  await postToSlack(slackMsg);
+  const statusEl = document.getElementById('closingMsgStatus');
+  if(statusEl) statusEl.textContent = '✅ Closing message sent to Slack!';
+  adminLog('Closing message sent to Slack.','ok');
+  _generatedClosingMsg = null;
+  _closingApproved = false;
+}
+
+// ════════════════════════════════════════════════════════════
+//  CARD GENERATION WITH SHUFFLE ANIMATION (ITEM 3)
+// ════════════════════════════════════════════════════════════
+let _pendingCards = []; // cards being previewed before lock-in
+let _lockedCards = {};  // {cardIndex: true} — cards the player has locked in
+
+function generatePlayerCardsUI(){
+  if(!currentPlayer || !DB.game) return;
+  const g = DB.game;
+  const player = currentPlayer;
+  const maxCards = player.maxCards || 3;
+
+  // Generate fresh random cards (new seed each time so they feel truly random)
+  const seed = Date.now() + Math.floor(Math.random() * 99999);
+  _pendingCards = [];
+  _lockedCards = {};
+  for(let i=0;i<maxCards;i++){
+    let s = seed + i * 7919;
+    _pendingCards.push(generateCard(s));
+  }
+
+  renderPendingCards(true); // true = animate shuffle
+
+  const hint = document.getElementById('cardGenHint');
+  if(hint) hint.textContent = `Generated ${maxCards} cards! I-Lock In ang bawat card na gusto mo, o mag-generate ulit.`;
+}
+
+function renderPendingCards(animate){
+  const wrap = document.getElementById('cardGenWrap');
+  if(!wrap) return;
+  wrap.innerHTML = '';
+  const calledSet = new Set(DB.game?.calledSet||[]);
+  const emptyPattern = {cells: Array(25).fill(false)};
+
+  _pendingCards.forEach((grid, ci) => {
+    const isLocked = !!_lockedCards[ci];
+    const cardDiv = document.createElement('div');
+    cardDiv.className = 'bingo-card';
+    cardDiv.style.position = 'relative';
+
+    // Shuffle animation: briefly show random numbers then settle
+    let displayGrid = grid;
+    if(animate && !isLocked){
+      displayGrid = grid.map((v,i) => {
+        if(v === 'FREE') return 'FREE';
+        // Random number in same column range for shuffle effect
+        const letter = LETTERS[Math.floor(i/5)];
+        const [s,e] = COL_RANGES[letter];
+        return Math.floor(Math.random()*(e-s+1))+s;
+      });
+    }
+
+    const headerRow = LETTERS.map(l=>`<div class="card-ltr">${l}</div>`).join('');
+    const cells = displayGrid.map((val,i)=>{
+      const isFree = val==='FREE';
+      return `<div class="ccell${isFree?' free':''}">${isFree?'FREE<br>★':val}</div>`;
+    }).join('');
+
+    cardDiv.innerHTML = `
+      <div class="card-agent">${currentPlayer.name}</div>
+      <div class="card-num">Card ${ci+1} ${isLocked?'🔒 Locked!':''}</div>
+      <div class="card-header-row">${headerRow}</div>
+      <div class="card-grid">${cells}</div>
+      ${isLocked
+        ? `<div style="text-align:center;margin-top:8px;color:var(--success);font-size:12px;font-weight:700;">✅ Card Locked In!</div>`
+        : `<button class="btn btn-gold btn-sm" style="width:100%;margin-top:8px;" onclick="lockInCard(${ci})">🔒 Lock In Card ${ci+1}</button>`
+      }
+    `;
+    wrap.appendChild(cardDiv);
+  });
+
+  // If animating, settle to real numbers after 5 seconds
+  if(animate){
+    let ticks = 0;
+    const interval = setInterval(()=>{
+      ticks++;
+      if(ticks >= 8){ // ~5 seconds at 600ms intervals
+        clearInterval(interval);
+        renderPendingCards(false);
+        return;
+      }
+      // Keep shuffling unlocked cards
+      _pendingCards.forEach((grid, ci) => {
+        if(_lockedCards[ci]) return;
+        const cardDiv = wrap.children[ci];
+        if(!cardDiv) return;
+        const cells = cardDiv.querySelectorAll('.ccell');
+        cells.forEach((cell,i)=>{
+          if(grid[i]==='FREE') return;
+          const letter = LETTERS[Math.floor(i/5)];
+          const [s,e] = COL_RANGES[letter];
+          cell.textContent = Math.floor(Math.random()*(e-s+1))+s;
+        });
+      });
+    }, 600);
+  }
+}
+
+async function lockInCard(cardIndex){
+  if(!currentPlayer || !DB.game) return;
+  _lockedCards[cardIndex] = true;
+
+  // Save this card to the game's playerCards
+  if(!DB.game.playerCards) DB.game.playerCards = {};
+  if(!DB.game.playerCards[currentPlayer.id]) DB.game.playerCards[currentPlayer.id] = [];
+  DB.game.playerCards[currentPlayer.id][cardIndex] = { cardIndex, grid: _pendingCards[cardIndex] };
+
+  await saveDB();
+  renderPendingCards(false);
+
+  // Check if all cards locked
+  const maxCards = currentPlayer.maxCards || 3;
+  const allLocked = Array.from({length:maxCards},(_,i)=>i).every(i=>_lockedCards[i]);
+  if(allLocked){
+    const hint = document.getElementById('cardGenHint');
+    if(hint) hint.textContent = '🎉 Lahat ng cards ay locked in na! Handa ka na!';
+    // Move to main play view after a moment
+    setTimeout(()=>{
+      document.getElementById('cardGenPanel').style.display='none';
+      refreshPlayerScreen();
+    }, 1500);
+  }
+
+  playerLog(`Card ${cardIndex+1} locked in! 🔒`,'ok');
+}
+
+// ════════════════════════════════════════════════════════════
+//  FALSE BINGO TEASE (ITEM 7)
+// ════════════════════════════════════════════════════════════
+const FALSE_BINGO_TEASES = [
+  "Huy huy huy! 👀 Mukhang excited ka pero... hindi pa pala! Double-check mo muna bago sumigaw ng BINGO! 😂",
+  "Ay nako! Nauna ang excitement kaysa sa tunay na panalo! 😄 Check mo ulit ang iyong card, Bayani!",
+  "ALMOST! Pero 'almost' lang 😅 — konti pa, kaya mo 'yan! Keep marking!",
+  "Sabi mo BINGO pero ang card mo ay... 🤔 Baka hindi mo pa natandaan i-mark ang ilang numero? 😂",
+  "Oops! Ang sabi ng system: 'Not yet, friend!' 😄 Ibang Bayani pa ang mananalo, or ikaw pa rin — depende sa susunod na draw!",
+  "Hahaha! 😂 Ang galing ng confidence pero kailangan pa ng konting numero! Keep going, Bayani!",
+];
+
+function showFalseBingoTease(){
+  const tease = FALSE_BINGO_TEASES[Math.floor(Math.random()*FALSE_BINGO_TEASES.length)];
+  const el = document.getElementById('falseBingoTease');
+  if(el){
+    el.textContent = tease;
+    el.style.display = 'block';
+    setTimeout(()=>{ el.style.display='none'; }, 6000);
+  }
+  playerLog('⚠️ Hindi pa BINGO — keep marking!','info');
+}
 
 // ════════════════════════════════════════════════════════════
 //  BROWSER NOTIFICATIONS — alert players when a number drops
