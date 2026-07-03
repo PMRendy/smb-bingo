@@ -772,6 +772,7 @@ let DB = {
 };
 
 let currentPlayer = null;
+// Legacy timer vars kept for compatibility
 let adminTimer = null, adminCountdown = null, adminSecondsLeft = 0;
 let nextDrawAt = null;
 
@@ -934,6 +935,7 @@ function backToPinStep(){
 
 function adminLogout() {
   if(_adminPoll){ clearInterval(_adminPoll); _adminPoll=null; }
+  stopAutoDrawTimer();
   showScreen('screen-landing');
 }
 function playerLogout() {
@@ -1220,8 +1222,9 @@ async function adminStartGame(){
   await saveDB();
   refreshAdminGame();
   adminLog('🎉 New game started! Lobby is open — waiting for players to RSVP.','ok');
-  nextDrawAt = Date.now() + (DB.drawIntervalMin * 60 * 1000); // set target for countdown
-  startCountdownDisplay(); // start ticking immediately — auto-draw fires after first manual draw
+  // Countdown display starts immediately on game start
+  _nextDrawAt = Date.now() + (DB.drawIntervalMin * 60 * 1000);
+  startCountdownDisplay(_nextDrawAt);
   document.getElementById('adminGameBadge').style.display='inline-block';
   postToSlack(buildStartMessage());
   startAdminTimer();
@@ -1254,36 +1257,51 @@ async function lockGameLobby(){
   adminLog(`Lobby locked. ${DB.game.rsvpPlayerIds.length} player(s) joined this round.`,'info');
 }
 
-let _drawLock = false; // prevent concurrent draws causing duplicates
+let _drawLock = false;
 
-async function adminDrawNumber(fromScheduler=false){
-  if(!DB.game||!DB.game.active||DB.game.ended) return;
-  if(_drawLock){ adminLog('Draw in progress, skipping...','info'); return; }
+async function adminDrawNumber(fromTimer=false){
+  if(!DB.game || !DB.game.active || DB.game.ended) return;
+  if(_drawLock){ adminLog('Draw already in progress — skipping.','info'); return; }
   _drawLock = true;
   try {
+    // Lock lobby on first draw
     if(DB.game.lobbyOpen) await lockGameLobby();
-    // Reload fresh state before drawing to avoid stale calledSet
-    await loadDB();
-    if(!DB.game||!DB.game.active||DB.game.ended){ _drawLock=false; return; }
-    const called=new Set(DB.game.calledSet);
-    const pool=allNumbers().filter(x=>!called.has(x.full));
-    if(pool.length===0){adminLog('Lahat ng numero ay natawag na!','info');_drawLock=false;return;}
-    const pick=pool[Math.floor(Math.random()*pool.length)];
-    // Double-check pick not already called (race guard)
-    if(called.has(pick.full)){adminLog('Race condition caught — skipping duplicate.','info');_drawLock=false;return;}
+
+    // Build pool from current in-memory state (don't reload — avoids overwriting pending state)
+    const called = new Set(DB.game.calledSet);
+    const pool = allNumbers().filter(x => !called.has(x.full));
+    if(pool.length === 0){
+      adminLog('All 75 numbers have been drawn!','info');
+      return;
+    }
+
+    const pick = pool[Math.floor(Math.random() * pool.length)];
+
+    // Paranoia check — should never be true but guards against any race
+    if(called.has(pick.full)){
+      adminLog(`Skipped duplicate ${pick.full} — race guard.`,'info');
+      return;
+    }
+
     DB.game.drawnNumbers.push(pick);
     DB.game.calledSet.push(pick.full);
-    DB.game.lastDrawAt=Date.now();
+    DB.game.lastDrawAt = Date.now();
+
+    // Save then refresh
     await saveDB();
     refreshAdminGame();
-    const callout=CALLOUTS[pick.full]||`${pick.full}!`;
+
+    const callout = CALLOUTS[pick.full] || `${pick.full}!`;
     adminLog(`Drew: ${pick.full}`,'info');
-    document.getElementById('adminTagline').textContent=callout;
-    postToSlack(buildDrawMessage(pick,DB.game.drawnNumbers.length,callout));
+    const tagEl = document.getElementById('adminTagline');
+    if(tagEl) tagEl.textContent = callout;
+    postToSlack(buildDrawMessage(pick, DB.game.drawnNumbers.length, callout));
     checkAllWinners();
-    // First manual click starts the auto-draw timer.
-    // Timer-fired draws (fromScheduler=true) never restart the timer — it keeps its own schedule.
-    if(!fromScheduler && !adminTimer) startAdminTimer();
+
+    // First MANUAL draw starts the auto-draw timer.
+    // Timer-fired draws (fromTimer=true) never restart the timer.
+    if(!fromTimer) startAutoDrawTimer();
+
   } finally {
     _drawLock = false;
   }
@@ -1331,9 +1349,7 @@ async function adminEndGame(claimant){
   if(DB.gameHistory.length>50) DB.gameHistory=DB.gameHistory.slice(0,50);
 
   await saveDB();
-  clearInterval(adminTimer);clearInterval(adminCountdown);
-  adminTimer=null;
-  if(_countdownTick){clearInterval(_countdownTick);_countdownTick=null;}
+  stopAutoDrawTimer();
   _drawLock=false;
   document.getElementById('adminDrawBtn').disabled=true;
   document.getElementById('adminBingoBtn').disabled=true;
@@ -1350,9 +1366,7 @@ async function adminEndGame(claimant){
 
 async function adminResetGame(){
   if(!confirm('I-reset ang laro? Mabubura ang kasalukuyang game.')) return;
-  clearInterval(adminTimer);clearInterval(adminCountdown);
-  adminTimer=null;
-  if(_countdownTick){clearInterval(_countdownTick);_countdownTick=null;}
+  stopAutoDrawTimer();
   _drawLock=false;
   DB.game=null;await saveDB();
   refreshAdminGame();
@@ -1366,7 +1380,8 @@ async function adminResetGame(){
 let _adminPoll = null;
 
 async function refreshAdminGame(){
-  await loadDB(); // pull latest shared state so player RSVPs/claims show live
+  // Skip reloading from backend if a draw is in progress — avoids clobbering in-flight state
+  if(!_drawLock) await loadDB();
   const g=DB.game;
   const startBtn=document.getElementById('adminStartBtn');
   const drawBtn=document.getElementById('adminDrawBtn');
@@ -1589,82 +1604,98 @@ function refreshDashboard(){
 }
 
 // ════════════════════════════════════════════════════════════
-//  AUTO-DRAW TIMER
+//  AUTO-DRAW TIMER — completely self-contained
 // ════════════════════════════════════════════════════════════
-function isWithinShift(){
-  const h=new Date().getHours();
-  return h>=21||h<5;
-}
 
-// 5AM PHT: auto-reset game, clear history, send closing message
+// 5AM PHT auto-reset
 let _shiftResetFired = '';
-
-async function checkShiftRollover(){
+async function checkShiftReset(){
   const now = new Date();
   const h = now.getHours();
   const todayKey = now.toISOString().slice(0,10);
-
-  // Fire at 5AM exactly (once per day)
   if(h === 5 && _shiftResetFired !== todayKey){
     _shiftResetFired = todayKey;
-    adminLog('⏰ 5AM PHT — shift ended. Sending closing message and resetting game.','info');
-
-    // Send closing message (generate if not already done)
+    adminLog('⏰ 5AM PHT — shift ended. Resetting game.','info');
     if(!_generatedClosingMsg) await generateClosingMessage();
     await sendClosingMessage();
-
-    // Reset game only — history and leaderboard are preserved
     DB.game = null;
     await saveDB();
     refreshAdminGame();
     refreshRosterUI();
-    adminLog('✅ Game reset for new shift. History preserved.','ok');
+    stopAutoDrawTimer();
+    adminLog('✅ Game reset. History preserved.','ok');
   }
 }
 
 function updateTimerIntervalLabel(){
   const label = document.getElementById('timerIntervalLabel');
-  if(label) label.innerHTML = `Every ${DB.drawIntervalMin} min<br>9PM–5AM PHT`;
+  if(label) label.innerHTML = `Every ${DB.drawIntervalMin} min<br>Auto-draws until BINGO`;
 }
 
-let _countdownTick = null; // single persistent countdown tick — survives refreshAdminGame rerenders
+// ── COUNTDOWN DISPLAY ──
+// A single 500ms interval that always shows the live countdown.
+// Survives refreshAdminGame() rerenders since it writes directly by element ID.
+let _countdownTick = null;
+let _nextDrawAt = null;
 
-function startCountdownDisplay(){
-  // Starts the visible countdown ticking — separate from the actual auto-draw timer.
-  // Survives calls to refreshAdminGame() since it writes directly to the DOM element.
+function startCountdownDisplay(targetTime){
   if(_countdownTick) clearInterval(_countdownTick);
+  _nextDrawAt = targetTime || (Date.now() + DB.drawIntervalMin * 60 * 1000);
   updateTimerIntervalLabel();
-  if(!nextDrawAt) nextDrawAt = Date.now() + (DB.drawIntervalMin * 60 * 1000);
   _countdownTick = setInterval(()=>{
-    const remaining = Math.max(0, Math.round((nextDrawAt - Date.now()) / 1000));
-    const m = Math.floor(remaining / 60);
-    const s = remaining % 60;
     const el = document.getElementById('adminTimerDisplay');
-    if(el) el.textContent = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
-  }, 500); // tick every 500ms for snappier display
+    if(!el) return;
+    const rem = Math.max(0, _nextDrawAt - Date.now());
+    const m = Math.floor(rem / 60000);
+    const s = Math.floor((rem % 60000) / 1000);
+    el.textContent = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+  }, 500);
 }
 
-function startAdminTimer(){
-  clearInterval(adminTimer); clearInterval(adminCountdown);
-  updateTimerIntervalLabel();
-  if(DB.game && !DB.game.currentShiftKey) DB.game.currentShiftKey = getShiftDateKey();
-  const ms = DB.drawIntervalMin * 60 * 1000;
-  nextDrawAt = Date.now() + ms;
-  startCountdownDisplay(); // restart the persistent tick with new nextDrawAt
-  adminTimer = setInterval(async ()=>{
-    if(!DB.game||!DB.game.active||DB.game.ended) return;
-    await checkShiftRollover();
-    if(isWithinShift()) await adminDrawNumber(true); // pass true = from timer, don't restart timer
-    else adminLog('Outside shift hours — auto-draw skipped.','info');
-    nextDrawAt = Date.now() + ms; // update target so countdown resets after each auto-draw
-  }, ms);
+function stopCountdownDisplay(){
+  if(_countdownTick){ clearInterval(_countdownTick); _countdownTick = null; }
+  _nextDrawAt = null;
+  const el = document.getElementById('adminTimerDisplay');
+  if(el) el.textContent = '--:--';
 }
+
+// ── AUTO-DRAW ENGINE ──
+// Starts after admin manually draws the first ball.
+// Keeps firing at the set interval until game ends or resets.
+// Never restarts itself when a manual draw happens mid-interval.
+let _autoDrawTimer = null;
+let _autoDrawMs = 0;
+
+function startAutoDrawTimer(){
+  if(_autoDrawTimer) return; // already running — don't double-start
+  _autoDrawMs = DB.drawIntervalMin * 60 * 1000;
+  _nextDrawAt = Date.now() + _autoDrawMs;
+  startCountdownDisplay(_nextDrawAt);
+  adminLog(`⏰ Auto-draw started — every ${DB.drawIntervalMin} min until BINGO.`,'info');
+  _autoDrawTimer = setInterval(async ()=>{
+    if(!DB.game || !DB.game.active || DB.game.ended){
+      stopAutoDrawTimer();
+      return;
+    }
+    await checkShiftReset();
+    if(DB.game && DB.game.active && !DB.game.ended){
+      await adminDrawNumber(true); // true = from timer, skip restarting timer inside draw fn
+    }
+    // Reset the countdown target for the next interval
+    _nextDrawAt = Date.now() + _autoDrawMs;
+  }, _autoDrawMs);
+}
+
+function stopAutoDrawTimer(){
+  if(_autoDrawTimer){ clearInterval(_autoDrawTimer); _autoDrawTimer = null; }
+  stopCountdownDisplay();
+}
+
+// Legacy alias kept so any remaining call sites don't break
+function startAdminTimer(){ startAutoDrawTimer(); }
 
 function updateAdminTimerDisplay(){
-  const m=Math.floor(adminSecondsLeft/60);
-  const s=adminSecondsLeft%60;
-  document.getElementById('adminTimerDisplay').textContent=
-    `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+  // no-op — display is now driven by _countdownTick directly
 }
 
 // ════════════════════════════════════════════════════════════
@@ -2247,7 +2278,7 @@ Mga Bayani — maraming salamat sa inyong dedikasyon ngayong gabi. Kita-kita uli
     } else {
       msg = `_"Hard work beats talent when talent doesn't work hard."_ — Tim Notke
 
-Walang nanalo ngayong gabi — pero winner kayo lahat sa mata ni Sir! 🌙
+Walang nanalo ngayong gabi — pero winner kayo lahat sa mata ni Sir Rendy! 🌙
 
 Salamat sa inyong pagtiyaga at pagmamahal sa trabaho. Tuloy ang laro sa susunod na shift — mas swerte na next time! 💙🌙 — Sir Rendy`;
     }
