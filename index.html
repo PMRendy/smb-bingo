@@ -1220,6 +1220,8 @@ async function adminStartGame(){
   await saveDB();
   refreshAdminGame();
   adminLog('🎉 New game started! Lobby is open — waiting for players to RSVP.','ok');
+  nextDrawAt = Date.now() + (DB.drawIntervalMin * 60 * 1000); // set target for countdown
+  startCountdownDisplay(); // start ticking immediately — auto-draw fires after first manual draw
   document.getElementById('adminGameBadge').style.display='inline-block';
   postToSlack(buildStartMessage());
   startAdminTimer();
@@ -1252,27 +1254,39 @@ async function lockGameLobby(){
   adminLog(`Lobby locked. ${DB.game.rsvpPlayerIds.length} player(s) joined this round.`,'info');
 }
 
+let _drawLock = false; // prevent concurrent draws causing duplicates
+
 async function adminDrawNumber(fromScheduler=false){
   if(!DB.game||!DB.game.active||DB.game.ended) return;
-  if(DB.game.lobbyOpen) await lockGameLobby(); // first draw permanently closes RSVP for this round
-  const called=new Set(DB.game.calledSet);
-  const pool=allNumbers().filter(x=>!called.has(x.full));
-  if(pool.length===0){adminLog('Lahat ng numero ay natawag na!','info');return;}
-  const pick=pool[Math.floor(Math.random()*pool.length)];
-  DB.game.drawnNumbers.push(pick);
-  DB.game.calledSet.push(pick.full);
-  DB.game.lastDrawAt=Date.now();
-  await saveDB();
-  refreshAdminGame();
-  const callout=CALLOUTS[pick.full]||`${pick.full}!`;
-  adminLog(`Drew: ${pick.full}`,'info');
-  document.getElementById('adminTagline').textContent=callout;
-  postToSlack(buildDrawMessage(pick,DB.game.drawnNumbers.length,callout));
-  // Check winners
-  checkAllWinners();
-  // Only reset the interval timer if this was a MANUAL draw (Item 4)
-  // Scheduler-fired draws do not interfere with the auto-draw timer
-  if(!fromScheduler) startAdminTimer();
+  if(_drawLock){ adminLog('Draw in progress, skipping...','info'); return; }
+  _drawLock = true;
+  try {
+    if(DB.game.lobbyOpen) await lockGameLobby();
+    // Reload fresh state before drawing to avoid stale calledSet
+    await loadDB();
+    if(!DB.game||!DB.game.active||DB.game.ended){ _drawLock=false; return; }
+    const called=new Set(DB.game.calledSet);
+    const pool=allNumbers().filter(x=>!called.has(x.full));
+    if(pool.length===0){adminLog('Lahat ng numero ay natawag na!','info');_drawLock=false;return;}
+    const pick=pool[Math.floor(Math.random()*pool.length)];
+    // Double-check pick not already called (race guard)
+    if(called.has(pick.full)){adminLog('Race condition caught — skipping duplicate.','info');_drawLock=false;return;}
+    DB.game.drawnNumbers.push(pick);
+    DB.game.calledSet.push(pick.full);
+    DB.game.lastDrawAt=Date.now();
+    await saveDB();
+    refreshAdminGame();
+    const callout=CALLOUTS[pick.full]||`${pick.full}!`;
+    adminLog(`Drew: ${pick.full}`,'info');
+    document.getElementById('adminTagline').textContent=callout;
+    postToSlack(buildDrawMessage(pick,DB.game.drawnNumbers.length,callout));
+    checkAllWinners();
+    // First manual click starts the auto-draw timer.
+    // Timer-fired draws (fromScheduler=true) never restart the timer — it keeps its own schedule.
+    if(!fromScheduler && !adminTimer) startAdminTimer();
+  } finally {
+    _drawLock = false;
+  }
 }
 
 function checkAllWinners(){
@@ -1318,6 +1332,9 @@ async function adminEndGame(claimant){
 
   await saveDB();
   clearInterval(adminTimer);clearInterval(adminCountdown);
+  adminTimer=null;
+  if(_countdownTick){clearInterval(_countdownTick);_countdownTick=null;}
+  _drawLock=false;
   document.getElementById('adminDrawBtn').disabled=true;
   document.getElementById('adminBingoBtn').disabled=true;
   document.getElementById('adminPatternBtn').disabled=true;
@@ -1334,6 +1351,9 @@ async function adminEndGame(claimant){
 async function adminResetGame(){
   if(!confirm('I-reset ang laro? Mabubura ang kasalukuyang game.')) return;
   clearInterval(adminTimer);clearInterval(adminCountdown);
+  adminTimer=null;
+  if(_countdownTick){clearInterval(_countdownTick);_countdownTick=null;}
+  _drawLock=false;
   DB.game=null;await saveDB();
   refreshAdminGame();
   document.getElementById('adminGameBadge').style.display='none';
@@ -1455,13 +1475,15 @@ function makeBingoCardEl(agentName,cardLabel,grid,calledSet,pattern,isWinner,opt
         const letter=LETTERS[Math.floor(i/5)];
         const full=`${letter}${val}`;
         const isCalled=isFree||calledSet.has(full);
-        const isPwin=isWinner&&pattern.cells[i]&&isCalled;
+        const isPatternCell=pattern&&pattern.cells&&pattern.cells[i];
+        const isPwin=isWinner&&isPatternCell&&isCalled;
         const mark=marks[i];
         let cls='ccell';
         if(isFree) cls+=' free';
         else if(isPwin) cls+=' pwin';
         else if(interactive && mark) cls+=' marked';
-        else if(!interactive && isCalled) cls+=' called';
+        // Admin: only highlight cells that are called AND part of the winning pattern
+        else if(!interactive && isCalled && isPatternCell) cls+=' called';
         const clickAttr = (interactive && !isFree) ? ` data-cell="${i}" data-card="${cardIndex}"` : '';
         const content = isFree ? 'FREE<br>★' : (interactive && mark ? `<span class="cell-num">${val}</span><span class="cell-mark">${mark}</span>` : val);
         return `<div class="${cls}"${clickAttr}>${content}</div>`;
@@ -1605,25 +1627,37 @@ function updateTimerIntervalLabel(){
   if(label) label.innerHTML = `Every ${DB.drawIntervalMin} min<br>9PM–5AM PHT`;
 }
 
+let _countdownTick = null; // single persistent countdown tick — survives refreshAdminGame rerenders
+
+function startCountdownDisplay(){
+  // Starts the visible countdown ticking — separate from the actual auto-draw timer.
+  // Survives calls to refreshAdminGame() since it writes directly to the DOM element.
+  if(_countdownTick) clearInterval(_countdownTick);
+  updateTimerIntervalLabel();
+  if(!nextDrawAt) nextDrawAt = Date.now() + (DB.drawIntervalMin * 60 * 1000);
+  _countdownTick = setInterval(()=>{
+    const remaining = Math.max(0, Math.round((nextDrawAt - Date.now()) / 1000));
+    const m = Math.floor(remaining / 60);
+    const s = remaining % 60;
+    const el = document.getElementById('adminTimerDisplay');
+    if(el) el.textContent = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+  }, 500); // tick every 500ms for snappier display
+}
+
 function startAdminTimer(){
-  clearInterval(adminTimer);clearInterval(adminCountdown);
+  clearInterval(adminTimer); clearInterval(adminCountdown);
   updateTimerIntervalLabel();
   if(DB.game && !DB.game.currentShiftKey) DB.game.currentShiftKey = getShiftDateKey();
-  const ms=DB.drawIntervalMin*60*1000;
-  nextDrawAt=Date.now()+ms;
-  adminSecondsLeft=Math.round(ms/1000);
-  updateAdminTimerDisplay();
-  adminCountdown=setInterval(()=>{
-    adminSecondsLeft=Math.max(0,Math.round((nextDrawAt-Date.now())/1000));
-    updateAdminTimerDisplay();
-  },1000);
-  adminTimer=setInterval(async ()=>{
+  const ms = DB.drawIntervalMin * 60 * 1000;
+  nextDrawAt = Date.now() + ms;
+  startCountdownDisplay(); // restart the persistent tick with new nextDrawAt
+  adminTimer = setInterval(async ()=>{
     if(!DB.game||!DB.game.active||DB.game.ended) return;
     await checkShiftRollover();
-    if(isWithinShift()) await adminDrawNumber();
+    if(isWithinShift()) await adminDrawNumber(true); // pass true = from timer, don't restart timer
     else adminLog('Outside shift hours — auto-draw skipped.','info');
-    nextDrawAt=Date.now()+ms;
-  },ms);
+    nextDrawAt = Date.now() + ms; // update target so countdown resets after each auto-draw
+  }, ms);
 }
 
 function updateAdminTimerDisplay(){
@@ -1751,7 +1785,7 @@ async function refreshPlayerScreen(){
 
   const hasRsvpd = (g.rsvpPlayerIds||[]).includes(currentPlayer.id);
   const calledSet=new Set(g.calledSet); // true called numbers — NOT shown to player on cards
-  const cards=(hasRsvpd && g.playerCards[currentPlayer.id]) || [];
+  const cards=(g.playerCards && g.playerCards[currentPlayer.id]) || []; // use all cards regardless of RSVP status
   const myMarks=(g.playerMarks&&g.playerMarks[currentPlayer.id])||{};
 
   // Show prize
@@ -1808,12 +1842,9 @@ async function refreshPlayerScreen(){
   let anyWin=false;
   const emptyCalledSet = new Set(); // pass empty set so "called" styling never auto-applies
 
-  if(!hasRsvpd){
-    wrap.innerHTML = g.lobbyOpen
-      ? '<div class="empty-state">RSVP muna sa itaas para makakuha ng card! 👆</div>'
-      : '<div class="empty-state">Hindi ka nakapag-RSVP bago nag-umpisa ang round na ito — walang card. Sa susunod na round! 🙏</div>';
-  } else {
+  if(cards.length > 0){
     cards.forEach((card,ci)=>{
+      if(!card||!card.grid) return;
       const cardMarks = myMarks[ci] || {};
       const win=checkWinManual(card.grid,g.pattern,cardMarks);
       if(win) anyWin=true;
@@ -1822,7 +1853,10 @@ async function refreshPlayerScreen(){
         { interactive:true, marks:cardMarks, cardIndex:ci, onCellClick:toggleCellMark }
       ));
     });
-    if(cards.length===0) wrap.innerHTML='<div class="empty-state">Walang card para sa\'yo sa game na ito. Makipag-ugnayan sa admin.</div>';
+  } else if(!hasRsvpd && g.lobbyOpen){
+    wrap.innerHTML = '<div class="empty-state">RSVP muna sa itaas para makakuha ng card! 👆</div>';
+  } else {
+    wrap.innerHTML = '<div class="empty-state">Walang card pa. I-generate ang iyong cards sa itaas! 👆</div>';
   }
 
   // BINGO button — enabled only when player's OWN marks complete the pattern
@@ -2213,7 +2247,7 @@ Mga Bayani — maraming salamat sa inyong dedikasyon ngayong gabi. Kita-kita uli
     } else {
       msg = `_"Hard work beats talent when talent doesn't work hard."_ — Tim Notke
 
-Walang nanalo ngayong gabi — pero winner kayo lahat sa mata ni Sir Rendy! 🌙
+Walang nanalo ngayong gabi — pero winner kayo lahat sa mata ni Sir! 🌙
 
 Salamat sa inyong pagtiyaga at pagmamahal sa trabaho. Tuloy ang laro sa susunod na shift — mas swerte na next time! 💙🌙 — Sir Rendy`;
     }
