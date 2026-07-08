@@ -1221,13 +1221,13 @@ async function adminStartGame(){
   };
   await saveDB();
   refreshAdminGame();
-  adminLog('🎉 New game started! Lobby is open — waiting for players to RSVP.','ok');
-  // Countdown display starts immediately on game start
-  _nextDrawAt = Date.now() + (DB.drawIntervalMin * 60 * 1000);
-  startCountdownDisplay(_nextDrawAt);
+  adminLog('🎉 New game started! Lobby open — waiting for first manual draw to start auto-draw timer.','ok');
   document.getElementById('adminGameBadge').style.display='inline-block';
+  // Show waiting state in timer display
+  const timerEl = document.getElementById('adminTimerDisplay');
+  if(timerEl) timerEl.textContent = '--:--';
   postToSlack(buildStartMessage());
-  startAdminTimer();
+  // Do NOT start timer here — waits for first manual draw
 }
 
 // Player taps "I'm Playing This Round" — only works while lobby is open
@@ -1271,7 +1271,35 @@ async function adminDrawNumber(fromTimer=false){
     const called = new Set(DB.game.calledSet);
     const pool = allNumbers().filter(x => !called.has(x.full));
     if(pool.length === 0){
-      adminLog('All 75 numbers have been drawn!','info');
+      adminLog('All 75 numbers have been drawn! No winner — ending game.','info');
+      stopAutoDrawTimer();
+      // Auto-end: log to history as no winner
+      if(!DB.gameHistory) DB.gameHistory = [];
+      DB.gameHistory.unshift({
+        id: DB.game.id,
+        date: new Date().toLocaleDateString('en-PH',{year:'numeric',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit',hour12:true}),
+        winner: '— No Winner —',
+        prize: DB.game.prize || '—',
+        pattern: DB.game.pattern?.name || '—',
+        draws: DB.game.drawnNumbers?.length || 0,
+        players: (DB.game.rsvpPlayerIds||[]).length,
+      });
+      DB.game.active = false;
+      DB.game.ended = true;
+      DB.game.claimedBy = null;
+      DB.game.noWinner = true;
+      await saveDB();
+      refreshAdminGame();
+      // Notify Slack
+      postToSlack(`🎱 *75 balls drawn — walang nanalo ngayong round!* 🌙
+
+Pattern: *${DB.game.pattern?.name}*
+Prize: *${DB.game.prize||'PHP 500'}*
+
+All ${DB.game.drawnNumbers?.length||75} numbers were called with no BINGO claimed. Better luck next time, mga Bayani! 💙`);
+      document.getElementById('winModalText').textContent = 'All 75 numbers drawn — walang nanalo! Admin can start a new game.';
+      document.getElementById('winPatternText').textContent = 'No winner this round.';
+      document.getElementById('winOverlay').classList.add('show');
       return;
     }
 
@@ -1613,23 +1641,21 @@ async function checkShiftReset(){
   const now = new Date();
   const h = now.getHours();
   const todayKey = now.toISOString().slice(0,10);
+  // At 5AM: send closing message but DO NOT reset game — history and drawn numbers persist
   if(h === 5 && _shiftResetFired !== todayKey){
     _shiftResetFired = todayKey;
-    adminLog('⏰ 5AM PHT — shift ended. Resetting game.','info');
+    adminLog('⏰ 5AM PHT — shift ended. Sending closing message. Game history preserved.','info');
     if(!_generatedClosingMsg) await generateClosingMessage();
     await sendClosingMessage();
-    DB.game = null;
-    await saveDB();
-    refreshAdminGame();
-    refreshRosterUI();
+    // Stop auto-draw timer — admin must manually restart next shift
     stopAutoDrawTimer();
-    adminLog('✅ Game reset. History preserved.','ok');
+    adminLog('⏰ Auto-draw paused at shift end. Game and history intact.','ok');
   }
 }
 
 function updateTimerIntervalLabel(){
   const label = document.getElementById('timerIntervalLabel');
-  if(label) label.innerHTML = `Every ${DB.drawIntervalMin} min<br>Auto-draws until BINGO`;
+  if(label) label.innerHTML = `Every ${DB.drawIntervalMin} min<br>after first draw`;
 }
 
 // ── COUNTDOWN DISPLAY ──
