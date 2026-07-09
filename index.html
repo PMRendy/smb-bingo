@@ -793,6 +793,17 @@ async function loadDB() {
     if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
     const remote = await resp.json();
     if (remote && typeof remote === 'object') {
+      // CRITICAL: never overwrite DB with a stale snapshot.
+      // If our in-memory copy is newer than what the server returned,
+      // keep ours — it means our last saveDB() hasn't propagated yet.
+      const remoteTime = remote.updatedAt || 0;
+      const localTime  = DB.updatedAt   || 0;
+      if (remoteTime < localTime) {
+        // Server is behind — our local copy is newer, skip overwrite
+        console.log(`[loadDB] Skipping stale server state (server: ${remoteTime}, local: ${localTime})`);
+        _dbLoaded = true;
+        return;
+      }
       // First-ever load on a brand new backend — seed default roster
       if (!remote.players || remote.players.length === 0) {
         DB = { ...DB, ...remote, players: buildDefaultPlayers() };
@@ -803,7 +814,6 @@ async function loadDB() {
     }
   } catch (e) {
     console.error('loadDB: backend unreachable, falling back to local copy', e);
-    // Fallback so the UI doesn't fully break if the backend is briefly down
     try {
       const s = localStorage.getItem('smbBingoDB_fallback');
       if (s) DB = { ...DB, ...JSON.parse(s) };
@@ -815,6 +825,9 @@ async function loadDB() {
 
 async function saveDB() {
   try {
+    // Always stamp the local copy with current time BEFORE sending,
+    // so any loadDB() that fires immediately after knows our copy is newest.
+    DB.updatedAt = Date.now();
     const resp = await fetch(`${BACKEND_URL}/state`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
