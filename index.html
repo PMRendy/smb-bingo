@@ -128,6 +128,18 @@ textarea{resize:vertical;min-height:60px;}
 
 /* ── BINGO CARDS ── */
 .cards-wrap{display:grid;grid-template-columns:repeat(auto-fill,minmax(195px,1fr));gap:14px;}
+.cards-wrap.view-3{grid-template-columns:repeat(3,1fr);gap:10px;}
+.cards-wrap.view-4{grid-template-columns:repeat(4,1fr);gap:8px;}
+.cards-wrap.view-3 .bingo-card,.cards-wrap.view-4 .bingo-card{padding:8px;}
+.cards-wrap.view-3 .card-agent,.cards-wrap.view-4 .card-agent{font-size:9px;margin-bottom:4px;}
+.cards-wrap.view-3 .card-num,.cards-wrap.view-4 .card-num{font-size:9px;margin-bottom:3px;}
+.cards-wrap.view-3 .card-ltr,.cards-wrap.view-4 .card-ltr{font-size:11px;}
+.cards-wrap.view-3 .ccell,.cards-wrap.view-4 .ccell{font-size:9px;border-radius:2px;}
+.cards-wrap.view-4 .ccell{font-size:8px;}
+.cards-wrap.view-3 .card-header-row,.cards-wrap.view-4 .card-header-row{gap:1px;margin-bottom:1px;}
+.cards-wrap.view-3 .card-grid,.cards-wrap.view-4 .card-grid{gap:1px;}
+.view-toggle-btn{padding:5px 12px;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;border:1px solid rgba(255,255,255,.15);color:var(--muted);background:transparent;transition:all .2s;}
+.view-toggle-btn.active{background:var(--gold);color:var(--navy);border-color:var(--gold);}
 .bingo-card{background:var(--deep);border:1px solid rgba(245,200,66,.15);border-radius:var(--r);padding:12px;position:relative;transition:border-color .3s;}
 .bingo-card.winner{border-color:var(--gold);box-shadow:0 0 24px rgba(245,200,66,.4);}
 .bingo-card.winner::before{content:'🏆 BINGO!';position:absolute;top:0;left:0;right:0;background:var(--gold);color:var(--navy);text-align:center;font-weight:800;font-size:11px;padding:4px;border-radius:var(--r) var(--r) 0 0;letter-spacing:2px;}
@@ -400,9 +412,17 @@ textarea{resize:vertical;min-height:60px;}
         <!-- RIGHT -->
         <div>
           <div class="panel">
-            <div class="panel-title">📋 All Player Cards</div>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px;">
+              <div class="panel-title" style="margin-bottom:0;">📋 All Player Cards</div>
+              <div style="display:flex;gap:6px;align-items:center;">
+                <span style="font-size:10px;color:var(--muted);margin-right:2px;">View:</span>
+                <button class="view-toggle-btn" onclick="setCardsView('auto')" id="viewAuto">Auto</button>
+                <button class="view-toggle-btn active" onclick="setCardsView('3')" id="view3">3 per row</button>
+                <button class="view-toggle-btn" onclick="setCardsView('4')" id="view4">4 per row</button>
+              </div>
+            </div>
             <div class="stat-row" id="adminStats"></div>
-            <div class="cards-wrap" id="adminCardsWrap">
+            <div class="cards-wrap view-3" id="adminCardsWrap">
               <div class="empty-state">Start a game to see player cards.</div>
             </div>
             <div class="log-box" id="adminLog"></div>
@@ -2576,6 +2596,26 @@ function pinStatusBadge(p){
   if(p.pinChanged) return '<span style="color:var(--success);font-size:10px;font-weight:700;">✓ PIN set</span>';
   return '<span style="color:var(--gold);font-size:10px;font-weight:700;">⚠ Default PIN</span>';
 }
+
+// ════════════════════════════════════════════════════════════
+//  ADMIN CARD VIEW TOGGLE — 3 or 4 cards per row
+// ════════════════════════════════════════════════════════════
+let _currentCardsView = '3'; // default
+
+function setCardsView(mode){
+  _currentCardsView = mode;
+  const wrap = document.getElementById('adminCardsWrap');
+  if(!wrap) return;
+  wrap.classList.remove('view-3','view-4');
+  if(mode === '3') wrap.classList.add('view-3');
+  if(mode === '4') wrap.classList.add('view-4');
+  // Update button states
+  ['auto','3','4'].forEach(m => {
+    const btn = document.getElementById('view' + (m==='auto'?'Auto':m));
+    if(btn) btn.classList.toggle('active', m === mode);
+  });
+}
+
 </script>
 </body>
 </html>
