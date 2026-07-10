@@ -756,7 +756,7 @@ function buildDefaultPlayers() {
     id: 'default_' + idx,
     name,
     pin: '1234',
-    maxCards: 3,
+    maxCards: 2,
     active: true,
     pinChanged: false,
   }));
@@ -1048,8 +1048,8 @@ async function saveEditPlayer() {
   const pin = document.getElementById('editPlayerPin').value.trim();
   const cards = parseInt(document.getElementById('editPlayerCards').value);
   if(!name||!/^\d{4}$/.test(pin)){alert('Pakitingnan ang mga input!');return;}
-  const dup = DB.players.find(p=>p.pin===pin&&p.id!==id);
-  if(dup){alert('Yung PIN ay ginagamit na ng ibang player!');return;}
+  // Admin can set any PIN — no duplicate check at admin level
+  // (players share default PIN 1234 by design)
   const p = DB.players.find(x=>x.id===id);
   if(p){Object.assign(p,{name,pin,maxCards:cards});}
   await saveDB();
@@ -2537,12 +2537,7 @@ async function savePinChange(){
   if(nw!==conf){errEl.textContent='Hindi magkatugma ang bagong PIN!';return;}
   if(nw===cur){errEl.textContent='Dapat iba ang bagong PIN sa dati!';return;}
 
-  // Check for duplicates — warn but allow (since shared 1234 is expected initially)
-  const dup=DB.players.find(p=>p.pin===nw&&p.id!==currentPlayer.id);
-  if(dup){
-    errEl.textContent='Yung PIN na iyon ay ginagamit na ng iba. Pumili ng iba.';
-    return;
-  }
+  // Players can pick any PIN — duplicates are allowed since 1234 is shared by default
 
   // Update
   const p=DB.players.find(x=>x.id===currentPlayer.id);
