@@ -808,23 +808,28 @@ const BACKEND_URL = 'https://smb-bingo-proxy-v2.onrender.com';
 
 let _dbLoaded = false; // tracks whether the very first load has completed
 
+// Last timestamp we successfully loaded FROM the server.
+// Used to reject any payload older than what we already have —
+// prevents polling from rolling back newly-drawn numbers.
+let _lastLoadedAt = 0;
+
 async function loadDB() {
   try {
     const resp = await fetch(`${BACKEND_URL}/state`);
     if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
     const remote = await resp.json();
     if (remote && typeof remote === 'object') {
-      // CRITICAL: never overwrite DB with a stale snapshot.
-      // If our in-memory copy is newer than what the server returned,
-      // keep ours — it means our last saveDB() hasn't propagated yet.
       const remoteTime = remote.updatedAt || 0;
-      const localTime  = DB.updatedAt   || 0;
-      if (remoteTime < localTime) {
-        // Server is behind — our local copy is newer, skip overwrite
-        console.log(`[loadDB] Skipping stale server state (server: ${remoteTime}, local: ${localTime})`);
+
+      // Never go backwards — if the server returned something older than
+      // what we already loaded, discard it. This protects both admin and
+      // player browsers from a mid-save poll wiping newly-drawn numbers.
+      if (remoteTime > 0 && remoteTime < _lastLoadedAt) {
+        console.log(`[loadDB] Rejected older snapshot (server: ${remoteTime}, last loaded: ${_lastLoadedAt})`);
         _dbLoaded = true;
         return;
       }
+
       // First-ever load on a brand new backend — seed default roster
       if (!remote.players || remote.players.length === 0) {
         DB = { ...DB, ...remote, players: buildDefaultPlayers() };
@@ -832,33 +837,33 @@ async function loadDB() {
       } else {
         DB = { ...DB, ...remote };
       }
+
+      // Record the timestamp of this successful load
+      if (remoteTime > 0) _lastLoadedAt = remoteTime;
     }
   } catch (e) {
-    console.error('loadDB: backend unreachable, falling back to local copy', e);
-    try {
-      const s = localStorage.getItem('smbBingoDB_fallback');
-      if (s) DB = { ...DB, ...JSON.parse(s) };
-      else DB.players = DB.players.length ? DB.players : buildDefaultPlayers();
-    } catch (e2) { DB.players = DB.players.length ? DB.players : buildDefaultPlayers(); }
+    console.error('loadDB: backend unreachable, keeping current in-memory state', e);
+    // Do NOT overwrite DB on network error — keep whatever we have in memory
+    // so drawn numbers stay visible even if the backend is briefly unreachable
   }
   _dbLoaded = true;
 }
 
 async function saveDB() {
   try {
-    // Always stamp the local copy with current time BEFORE sending,
-    // so any loadDB() that fires immediately after knows our copy is newest.
+    // Stamp BEFORE sending so the timestamp is part of what gets stored
     DB.updatedAt = Date.now();
+    // Also update our local guard so we never reject our own fresh save
+    _lastLoadedAt = DB.updatedAt;
     const resp = await fetch(`${BACKEND_URL}/state`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(DB),
     });
     if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-    // Keep a local fallback copy in case the backend is briefly unreachable later
     try { localStorage.setItem('smbBingoDB_fallback', JSON.stringify(DB)); } catch(e){}
   } catch (e) {
-    console.error('saveDB: failed to write to backend', e);
+    console.error('saveDB: failed to write to backend — keeping in-memory state', e);
     try { localStorage.setItem('smbBingoDB_fallback', JSON.stringify(DB)); } catch(e2){}
   }
 }
