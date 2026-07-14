@@ -401,6 +401,9 @@ textarea{resize:vertical;min-height:60px;}
             <div class="divider"></div>
             <button class="btn btn-danger btn-full btn-sm" id="adminBingoBtn" onclick="adminBingoClaim()" disabled>🏆 BINGO Claimed — End Game</button>
             <button class="btn btn-outline btn-full btn-sm" onclick="adminResetGame()">↺ Reset Game</button>
+
+            <!-- Pending BINGO claim alert -->
+            <div id="adminClaimAlert" style="display:none;background:rgba(245,200,66,.15);border:1px solid var(--gold);border-radius:8px;padding:10px 12px;font-size:12px;color:var(--gold);font-weight:600;margin-top:8px;line-height:1.5;"></div>
             <div class="slack-status" id="adminSlackStatus"></div>
 
             <div class="divider"></div>
@@ -537,6 +540,15 @@ textarea{resize:vertical;min-height:60px;}
       </div>
     </div>
 
+    <!-- Generate Card button — always visible right after login -->
+    <div style="background:var(--deep);border:2px solid var(--gold);border-radius:var(--r);padding:18px;margin-bottom:14px;text-align:center;">
+      <div style="font-size:13px;font-weight:700;color:var(--gold);margin-bottom:6px;">🎰 Generate Your Bingo Cards</div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:12px;">I-generate ang iyong cards bago mag-laro. Pwedeng mag-generate ulit hanggang satisfied ka — tapos i-lock in ang gusto mo!</div>
+      <button class="btn btn-gold" style="width:100%;font-size:15px;padding:13px;" onclick="generatePlayerCardsUI()">🎲 Generate My Cards</button>
+      <div id="cardGenWrap" class="cards-wrap" style="margin-top:12px;margin-bottom:4px;"></div>
+      <div id="cardGenHint" style="font-size:11px;color:var(--muted);margin-top:4px;"></div>
+    </div>
+
     <!-- Live ball -->
     <div class="live-ball-player" id="playerLiveBall">
       <div>
@@ -563,15 +575,6 @@ textarea{resize:vertical;min-height:60px;}
       <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;color:var(--teal);text-transform:uppercase;margin-bottom:6px;">Tonight's Winning Pattern</div>
       <div style="font-size:14px;font-weight:700;color:var(--gold);margin-bottom:8px;" id="playerPatternName">—</div>
       <div class="pattern-grid" id="playerPatternGrid" style="width:100px;gap:4px;"></div>
-    </div>
-
-    <!-- Card generation panel -->
-    <div id="cardGenPanel" style="display:none;background:var(--deep);border:1px solid rgba(46,202,213,.2);border-radius:var(--r);padding:16px;margin-bottom:14px;text-align:center;">
-      <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;color:var(--teal);text-transform:uppercase;margin-bottom:8px;">🎰 Generate Your Cards</div>
-      <div style="font-size:12px;color:var(--muted);margin-bottom:12px;">I-generate ang iyong cards. Pwede kang mag-generate ulit hanggang satisfied ka na, tapos i-lock in!</div>
-      <button class="btn btn-gold" style="width:100%;margin-bottom:8px;" onclick="generatePlayerCardsUI()">🎲 Generate Cards</button>
-      <div id="cardGenWrap" class="cards-wrap" style="margin-bottom:10px;"></div>
-      <div id="cardGenHint" style="font-size:11px;color:var(--muted);"></div>
     </div>
 
     <!-- Player cards (locked in) -->
@@ -1262,6 +1265,17 @@ async function adminStartGame(){
   refreshAdminGame();
   adminLog('🎉 New game started! Lobby open — waiting for first manual draw to start auto-draw timer.','ok');
   document.getElementById('adminGameBadge').style.display='inline-block';
+
+  // Show BINGO claim alert in admin UI
+  const claimAlert = document.getElementById('adminClaimAlert');
+  if(claimAlert){
+    if(DB.game && DB.game.pendingBingoClaim){
+      claimAlert.style.display='block';
+      claimAlert.textContent=`🚨 BINGO CLAIM from ${DB.game.pendingBingoClaim.playerName} (Card ${DB.game.pendingBingoClaim.cardIndex}) — Auto-draw paused! Verify then click BINGO Claimed or Draw Next Number to dismiss.`;
+    } else {
+      claimAlert.style.display='none';
+    }
+  }
   // Show waiting state in timer display
   const timerEl = document.getElementById('adminTimerDisplay');
   if(timerEl) timerEl.textContent = '--:--';
@@ -1365,8 +1379,33 @@ All ${DB.game.drawnNumbers?.length||75} numbers were called with no BINGO claime
     postToSlack(buildDrawMessage(pick, DB.game.drawnNumbers.length, callout));
     checkAllWinners();
 
+    // Every 10 draws: ask players what numbers they still need
+    if(DB.game.drawnNumbers.length % 10 === 0 && DB.game.drawnNumbers.length > 0){
+      const drawCount = DB.game.drawnNumbers.length;
+      const calledList = DB.game.drawnNumbers.map(x=>x.full).join(' · ');
+      const tenDrawMsgs = [
+        `🎱 *${drawCount} balls na ang natawag!* Mga Bayani, anung numero pa ang kailangan ninyo para ma-BINGO? 👀\n\n📋 Natawag na: ${calledList}`,
+        `🔔 *Checkpoint! ${drawCount} draws na!* Ilang numero pa lang ang kailangan mo? Mag-BINGO ka na ba? 😏\n\n📋 Called so far: ${calledList}`,
+        `⭐ *${drawCount} numbers down!* Sige na, sabihin mo na kung gaano ka kalapit sa BINGO! 🎯\n\n📋 Natawag na: ${calledList}`,
+        `🌙 *${drawCount} draws na, mga Bayani!* May malapit na bang mag-BINGO dito? Anong numero pa ang kailangan mo? 🤔\n\n📋 Called: ${calledList}`,
+      ];
+      // Capture the message immediately — don't rely on DB state inside setTimeout
+      const tenMsg = tenDrawMsgs[Math.floor((drawCount/10 - 1) % tenDrawMsgs.length)];
+      const webhookSnap = DB.webhookUrl;
+      const proxySnap = DB.proxyUrl;
+      adminLog(`📊 10-draw check-in #${drawCount/10} — posting to Slack...`,'info');
+      // Post immediately (no delay) to avoid any stale-state issues
+      postToSlack(tenMsg, webhookSnap, proxySnap);
+    }
+
+    // Clear any pending BINGO claim when admin manually draws — means admin
+    // reviewed it and decided to continue the game
+    if(!fromTimer && DB.game.pendingBingoClaim){
+      adminLog(`Admin resumed draws — BINGO claim by ${DB.game.pendingBingoClaim.playerName} dismissed.`,'info');
+      delete DB.game.pendingBingoClaim;
+    }
     // First MANUAL draw starts the auto-draw timer.
-    // Timer-fired draws (fromTimer=true) never restart the timer.
+    // Subsequent manual draws also restart it (resumes after pause).
     if(!fromTimer) startAutoDrawTimer();
 
   } finally {
@@ -1743,6 +1782,12 @@ function startAutoDrawTimer(){
       return;
     }
     await checkShiftReset();
+    // Pause auto-draw if a BINGO claim is pending verification
+    if(DB.game && DB.game.pendingBingoClaim){
+      adminLog('⏸️ Auto-draw paused — BINGO claim pending. Click Draw Next Number to resume.','info');
+      stopAutoDrawTimer();
+      return;
+    }
     if(DB.game && DB.game.active && !DB.game.ended){
       await adminDrawNumber(true); // true = from timer, skip restarting timer inside draw fn
     }
@@ -1830,25 +1875,21 @@ function renderRsvpPanel(g){
 
   if(hasRsvpd && hasCards){
     // Already RSVPd and cards are locked — show ready status
-    const cardGenPanel = document.getElementById('cardGenPanel');
-    if(cardGenPanel) cardGenPanel.style.display='none';
+    // cardGenPanel is now always visible — no hide needed
     content.innerHTML = `<div style="color:var(--success);font-weight:700;font-size:14px;">✅ Handa ka na! ${g.lobbyOpen ? 'Naghihintay ng unang draw...' : 'Laro na! Mark mo na ang iyong cards!'}</div>`;
   } else if(hasRsvpd && !hasCards){
     // RSVPd but no cards yet — show generate button
-    const cardGenPanel = document.getElementById('cardGenPanel');
-    if(cardGenPanel) cardGenPanel.style.display='block';
+    // cardGenPanel is now always visible — no show needed
     content.innerHTML = `<div style="color:var(--teal);font-weight:700;font-size:14px;">✅ Nakapag-RSVP ka na! I-generate mo na ang iyong cards sa ibaba. 👇</div>`;
   } else if(g.lobbyOpen){
-    const cardGenPanel = document.getElementById('cardGenPanel');
-    if(cardGenPanel) cardGenPanel.style.display='none';
+    // cardGenPanel is now always visible — no hide needed
     content.innerHTML = `
       <div style="font-size:13px;color:var(--muted);margin-bottom:10px;">Sasali ka ba ngayong round? I-confirm bago mag-umpisa ang unang draw!</div>
       <button class="btn btn-gold" style="width:100%;" onclick="playerRsvp()">🙋 I'm Playing This Round</button>
     `;
   } else if(!hasCards){
     // Lobby closed but player never RSVP'd — still let them generate cards (Item 2)
-    const cardGenPanel = document.getElementById('cardGenPanel');
-    if(cardGenPanel) cardGenPanel.style.display='block';
+    // cardGenPanel is now always visible — no show needed
     content.innerHTML = `<div style="color:var(--gold);font-weight:700;font-size:14px;">⚠️ Late ka! RSVP ay sarado na — pero pwede ka pa ring sumali. I-generate ang iyong cards sa ibaba!</div>`;
   } else {
     content.innerHTML = `<div style="color:var(--success);font-weight:700;font-size:14px;">✅ Nakalaro ka na! Mark mo na ang iyong cards!</div>`;
@@ -2002,7 +2043,23 @@ async function playerClaimBingo(){
 
   playerLog(`Nag-claim ng BINGO si ${currentPlayer.name}! Hintayin ang admin na i-confirm... 🏆`,'ok');
 
-  postToSlack(`🙋 *BINGO CLAIM!*\n\n*${currentPlayer.name}* claims BINGO on Card ${claimedCardIndex+1}!\n\nPattern: *${g.pattern.name}*\nDraw #${g.drawnNumbers.length}\n\n✅ _System verified: marks match the real called numbers!_\n\n_Admin: Please verify on the Game Control tab and end the game! 🏆_`);
+  // Flag game as having a pending claim — this pauses auto-draw on admin side
+  DB.game.pendingBingoClaim = {
+    playerName: currentPlayer.name,
+    cardIndex: claimedCardIndex + 1,
+    claimedAt: Date.now(),
+  };
+  await saveDB();
+
+  // Notify Slack with claim details
+  postToSlack(
+    `🚨 *BINGO CLAIMED!* 🚨\n\n` +
+    `*${currentPlayer.name}* ay nag-BINGO sa Card ${claimedCardIndex+1}! ✅\n\n` +
+    `🎯 Pattern: *${g.pattern.name}*\n` +
+    `🎱 Draw #${g.drawnNumbers.length}\n` +
+    `✅ _System verified: marks match the real called numbers!_\n\n` +
+    `⏸️ _Auto-draw ay naka-pause habang bine-verify ng admin. Ang admin ang magde-decide kung magpapatuloy o magte-terminate ng laro._ 🏆`
+  );
 
   document.getElementById('playerBingoBtn').disabled=true;
   document.getElementById('playerBingoBtn').textContent='✅ Claimed! Waiting for admin...';
@@ -2196,20 +2253,22 @@ function buildGameShowWin(claimant, drawCount, calledList, patternName, prize){
 //  SLACK DELIVERY — routes through Render proxy if configured,
 //  falls back to direct webhook fetch otherwise
 // ════════════════════════════════════════════════════════════
-async function postToSlack(text){
+async function postToSlack(text, webhookOverride, proxyOverride){
   const status=document.getElementById('adminSlackStatus');
-  const useProxy = !!(DB.proxyUrl && DB.proxyUrl.trim());
+  const webhookUrl = webhookOverride || DB.webhookUrl;
+  const proxyUrl   = proxyOverride  || DB.proxyUrl;
+  const useProxy = !!(proxyUrl && proxyUrl.trim());
 
   try{
     let resp;
     if(useProxy){
-      resp = await fetch(DB.proxyUrl.trim(), {
+      resp = await fetch(proxyUrl.trim(), {
         method:'POST',
         headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({ webhookUrl: DB.webhookUrl, payload: { text } })
+        body:JSON.stringify({ webhookUrl, payload: { text } })
       });
     } else {
-      resp = await fetch(DB.webhookUrl,{
+      resp = await fetch(webhookUrl,{
         method:'POST',
         headers:{'Content-Type':'application/json'},
         body:JSON.stringify({text})
@@ -2367,10 +2426,10 @@ let _pendingCards = []; // cards being previewed before lock-in
 let _lockedCards = {};  // {cardIndex: true} — cards the player has locked in
 
 function generatePlayerCardsUI(){
-  if(!currentPlayer || !DB.game) return;
-  const g = DB.game;
+  if(!currentPlayer) return;
+  const g = DB.game; // may be null — that's okay, player can still browse cards
   const player = currentPlayer;
-  const maxCards = player.maxCards || 3;
+  const maxCards = player.maxCards || 2;
 
   // Generate fresh random cards (new seed each time so they feel truly random)
   const seed = Date.now() + Math.floor(Math.random() * 99999);
@@ -2459,7 +2518,12 @@ function renderPendingCards(animate){
 }
 
 async function lockInCard(cardIndex){
-  if(!currentPlayer || !DB.game) return;
+  if(!currentPlayer) return;
+  if(!DB.game){
+    const hint = document.getElementById('cardGenHint');
+    if(hint) hint.textContent = '⚠️ Wala pang active game. Hintayin ang admin na mag-start ng laro para ma-lock in ang iyong card!';
+    return;
+  }
   _lockedCards[cardIndex] = true;
 
   // Save this card to the game's playerCards
@@ -2478,7 +2542,7 @@ async function lockInCard(cardIndex){
     if(hint) hint.textContent = '🎉 Lahat ng cards ay locked in na! Handa ka na!';
     // Move to main play view after a moment
     setTimeout(()=>{
-      document.getElementById('cardGenPanel').style.display='none';
+      // cardGenPanel always visible
       refreshPlayerScreen();
     }, 1500);
   }
