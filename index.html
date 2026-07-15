@@ -581,7 +581,7 @@ textarea{resize:vertical;min-height:60px;}
     <div id="playerCardsSection">
       <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;color:var(--teal);text-transform:uppercase;margin-bottom:10px;">Your Cards</div>
       <div class="emoji-palette" id="emojiPalette"></div>
-      <div class="marking-hint">👆 I-tap ang numero para markahan. Tap ulit para tanggalin. <strong>Ikaw ang bahala sa pagmarka — kung hindi mo na-mark, ikaw ang nakaligtaan!</strong></div>
+      <div class="marking-hint">👆 I-tap ang numero para markahan. <strong>Double-tap</strong> para tanggalin kung mali ang na-mark mo. <strong>Ikaw ang bahala sa pagmarka — kung hindi mo na-mark, ikaw ang nakaligtaan!</strong></div>
       <div class="cards-wrap" id="playerCardsWrap">
         <div class="empty-state">Waiting for the host to start the game...</div>
       </div>
@@ -1548,7 +1548,13 @@ function checkAllWinners(){
 }
 
 function adminBingoClaim(){
-  const claimant=prompt('Sino ang nag-BINGO? (Enter name or leave blank):')||'Isang Bayani';
+  // Pre-fill with the actual player who claimed BINGO (if any) instead of
+  // always defaulting to a blank prompt / generic "Isang Bayani" placeholder —
+  // previously this ignored DB.game.pendingBingoClaim entirely, so admins had
+  // to remember and retype the name themselves, risking typos or wrong credit.
+  const pending = DB.game && DB.game.pendingBingoClaim;
+  const suggested = pending ? pending.playerName : '';
+  const claimant=prompt('Sino ang nag-BINGO? (Enter name or leave blank):', suggested)||'Isang Bayani';
   adminEndGame(claimant);
 }
 
@@ -1665,6 +1671,20 @@ async function refreshAdminGame(){
     <div class="stat"><div class="stat-val" style="color:var(--success);">${winners.length}</div><div class="stat-lbl">Winners</div></div>
   `;
 
+  // Pending BINGO claim alert — was previously only ever set inside
+  // adminStartGame() (where pendingBingoClaim is always null, so the banner
+  // never actually appeared for a real claim). Refresh it here on every
+  // poll so admins actually see it when a player claims BINGO mid-game.
+  const claimAlert = document.getElementById('adminClaimAlert');
+  if(claimAlert){
+    if(g.pendingBingoClaim){
+      claimAlert.style.display='block';
+      claimAlert.textContent=`🚨 BINGO CLAIM from ${g.pendingBingoClaim.playerName} (Card ${g.pendingBingoClaim.cardIndex}) — Auto-draw paused! Verify then click BINGO Claimed or Draw Next Number to dismiss.`;
+    } else {
+      claimAlert.style.display='none';
+    }
+  }
+
   // Cards
   renderAllCards();
 }
@@ -1729,10 +1749,21 @@ function makeBingoCardEl(agentName,cardLabel,grid,calledSet,pattern,isWinner,opt
     </div>
   `;
   if(interactive && onCellClick){
+    const onCellUnmark = opts.onCellUnmark;
     div.querySelectorAll('[data-cell]').forEach(cellEl=>{
+      // Single tap/click: MARK the cell (does nothing if already marked —
+      // prevents an accidental stray tap from wiping out a mark).
       cellEl.addEventListener('click', ()=>{
         onCellClick(parseInt(cellEl.dataset.card), parseInt(cellEl.dataset.cell));
       });
+      // Double tap/click: UNMARK the cell — lets staff fix a mark they
+      // placed on the wrong number without hunting for an undo button.
+      if(onCellUnmark){
+        cellEl.addEventListener('dblclick', (e)=>{
+          e.preventDefault();
+          onCellUnmark(parseInt(cellEl.dataset.card), parseInt(cellEl.dataset.cell));
+        });
+      }
     });
   }
   return div;
@@ -1962,33 +1993,52 @@ function renderEmojiPalette(){
   });
 }
 
-async function toggleCellMark(cardIndex, cellIndex){
-  if(!currentPlayer || !DB.game) return;
-  const g = DB.game;
-
-  // Ensure the marks structure exists in memory first
-  if(!g.playerMarks) g.playerMarks = {};
-  if(!g.playerMarks[currentPlayer.id]) g.playerMarks[currentPlayer.id] = {};
-  if(!g.playerMarks[currentPlayer.id][cardIndex]) g.playerMarks[currentPlayer.id][cardIndex] = {};
-
-  const cellMarks = g.playerMarks[currentPlayer.id][cardIndex];
-  const cellKey = String(cellIndex); // always use string keys — consistent with JSON storage
-  if(cellMarks[cellKey]){
-    delete cellMarks[cellKey]; // tap again to unmark ✅
-  } else {
-    cellMarks[cellKey] = getPlayerEmoji();
-  }
-
-  // Stamp timestamps immediately — blocks any concurrent poll from wiping this mark
+// Shared save/refresh tail used by markCell/unmarkCell — stamps timestamps
+// immediately so a concurrent poll can't wipe out the change before it saves.
+async function _persistMarkChange(){
   const now = Date.now();
   DB.updatedAt = now;
   _lastLoadedAt = now;
-  // Also update local snapshot immediately
   _localGameSnapshot = DB.game ? JSON.parse(JSON.stringify(DB.game)) : null;
   try { if(_localGameSnapshot) localStorage.setItem('smb_game_snapshot', JSON.stringify(_localGameSnapshot)); } catch(e){}
 
   await saveDB();
   refreshPlayerScreen();
+}
+
+function _getCellMarksRef(cardIndex){
+  const g = DB.game;
+  if(!g.playerMarks) g.playerMarks = {};
+  if(!g.playerMarks[currentPlayer.id]) g.playerMarks[currentPlayer.id] = {};
+  if(!g.playerMarks[currentPlayer.id][cardIndex]) g.playerMarks[currentPlayer.id][cardIndex] = {};
+  return g.playerMarks[currentPlayer.id][cardIndex];
+}
+
+// Single tap — marks the cell. No-ops if it's already marked, so a stray
+// extra tap can't accidentally clear a mark (use markCell's dblclick
+// counterpart, unmarkCell, to remove a wrong mark on purpose).
+async function markCell(cardIndex, cellIndex){
+  if(!currentPlayer || !DB.game) return;
+  const cellMarks = _getCellMarksRef(cardIndex);
+  const cellKey = String(cellIndex); // always use string keys — consistent with JSON storage
+  if(cellMarks[cellKey]) return; // already marked — ignore, prevents accidental toggle-off
+  cellMarks[cellKey] = getPlayerEmoji();
+  await _persistMarkChange();
+}
+
+// Double tap — removes a mark, e.g. when staff marked the wrong number.
+async function unmarkCell(cardIndex, cellIndex){
+  if(!currentPlayer || !DB.game) return;
+  const cellMarks = _getCellMarksRef(cardIndex);
+  const cellKey = String(cellIndex);
+  if(!cellMarks[cellKey]) return; // nothing to remove
+  delete cellMarks[cellKey];
+  await _persistMarkChange();
+}
+
+// Back-compat alias in case anything else references the old name.
+async function toggleCellMark(cardIndex, cellIndex){
+  return markCell(cardIndex, cellIndex);
 }
 
 function renderRsvpPanel(g){
@@ -2116,7 +2166,7 @@ async function refreshPlayerScreen(){
       if(win) anyWin=true;
       wrap.appendChild(makeBingoCardEl(
         currentPlayer.name, `Card ${ci+1}`, card.grid, emptyCalledSet, g.pattern, win,
-        { interactive:true, marks:cardMarks, cardIndex:ci, onCellClick:toggleCellMark }
+        { interactive:true, marks:cardMarks, cardIndex:ci, onCellClick:markCell, onCellUnmark:unmarkCell }
       ));
     });
   } else if(!hasRsvpd && g.lobbyOpen){
@@ -2176,28 +2226,20 @@ async function playerClaimBingo(){
     return;
   }
 
-  playerLog(`Nag-claim ng BINGO si ${currentPlayer.name}! Hintayin ang admin na i-confirm... 🏆`,'ok');
-
-  // Flag game as having a pending claim — this pauses auto-draw on admin side
-  DB.game.pendingBingoClaim = {
-    playerName: currentPlayer.name,
-    cardIndex: claimedCardIndex + 1,
-    claimedAt: Date.now(),
-  };
-  await saveDB();
-
-  // Notify Slack with claim details
-  postToSlack(
-    `🚨 *BINGO CLAIMED!* 🚨\n\n` +
-    `*${currentPlayer.name}* ay nag-BINGO sa Card ${claimedCardIndex+1}! ✅\n\n` +
-    `🎯 Pattern: *${g.pattern.name}*\n` +
-    `🎱 Draw #${g.drawnNumbers.length}\n` +
-    `✅ _System verified: marks match the real called numbers!_\n\n` +
-    `⏸️ _Auto-draw ay naka-pause habang bine-verify ng admin. Ang admin ang magde-decide kung magpapatuloy o magte-terminate ng laro._ 🏆`
-  );
+  playerLog(`Nag-claim ng BINGO si ${currentPlayer.name}! System-verified — awtomatikong tatapusin ang laro... 🏆`,'ok');
 
   document.getElementById('playerBingoBtn').disabled=true;
-  document.getElementById('playerBingoBtn').textContent='✅ Claimed! Waiting for admin...';
+  document.getElementById('playerBingoBtn').textContent='✅ BINGO verified! Ending game...';
+
+  // System already independently verified this claim against the REAL
+  // called numbers (checkWin above, not just the player's own marks) — so
+  // no admin review is required. End the game immediately and announce
+  // the winner. adminEndGame() saves the definitive state to the backend,
+  // so every admin/player screen picks up game.ended=true on their next
+  // poll (≤5s) and the admin's own auto-draw timer self-stops on its next
+  // tick once it sees DB.game.ended. The admin "BINGO Claimed" button still
+  // exists as a manual fallback for claims made verbally / outside the app.
+  await adminEndGame(currentPlayer.name);
 }
 
 function playerLog(msg,type='info'){
