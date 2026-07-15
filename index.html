@@ -2239,15 +2239,36 @@ async function saveSettings(){
 }
 
 async function testSlackConnection(){
-  const statusEl=document.getElementById('testSlackStatus');
-  statusEl.textContent='Sending...';
-  statusEl.style.color='var(--muted)';
-  await postToSlack('🧪 *Test message from SMB BINGO Admin Settings.* Kung nakikita mo ito, gumagana ang connection! ✅');
-  // postToSlack updates adminSlackStatus; mirror it here too
-  const adminStatus=document.getElementById('adminSlackStatus');
+  const statusEl = document.getElementById('testSlackStatus');
+  statusEl.textContent = 'Sending...';
+  statusEl.style.color = 'var(--muted)';
+
+  // Always read directly from the Settings fields — never trust in-memory DB
+  // in case loadDB() hasn't completed yet or settings weren't synced
+  const webhookFromField = document.getElementById('settingsWebhook')?.value?.trim();
+  const proxyFromField   = document.getElementById('settingsProxyUrl')?.value?.trim();
+
+  if(!proxyFromField){
+    statusEl.textContent = '⚠️ Proxy URL field is empty — paste your Render URL ending in /slack first, then Save Settings.';
+    statusEl.style.color = 'var(--danger)';
+    return;
+  }
+  if(!webhookFromField){
+    statusEl.textContent = '⚠️ Slack Webhook URL field is empty — paste your webhook URL first.';
+    statusEl.style.color = 'var(--danger)';
+    return;
+  }
+
+  await postToSlack(
+    '🧪 *Test message from SMB BINGO Admin Settings.* Kung nakikita mo ito, gumagana ang connection! ✅',
+    webhookFromField,
+    proxyFromField
+  );
+
+  const adminStatus = document.getElementById('adminSlackStatus');
   if(adminStatus){
-    statusEl.textContent=adminStatus.textContent;
-    statusEl.style.color=adminStatus.className.includes('ok')?'var(--success)':'var(--danger)';
+    statusEl.textContent = adminStatus.textContent;
+    statusEl.style.color = adminStatus.className.includes('ok') ? 'var(--success)' : 'var(--danger)';
   }
 }
 
@@ -2387,8 +2408,13 @@ function buildGameShowWin(claimant, drawCount, calledList, patternName, prize){
 // ════════════════════════════════════════════════════════════
 async function postToSlack(text, webhookOverride, proxyOverride){
   const status=document.getElementById('adminSlackStatus');
-  const webhookUrl = webhookOverride || DB.webhookUrl;
-  const proxyUrl   = proxyOverride  || DB.proxyUrl;
+  // Priority: explicit override → DB memory → Settings field values (fallback)
+  const webhookUrl = webhookOverride
+    || DB.webhookUrl
+    || document.getElementById('settingsWebhook')?.value?.trim();
+  const proxyUrl = proxyOverride
+    || DB.proxyUrl
+    || document.getElementById('settingsProxyUrl')?.value?.trim();
   const useProxy = !!(proxyUrl && proxyUrl.trim());
 
   try{
