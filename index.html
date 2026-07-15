@@ -815,63 +815,169 @@ let _dbLoaded = false; // tracks whether the very first load has completed
 // Used to reject any payload older than what we already have —
 // prevents polling from rolling back newly-drawn numbers.
 let _lastLoadedAt = 0;
+let _lastKnownDrawCount = 0;   // tracks highest draw count we've ever seen
+let _localGameSnapshot = null; // localStorage backup of game state
 
-async function loadDB() {
-  try {
-    const resp = await fetch(`${BACKEND_URL}/state`);
-    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-    const remote = await resp.json();
-    if (remote && typeof remote === 'object') {
-      const remoteTime = remote.updatedAt || 0;
-
-      // Never go backwards — if the server returned something older than
-      // what we already loaded, discard it. This protects both admin and
-      // player browsers from a mid-save poll wiping newly-drawn numbers.
-      if (remoteTime > 0 && remoteTime < _lastLoadedAt) {
-        console.log(`[loadDB] Rejected older snapshot (server: ${remoteTime}, last loaded: ${_lastLoadedAt})`);
-        _dbLoaded = true;
-        return;
-      }
-
-      // First-ever load on a brand new backend — seed default roster
-      if (!remote.players || remote.players.length === 0) {
-        DB = { ...DB, ...remote, players: buildDefaultPlayers() };
-        await saveDB();
-      } else {
-        DB = { ...DB, ...remote };
-      }
-
-      // Record the timestamp of this successful load
-      if (remoteTime > 0) _lastLoadedAt = remoteTime;
-    }
-  } catch (e) {
-    console.error('loadDB: backend unreachable, keeping current in-memory state', e);
-    // Do NOT overwrite DB on network error — keep whatever we have in memory
-    // so drawn numbers stay visible even if the backend is briefly unreachable
-  }
-  _dbLoaded = true;
-}
-
+// ─── SAVE ───────────────────────────────────────────────────────────────────
+// Uses /state/merge so the SERVER does the smart merge — protects against
+// Render restarts and concurrent browser writes in one shot.
 async function saveDB() {
   try {
-    // Stamp BEFORE sending so the timestamp is part of what gets stored
     DB.updatedAt = Date.now();
-    // Also update our local guard so we never reject our own fresh save
     _lastLoadedAt = DB.updatedAt;
-    const resp = await fetch(`${BACKEND_URL}/state`, {
+
+    // Always backup game state locally as a safety net
+    if (DB.game) {
+      try {
+        _localGameSnapshot = JSON.parse(JSON.stringify(DB.game));
+        localStorage.setItem('smb_game_snapshot', JSON.stringify(_localGameSnapshot));
+        localStorage.setItem('smb_game_ts', String(DB.updatedAt));
+      } catch(e) {}
+    }
+
+    // Use /state/merge — server merges drawnNumbers, calledSet, playerMarks safely
+    const resp = await fetch(`${BACKEND_URL}/state/merge`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(DB),
     });
     if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-    try { localStorage.setItem('smbBingoDB_fallback', JSON.stringify(DB)); } catch(e){}
+    const result = await resp.json();
+    // Server returns the fully merged state — use it so we have the definitive version
+    if (result.game !== undefined) {
+      DB.game = mergeGameLocal(DB.game, result.game);
+    }
+    if (result.updatedAt) _lastLoadedAt = result.updatedAt;
   } catch (e) {
-    console.error('saveDB: failed to write to backend — keeping in-memory state', e);
-    try { localStorage.setItem('smbBingoDB_fallback', JSON.stringify(DB)); } catch(e2){}
+    console.error('saveDB failed — game state kept in memory and localStorage:', e.message);
   }
 }
 
+// ─── LOCAL MERGE (client-side) ──────────────────────────────────────────────
+// Same logic as the server's mergeGameState — used after loadDB returns.
+function mergeGameLocal(local, remote) {
+  if (!local && !remote) return null;
+  if (!local) return remote;
+  if (!remote) return local;
+  if (local.id && remote.id && local.id !== remote.id) return remote; // new game
+
+  const merged = { ...local, ...remote };
+
+  // drawnNumbers — keep longer
+  const lDrawn = local.drawnNumbers || [];
+  const rDrawn = remote.drawnNumbers || [];
+  merged.drawnNumbers = rDrawn.length >= lDrawn.length ? rDrawn : lDrawn;
+
+  // calledSet — keep longer
+  const lCalled = local.calledSet || [];
+  const rCalled = remote.calledSet || [];
+  merged.calledSet = rCalled.length >= lCalled.length ? rCalled : lCalled;
+
+  // playerMarks — union merge
+  const lMarks = local.playerMarks  || {};
+  const rMarks = remote.playerMarks || {};
+  const allPids = new Set([...Object.keys(lMarks), ...Object.keys(rMarks)]);
+  const mm = {};
+  allPids.forEach(pid => {
+    const lC = lMarks[pid] || {};
+    const rC = rMarks[pid] || {};
+    const allCI = new Set([...Object.keys(lC), ...Object.keys(rC)]);
+    mm[pid] = {};
+    allCI.forEach(ci => { mm[pid][ci] = { ...(rC[ci]||{}), ...(lC[ci]||{}) }; });
+  });
+  merged.playerMarks = mm;
+
+  // playerCards — keep whichever has more entries
+  const lCards = local.playerCards  || {};
+  const rCards = remote.playerCards || {};
+  merged.playerCards = Object.keys(rCards).length >= Object.keys(lCards).length ? rCards : lCards;
+
+  // Update highest known draw count
+  if (merged.drawnNumbers.length > _lastKnownDrawCount) {
+    _lastKnownDrawCount = merged.drawnNumbers.length;
+  }
+
+  return merged;
+}
+
+// ─── LOAD ────────────────────────────────────────────────────────────────────
+async function loadDB() {
+  try {
+    const resp = await fetch(`${BACKEND_URL}/state`);
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    const remote = await resp.json();
+    if (!remote || typeof remote !== 'object') return;
+
+    const remoteTime = remote.updatedAt || 0;
+
+    // Reject stale snapshots — never go backwards
+    if (remoteTime > 0 && remoteTime < _lastLoadedAt) {
+      _dbLoaded = true;
+      return;
+    }
+
+    // If server restarted (drawnNumbers empty but we know there were draws),
+    // restore from our localStorage backup and push it back to the server
+    const remoteDrawCount = (remote.game?.drawnNumbers || []).length;
+    if (remoteDrawCount === 0 && _lastKnownDrawCount > 0 && _localGameSnapshot) {
+      console.log('[loadDB] Server restarted mid-game — restoring from local snapshot');
+      remote.game = mergeGameLocal(_localGameSnapshot, remote.game);
+      // Push the restored state back so other browsers get it too
+      try {
+        await fetch(`${BACKEND_URL}/state/merge`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ...remote, updatedAt: Date.now() }),
+        });
+      } catch(e) { /* best effort */ }
+    }
+
+    // First-ever load — seed default roster if empty
+    if (!remote.players || remote.players.length === 0) {
+      DB = { ...DB, ...remote, players: buildDefaultPlayers() };
+      await saveDB();
+    } else {
+      // Smart-merge client-side as well for double protection
+      const mergedGame = mergeGameLocal(DB.game, remote.game);
+      DB = { ...DB, ...remote, game: mergedGame };
+    }
+
+    if (remoteTime > 0) _lastLoadedAt = remoteTime;
+    if (DB.game) {
+      _lastKnownDrawCount = Math.max(_lastKnownDrawCount, (DB.game.drawnNumbers||[]).length);
+      try {
+        _localGameSnapshot = JSON.parse(JSON.stringify(DB.game));
+        localStorage.setItem('smb_game_snapshot', JSON.stringify(_localGameSnapshot));
+      } catch(e) {}
+    }
+  } catch (e) {
+    console.error('loadDB: unreachable — keeping current memory + checking localStorage backup', e.message);
+    // Try to restore from localStorage backup if memory is empty
+    if (!DB.game) {
+      try {
+        const snap = localStorage.getItem('smb_game_snapshot');
+        if (snap) {
+          DB.game = JSON.parse(snap);
+          _lastKnownDrawCount = (DB.game.drawnNumbers||[]).length;
+          console.log('[loadDB] Restored game from localStorage — draws:', _lastKnownDrawCount);
+        }
+      } catch(e2) {}
+    }
+  }
+  _dbLoaded = true;
+}
+
+
 // Initial load — everything that depends on DB waits for this
+// Restore localStorage backup before first loadDB so merge has local data
+try {
+  const snap = localStorage.getItem('smb_game_snapshot');
+  if (snap) {
+    _localGameSnapshot = JSON.parse(snap);
+    _lastKnownDrawCount = (_localGameSnapshot.drawnNumbers||[]).length;
+  }
+} catch(e) {}
+
 const _initialLoadPromise = loadDB();
 
 // ════════════════════════════════════════════════════════════
@@ -1368,6 +1474,15 @@ All ${DB.game.drawnNumbers?.length||75} numbers were called with no BINGO claime
     DB.game.calledSet.push(pick.full);
     DB.game.lastDrawAt = Date.now();
 
+    // Snapshot and timestamp immediately — before saveDB so local state is
+    // authoritative even if the server write is slow
+    _lastKnownDrawCount = DB.game.drawnNumbers.length;
+    _localGameSnapshot = JSON.parse(JSON.stringify(DB.game));
+    const _drawTs = Date.now();
+    DB.updatedAt = _drawTs;
+    _lastLoadedAt = _drawTs;
+    try { localStorage.setItem('smb_game_snapshot', JSON.stringify(_localGameSnapshot)); } catch(e){}
+
     // Save then refresh
     await saveDB();
     refreshAdminGame();
@@ -1848,6 +1963,8 @@ function renderEmojiPalette(){
 async function toggleCellMark(cardIndex, cellIndex){
   if(!currentPlayer || !DB.game) return;
   const g = DB.game;
+
+  // Ensure the marks structure exists in memory first
   if(!g.playerMarks) g.playerMarks = {};
   if(!g.playerMarks[currentPlayer.id]) g.playerMarks[currentPlayer.id] = {};
   if(!g.playerMarks[currentPlayer.id][cardIndex]) g.playerMarks[currentPlayer.id][cardIndex] = {};
@@ -1858,6 +1975,15 @@ async function toggleCellMark(cardIndex, cellIndex){
   } else {
     cellMarks[cellIndex] = getPlayerEmoji();
   }
+
+  // Stamp timestamps immediately — blocks any concurrent poll from wiping this mark
+  const now = Date.now();
+  DB.updatedAt = now;
+  _lastLoadedAt = now;
+  // Also update local snapshot immediately
+  _localGameSnapshot = DB.game ? JSON.parse(JSON.stringify(DB.game)) : null;
+  try { if(_localGameSnapshot) localStorage.setItem('smb_game_snapshot', JSON.stringify(_localGameSnapshot)); } catch(e){}
+
   await saveDB();
   refreshPlayerScreen();
 }
@@ -2009,12 +2135,18 @@ async function refreshPlayerScreen(){
 }
 
 async function playerClaimBingo(){
-  await loadDB();
+  // Before verifying, make absolutely sure we have the most complete game state.
+  // Merge local snapshot into memory first, then load from server.
+  if (_localGameSnapshot && DB.game && _localGameSnapshot.id === DB.game.id) {
+    DB.game = mergeGameLocal(DB.game, _localGameSnapshot);
+  }
+  await loadDB(); // smart merge — won't lose any drawn numbers
   const g=DB.game;
   if(!g||!g.active||g.ended||!currentPlayer) return;
 
-  const calledSet=new Set(g.calledSet); // the real, true called numbers
-  const cards=g.playerCards[currentPlayer.id]||[];
+  // Use the most complete calledSet available — protects against any remaining lag
+  const calledSet=new Set(g.calledSet);
+  const cards=(g.playerCards && g.playerCards[currentPlayer.id])||[];
   const myMarks=(g.playerMarks&&g.playerMarks[currentPlayer.id])||{};
 
   // Find which of the player's cards they believe has won, and cross-check vs real calledSet
