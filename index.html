@@ -1334,7 +1334,7 @@ function syncPatternSetupAvailability(){
 }
 
 function checkWin(grid,pattern,calledSet){
-  return pattern.cells.every((on,i)=>!on||(grid[i]==='FREE')||calledSet.has(`${LETTERS[Math.floor(i/5)]}${grid[i]}`));
+  return pattern.cells.every((on,i)=>!on||(grid[i]==='FREE')||calledSet.has(`${LETTERS[i%5]}${grid[i]}`));
 }
 
 // Player's own manual marks vs pattern — used ONLY to enable their BINGO button.
@@ -1710,7 +1710,7 @@ function makeBingoCardEl(agentName,cardLabel,grid,calledSet,pattern,isWinner,opt
     <div class="card-grid">
       ${grid.map((val,i)=>{
         const isFree=val==='FREE';
-        const letter=LETTERS[Math.floor(i/5)];
+        const letter=LETTERS[i%5];
         const full=`${letter}${val}`;
         const isCalled=isFree||calledSet.has(full);
         const isPatternCell=pattern&&pattern.cells&&pattern.cells[i];
@@ -1757,7 +1757,7 @@ function refreshDashboard(){
       const wCards=cards.filter(c=>checkWin(c.grid,g.pattern,calledSet));
       const matched=cards.map(c=>c.grid.filter((v,i)=>{
         if(v==='FREE') return false;
-        return calledSet.has(`${LETTERS[Math.floor(i/5)]}${v}`);
+        return calledSet.has(`${LETTERS[i%5]}${v}`);
       }).length);
       rows+=`<tr>
         <td style="font-weight:600;">${p.name}</td>
@@ -2626,7 +2626,7 @@ function renderPendingCards(animate){
       displayGrid = grid.map((v,i) => {
         if(v === 'FREE') return 'FREE';
         // Random number in same column range for shuffle effect
-        const letter = LETTERS[Math.floor(i/5)];
+        const letter = LETTERS[i%5];
         const [s,e] = COL_RANGES[letter];
         return Math.floor(Math.random()*(e-s+1))+s;
       });
@@ -2669,7 +2669,7 @@ function renderPendingCards(animate){
         const cells = cardDiv.querySelectorAll('.ccell');
         cells.forEach((cell,i)=>{
           if(grid[i]==='FREE') return;
-          const letter = LETTERS[Math.floor(i/5)];
+          const letter = LETTERS[i%5];
           const [s,e] = COL_RANGES[letter];
           cell.textContent = Math.floor(Math.random()*(e-s+1))+s;
         });
