@@ -1937,7 +1937,7 @@ function showPlayerScreen(){
 }
 
 // Selected emoji marker per player (persisted to localStorage, separate from game data)
-const EMOJI_OPTIONS = ['✅','🔴','⭐','🔥','💯','💚','❌','🟡'];
+const EMOJI_OPTIONS = ['✅','🔴','⭐','🔥','💯','💚','❌','🟡','🐶','🐱','🍕','🍔'];
 function getPlayerEmoji(){
   try { return localStorage.getItem('smbBingoEmoji_'+(currentPlayer?currentPlayer.id:'')) || '✅'; }
   catch(e){ return '✅'; }
