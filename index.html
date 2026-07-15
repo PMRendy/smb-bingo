@@ -883,7 +883,7 @@ function mergeGameLocal(local, remote) {
     const rC = rMarks[pid] || {};
     const allCI = new Set([...Object.keys(lC), ...Object.keys(rC)]);
     mm[pid] = {};
-    allCI.forEach(ci => { mm[pid][ci] = { ...(rC[ci]||{}), ...(lC[ci]||{}) }; });
+    allCI.forEach(ci => { mm[pid][ci] = { ...(rC[String(ci)]||rC[ci]||{}), ...(lC[String(ci)]||lC[ci]||{}) }; });
   });
   merged.playerMarks = mm;
 
@@ -1341,7 +1341,9 @@ function checkWin(grid,pattern,calledSet){
 // This does NOT determine the real winner; admin's true calledSet does that.
 function checkWinManual(grid,pattern,marks){
   marks = marks || {};
-  return pattern.cells.every((on,i)=> !on || grid[i]==='FREE' || !!marks[i]);
+  // Coerce index to string — JSON storage turns numeric keys into strings
+  // so marks[5] fails but marks["5"] works
+  return pattern.cells.every((on,i)=> !on || grid[i]==='FREE' || !!marks[String(i)]);
 }
 
 async function adminStartGame(){
@@ -1713,7 +1715,7 @@ function makeBingoCardEl(agentName,cardLabel,grid,calledSet,pattern,isWinner,opt
         const isCalled=isFree||calledSet.has(full);
         const isPatternCell=pattern&&pattern.cells&&pattern.cells[i];
         const isPwin=isWinner&&isPatternCell&&isCalled;
-        const mark=marks[i];
+        const mark=marks[String(i)] || marks[i]; // handle both string and number keys
         let cls='ccell';
         if(isFree) cls+=' free';
         else if(isPwin) cls+=' pwin';
@@ -1970,10 +1972,11 @@ async function toggleCellMark(cardIndex, cellIndex){
   if(!g.playerMarks[currentPlayer.id][cardIndex]) g.playerMarks[currentPlayer.id][cardIndex] = {};
 
   const cellMarks = g.playerMarks[currentPlayer.id][cardIndex];
-  if(cellMarks[cellIndex]){
-    delete cellMarks[cellIndex]; // tap again to unmark
+  const cellKey = String(cellIndex); // always use string keys — consistent with JSON storage
+  if(cellMarks[cellKey]){
+    delete cellMarks[cellKey]; // tap again to unmark ✅
   } else {
-    cellMarks[cellIndex] = getPlayerEmoji();
+    cellMarks[cellKey] = getPlayerEmoji();
   }
 
   // Stamp timestamps immediately — blocks any concurrent poll from wiping this mark
