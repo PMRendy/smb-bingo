@@ -818,7 +818,35 @@ let _lastLoadedAt = 0;
 let _lastKnownDrawCount = 0;   // tracks highest draw count we've ever seen
 let _localGameSnapshot = null; // localStorage backup of game state
 
-// ─── SAVE ───────────────────────────────────────────────────────────────────
+// ─── SAVE (FULL REPLACE) ───────────────────────────────────────────────────
+// Used for intentional resets and game-end where game:null must go through.
+async function saveDBFull() {
+  try {
+    DB.updatedAt = Date.now();
+    _lastLoadedAt = DB.updatedAt;
+    if (DB.game) {
+      try {
+        _localGameSnapshot = JSON.parse(JSON.stringify(DB.game));
+        localStorage.setItem('smb_game_snapshot', JSON.stringify(_localGameSnapshot));
+      } catch(e) {}
+    } else {
+      // Intentional reset — clear the local snapshot too
+      _localGameSnapshot = null;
+      _lastKnownDrawCount = 0;
+      try { localStorage.removeItem('smb_game_snapshot'); localStorage.removeItem('smb_game_ts'); } catch(e) {}
+    }
+    const resp = await fetch(`${BACKEND_URL}/state`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(DB),
+    });
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+  } catch (e) {
+    console.error('saveDBFull failed:', e.message);
+  }
+}
+
+// ─── SAVE (SMART MERGE) ─────────────────────────────────────────────────────
 // Uses /state/merge so the SERVER does the smart merge — protects against
 // Render restarts and concurrent browser writes in one shot.
 async function saveDB() {
@@ -1369,7 +1397,7 @@ async function adminStartGame(){
     lastDrawAt:null,
     claimedBy:null,
   };
-  await saveDB();
+  await saveDBFull(); // full replace — ensures clean new game state
   refreshAdminGame();
   adminLog('🎉 New game started! Lobby open — waiting for first manual draw to start auto-draw timer.','ok');
   document.getElementById('adminGameBadge').style.display='inline-block';
@@ -1571,7 +1599,7 @@ async function adminEndGame(claimant){
   // Keep last 50 games
   if(DB.gameHistory.length>50) DB.gameHistory=DB.gameHistory.slice(0,50);
 
-  await saveDB();
+  await saveDBFull(); // full replace so ended game state is authoritative
   stopAutoDrawTimer();
   _drawLock=false;
   document.getElementById('adminDrawBtn').disabled=true;
@@ -1591,7 +1619,8 @@ async function adminResetGame(){
   if(!confirm('I-reset ang laro? Mabubura ang kasalukuyang game.')) return;
   stopAutoDrawTimer();
   _drawLock=false;
-  DB.game=null;await saveDB();
+  DB.game=null;
+  await saveDBFull(); // full replace — game:null must go through, not be merged
   refreshAdminGame();
   document.getElementById('adminGameBadge').style.display='none';
   adminLog('Game reset.','info');
