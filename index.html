@@ -951,12 +951,11 @@ async function loadDB() {
     // If server restarted (drawnNumbers empty but we know there were draws),
     // restore from our localStorage backup and push it back to the server
     const remoteDrawCount = (remote.game?.drawnNumbers || []).length;
-    // Only attempt this recovery on the very first load after a page
-    // load/reconnect (!_dbLoaded). If we did this on every poll, a stray
-    // client that still has an old game cached would keep resurrecting it
-    // right after the admin intentionally reset the game (remoteDrawCount
-    // legitimately drops to 0 on reset, not just on a real server restart).
-    if (!_dbLoaded && remoteDrawCount === 0 && _lastKnownDrawCount > 0 && _localGameSnapshot) {
+    // Render restart recovery: only on first page load AND only if the remote
+    // game is not intentionally null (i.e. server returned a game object but
+    // with no draws — meaning the process restarted, not an admin reset).
+    // After an admin reset, _lastKnownDrawCount is cleared to 0 so this never fires.
+    if (!_dbLoaded && remote.game !== null && remoteDrawCount === 0 && _lastKnownDrawCount > 0 && _localGameSnapshot) {
       console.log('[loadDB] Server restarted mid-game — restoring from local snapshot');
       remote.game = mergeGameLocal(_localGameSnapshot, remote.game);
       // Push the restored state back so other browsers get it too
@@ -1456,6 +1455,7 @@ async function lockGameLobby(){
 }
 
 let _drawLock = false;
+let _playerWriteLock = false; // blocks poll from overwriting freshly-marked cells
 
 async function adminDrawNumber(fromTimer=false){
   if(!DB.game || !DB.game.active || DB.game.ended) return;
@@ -1627,12 +1627,18 @@ async function adminEndGame(claimant){
 async function adminResetGame(){
   if(!confirm('I-reset ang laro? Mabubura ang kasalukuyang game.')) return;
   stopAutoDrawTimer();
-  _drawLock=false;
-  DB.game=null;
-  await saveDBFull(); // full replace — game:null must go through, not be merged
+  _drawLock = false;
+  _lastLoadedAt = 0;      // reset stale-check so next loadDB accepts fresh state
+  _lastKnownDrawCount = 0;
+  _localGameSnapshot = null;
+  try { localStorage.removeItem('smb_game_snapshot'); localStorage.removeItem('smb_game_ts'); } catch(e){}
+  DB.game = null;
+  await saveDBFull(); // full replace — game:null goes through
+  await loadDB();     // immediately load fresh state so UI reflects reset
   refreshAdminGame();
+  refreshRosterUI();
   document.getElementById('adminGameBadge').style.display='none';
-  adminLog('Game reset.','info');
+  adminLog('Game reset. Ready to start a new game.','ok');
 }
 
 // ════════════════════════════════════════════════════════════
@@ -1664,7 +1670,7 @@ async function refreshAdminGame(){
     return;
   }
 
-  startBtn.disabled=g.active||g.ended;
+  startBtn.disabled=g.active&&!g.ended; // allow Start after game ends
   drawBtn.disabled=!g.active||g.ended;
   patBtn.disabled=!g.active||g.ended;
   bingoBtn.disabled=!g.active||g.ended;
@@ -2021,9 +2027,14 @@ async function toggleCellMark(cardIndex, cellIndex){
   const now = Date.now();
   DB.updatedAt = now;
   _lastLoadedAt = now;
-  // Also update local snapshot immediately
+  // Update local snapshot immediately
   _localGameSnapshot = DB.game ? JSON.parse(JSON.stringify(DB.game)) : null;
   try { if(_localGameSnapshot) localStorage.setItem('smb_game_snapshot', JSON.stringify(_localGameSnapshot)); } catch(e){}
+
+  // Block polling for 3 seconds after a mark so the save can complete
+  _playerWriteLock = true;
+  clearTimeout(window._playerWriteLockTimer);
+  window._playerWriteLockTimer = setTimeout(() => { _playerWriteLock = false; }, 3000);
 
   await saveDB();
   refreshPlayerScreen();
@@ -2065,7 +2076,8 @@ function renderRsvpPanel(g){
 
 async function refreshPlayerScreen(){
   if(!currentPlayer) return; // guard: poll may fire after logout
-  await loadDB(); // reload from shared backend
+  // Only load from backend if we haven't just written (avoids poll wiping fresh marks)
+  if(!_playerWriteLock) await loadDB(); // reload from shared backend
   // Re-sync currentPlayer from fresh DB so stale reference doesn't bite us
   const fresh = DB.players.find(p=>p.id===currentPlayer.id);
   if(!fresh){ currentPlayer=null; return; }
