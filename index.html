@@ -886,7 +886,11 @@ async function saveDB() {
 function mergeGameLocal(local, remote) {
   if (!local && !remote) return null;
   if (!local) return remote;
-  if (!remote) return local;
+  // Remote is the authoritative, freshly-fetched server state. If it says
+  // there's no game (e.g. admin just hit Reset Game), trust it — do NOT
+  // fall back to a stale cached `local` game, or a reset will never
+  // propagate to other browsers/tabs still holding old game state.
+  if (!remote) return null;
   if (local.id && remote.id && local.id !== remote.id) return remote; // new game
 
   const merged = { ...local, ...remote };
@@ -947,7 +951,12 @@ async function loadDB() {
     // If server restarted (drawnNumbers empty but we know there were draws),
     // restore from our localStorage backup and push it back to the server
     const remoteDrawCount = (remote.game?.drawnNumbers || []).length;
-    if (remoteDrawCount === 0 && _lastKnownDrawCount > 0 && _localGameSnapshot) {
+    // Only attempt this recovery on the very first load after a page
+    // load/reconnect (!_dbLoaded). If we did this on every poll, a stray
+    // client that still has an old game cached would keep resurrecting it
+    // right after the admin intentionally reset the game (remoteDrawCount
+    // legitimately drops to 0 on reset, not just on a real server restart).
+    if (!_dbLoaded && remoteDrawCount === 0 && _lastKnownDrawCount > 0 && _localGameSnapshot) {
       console.log('[loadDB] Server restarted mid-game — restoring from local snapshot');
       remote.game = mergeGameLocal(_localGameSnapshot, remote.game);
       // Push the restored state back so other browsers get it too
@@ -1362,7 +1371,7 @@ function syncPatternSetupAvailability(){
 }
 
 function checkWin(grid,pattern,calledSet){
-  return pattern.cells.every((on,i)=>!on||(grid[i]==='FREE')||calledSet.has(`${LETTERS[Math.floor(i/5)]}${grid[i]}`));
+  return pattern.cells.every((on,i)=>!on||(grid[i]==='FREE')||calledSet.has(`${LETTERS[i%5]}${grid[i]}`));
 }
 
 // Player's own manual marks vs pattern — used ONLY to enable their BINGO button.
@@ -1739,7 +1748,7 @@ function makeBingoCardEl(agentName,cardLabel,grid,calledSet,pattern,isWinner,opt
     <div class="card-grid">
       ${grid.map((val,i)=>{
         const isFree=val==='FREE';
-        const letter=LETTERS[Math.floor(i/5)];
+        const letter=LETTERS[i%5];
         const full=`${letter}${val}`;
         const isCalled=isFree||calledSet.has(full);
         const isPatternCell=pattern&&pattern.cells&&pattern.cells[i];
@@ -1786,7 +1795,7 @@ function refreshDashboard(){
       const wCards=cards.filter(c=>checkWin(c.grid,g.pattern,calledSet));
       const matched=cards.map(c=>c.grid.filter((v,i)=>{
         if(v==='FREE') return false;
-        return calledSet.has(`${LETTERS[Math.floor(i/5)]}${v}`);
+        return calledSet.has(`${LETTERS[i%5]}${v}`);
       }).length);
       rows+=`<tr>
         <td style="font-weight:600;">${p.name}</td>
@@ -2655,7 +2664,7 @@ function renderPendingCards(animate){
       displayGrid = grid.map((v,i) => {
         if(v === 'FREE') return 'FREE';
         // Random number in same column range for shuffle effect
-        const letter = LETTERS[Math.floor(i/5)];
+        const letter = LETTERS[i%5];
         const [s,e] = COL_RANGES[letter];
         return Math.floor(Math.random()*(e-s+1))+s;
       });
@@ -2698,7 +2707,7 @@ function renderPendingCards(animate){
         const cells = cardDiv.querySelectorAll('.ccell');
         cells.forEach((cell,i)=>{
           if(grid[i]==='FREE') return;
-          const letter = LETTERS[Math.floor(i/5)];
+          const letter = LETTERS[i%5];
           const [s,e] = COL_RANGES[letter];
           cell.textContent = Math.floor(Math.random()*(e-s+1))+s;
         });
