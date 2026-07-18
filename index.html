@@ -862,7 +862,7 @@ async function saveDBFull() {
 // ─── SAVE (SMART MERGE) ─────────────────────────────────────────────────────
 // Uses /state/merge so the SERVER does the smart merge — protects against
 // Render restarts and concurrent browser writes in one shot.
-async function saveDB() {
+async function saveDB(markUpdate) {
   try {
     DB.updatedAt = Date.now();
     _lastLoadedAt = DB.updatedAt;
@@ -876,17 +876,26 @@ async function saveDB() {
       } catch(e) {}
     }
 
+    // markUpdate (optional): { playerId, cardIndex, cellIndex, mark } — a one-shot
+    // explicit patch for a single mark/unmark action. Sent alongside the full game
+    // snapshot so the server can apply it AFTER its safe union merge, guaranteeing
+    // this specific action (including deletions/unmarks) always takes effect.
+    const payload = markUpdate ? { ...DB, markUpdate } : DB;
+
     // Use /state/merge — server merges drawnNumbers, calledSet, playerMarks safely
     const resp = await fetch(`${BACKEND_URL}/state/merge`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(DB),
+      body: JSON.stringify(payload),
     });
     if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
     const result = await resp.json();
-    // Server returns the fully merged state — use it so we have the definitive version
+    // Server returns the fully merged (and, if markUpdate was sent, patched) state —
+    // use it as-is so we have the definitive version. We deliberately do NOT run it
+    // through mergeGameLocal's union logic here when a markUpdate was just applied,
+    // since that union would risk re-adding the very mark we just asked to delete.
     if (result.game !== undefined) {
-      DB.game = mergeGameLocal(DB.game, result.game);
+      DB.game = markUpdate ? result.game : mergeGameLocal(DB.game, result.game);
     }
     if (result.updatedAt) _lastLoadedAt = result.updatedAt;
   } catch (e) {
@@ -2089,10 +2098,13 @@ async function toggleCellMark(cardIndex, cellIndex){
 
   const cellMarks = g.playerMarks[currentPlayer.id][cardIndex];
   const cellKey = String(cellIndex); // always use string keys — consistent with JSON storage
+  let newMark = null;
   if(cellMarks[cellKey]){
     delete cellMarks[cellKey]; // tap again to unmark ✅
+    newMark = null;
   } else {
-    cellMarks[cellKey] = getPlayerEmoji();
+    newMark = getPlayerEmoji();
+    cellMarks[cellKey] = newMark;
   }
 
   // Stamp timestamps immediately — blocks any concurrent poll from wiping this mark
@@ -2108,7 +2120,14 @@ async function toggleCellMark(cardIndex, cellIndex){
   clearTimeout(window._playerWriteLockTimer);
   window._playerWriteLockTimer = setTimeout(() => { _playerWriteLock = false; }, 3000);
 
-  await saveDB();
+  // FIX (2026-07-18): the server/client merge logic unions playerMarks so nobody's
+  // marks ever get silently dropped by a stale save — but that also meant a DELETION
+  // (unmarking a cell) could never survive the union, since the old "marked" entry
+  // would just get merged back in. We now send an explicit one-shot patch describing
+  // exactly what just happened (mark or unmark on this specific cell), which both the
+  // server and the client apply as a final authoritative step AFTER the safe union
+  // merge — so unmark actually sticks, while other players' marks stay protected.
+  await saveDB({ playerId: currentPlayer.id, cardIndex, cellIndex, mark: newMark });
   refreshPlayerScreen();
 }
 
