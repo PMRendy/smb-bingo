@@ -311,6 +311,10 @@ textarea{resize:vertical;min-height:60px;}
             </select>
           </div>
         </div>
+        <div style="margin-top:8px;">
+          <label>Slack User ID <span style="color:var(--muted);font-weight:400;">(optional — needed for "Buy an Extra Card" with Marcus points, e.g. U0BCS577H9Q)</span></label>
+          <input type="text" id="newPlayerSlackId" placeholder="e.g. U0BCS577H9Q"/>
+        </div>
         <button class="btn btn-gold btn-sm" onclick="addPlayer()">+ Add Player</button>
         <div id="rosterError" style="color:var(--danger);font-size:12px;margin-top:6px;"></div>
       </div>
@@ -395,6 +399,7 @@ textarea{resize:vertical;min-height:60px;}
               <input type="text" id="prizeInput" placeholder="Default: PHP 500 — type to override (e.g. Extra VL, Jollibee treat...)" style="margin-bottom:0;"/>
             </div>
 
+            <div id="adminLobbyStatus" style="font-size:12px;color:var(--muted);margin-bottom:8px;display:none;"></div>
             <button class="btn btn-gold btn-full" id="adminStartBtn" onclick="adminStartGame()">🎉 Start New Game</button>
             <button class="btn btn-teal btn-full" id="adminDrawBtn" onclick="adminDrawNumber()" disabled>🎱 Draw Next Number</button>
             <button class="btn btn-outline btn-full btn-sm" id="adminPatternBtn" onclick="adminNewPattern()" disabled>🎲 Randomize Pattern</button>
@@ -570,6 +575,12 @@ textarea{resize:vertical;min-height:60px;}
       <div id="rsvpPanelContent"></div>
     </div>
 
+    <!-- Buy an Extra Card (Marcus points) -->
+    <div class="panel" id="buyCardPanel" style="display:none;padding:14px;">
+      <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;color:var(--gold);text-transform:uppercase;margin-bottom:8px;">🎟️ Buy an Extra Card</div>
+      <div id="buyCardPanelContent" style="font-size:13px;color:var(--muted);"></div>
+    </div>
+
     <!-- Pattern display for player -->
     <div id="playerPatternDisplay" style="display:none;background:var(--deep);border:1px solid rgba(245,200,66,.15);border-radius:var(--r);padding:14px;margin-bottom:14px;text-align:center;">
       <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;color:var(--teal);text-transform:uppercase;margin-bottom:6px;">Tonight's Winning Pattern</div>
@@ -634,6 +645,8 @@ textarea{resize:vertical;min-height:60px;}
       <option value="3">3 Cards</option>
       <option value="4">4 Cards</option>
     </select>
+    <label>Slack User ID <span style="color:var(--muted);font-weight:400;">(for "Buy an Extra Card")</span></label>
+    <input type="text" id="editPlayerSlackId" placeholder="e.g. U0BCS577H9Q"/>
     <div style="display:flex;gap:8px;margin-top:4px;">
       <button class="btn btn-gold" style="flex:1;" onclick="saveEditPlayer()">Save</button>
       <button class="btn btn-outline" style="flex:1;" onclick="document.getElementById('editOverlay').classList.remove('show');">Cancel</button>
@@ -1152,6 +1165,7 @@ async function addPlayer() {
   const name = document.getElementById('newPlayerName').value.trim();
   const pin = document.getElementById('newPlayerPin').value.trim();
   const cards = parseInt(document.getElementById('newPlayerCards').value);
+  const slackUserId = (document.getElementById('newPlayerSlackId')?.value || '').trim();
   const errEl = document.getElementById('rosterError');
 
   if(!name){errEl.textContent='Lagyan ng pangalan ang player!';return;}
@@ -1159,12 +1173,13 @@ async function addPlayer() {
   if(DB.players.some(p=>p.pin===pin)){errEl.textContent='Yung PIN na iyon ay ginamit na. Subukan ang iba!';return;}
   if(DB.players.some(p=>p.name.toLowerCase()===name.toLowerCase())){errEl.textContent='May player na may ganoong pangalan!';return;}
 
-  DB.players.push({id:generateId(),name,pin,maxCards:cards,active:true});
+  DB.players.push({id:generateId(),name,pin,maxCards:cards,active:true,slackUserId});
   await saveDB();
   errEl.textContent='';
   document.getElementById('newPlayerName').value='';
   document.getElementById('newPlayerPin').value='';
   document.getElementById('newPlayerCards').value='2';
+  if(document.getElementById('newPlayerSlackId')) document.getElementById('newPlayerSlackId').value='';
   refreshRosterUI();
 }
 
@@ -1172,7 +1187,9 @@ function rsvpStatusBadge(p){
   const g = DB.game;
   if(!g || !g.active) return '<span style="color:var(--muted);font-size:11px;">—</span>';
   const playing = (g.rsvpPlayerIds||[]).includes(p.id);
+  const skipped = (g.skipPlayerIds||[]).includes(p.id);
   if(playing) return '<span class="winner-badge">🙋 Playing</span>';
+  if(skipped) return '<span style="color:var(--muted);font-size:11px;">😴 Sitting Out</span>';
   if(g.lobbyOpen) return '<span style="color:var(--muted);font-size:11px;">Not yet RSVP\'d</span>';
   return '<span style="color:var(--danger);font-size:11px;">🔒 Locked out (no RSVP)</span>';
 }
@@ -1213,6 +1230,7 @@ function openEditPlayer(id) {
   document.getElementById('editPlayerName').value=p.name;
   document.getElementById('editPlayerPin').value=p.pin;
   document.getElementById('editPlayerCards').value=p.maxCards;
+  document.getElementById('editPlayerSlackId').value=p.slackUserId||'';
   document.getElementById('editOverlay').classList.add('show');
 }
 
@@ -1221,11 +1239,12 @@ async function saveEditPlayer() {
   const name = document.getElementById('editPlayerName').value.trim();
   const pin = document.getElementById('editPlayerPin').value.trim();
   const cards = parseInt(document.getElementById('editPlayerCards').value);
+  const slackUserId = (document.getElementById('editPlayerSlackId').value || '').trim();
   if(!name||!/^\d{4}$/.test(pin)){alert('Pakitingnan ang mga input!');return;}
   // Admin can set any PIN — no duplicate check at admin level
   // (players share default PIN 1234 by design)
   const p = DB.players.find(x=>x.id===id);
-  if(p){Object.assign(p,{name,pin,maxCards:cards});}
+  if(p){Object.assign(p,{name,pin,maxCards:cards,slackUserId});}
   await saveDB();
   document.getElementById('editOverlay').classList.remove('show');
   refreshRosterUI();
@@ -1399,6 +1418,7 @@ async function adminStartGame(){
     id:gameId,active:true,ended:false,
     lobbyOpen:true, // true until first ball is drawn — players can RSVP while this is true
     rsvpPlayerIds:[], // players who hit "I'm Playing This Round" before lock
+    skipPlayerIds:[], // players who hit "I'm NOT Playing This Round" — admin doesn't have to wait on them
     drawnNumbers:[],calledSet:[],
     pattern,
     prize: prize || 'PHP 500',
@@ -1441,11 +1461,35 @@ async function playerRsvp(){
   if(g.rsvpPlayerIds.includes(currentPlayer.id)){
     return; // already RSVP'd, no-op
   }
+  // Switching your mind from "not playing" back to "playing" — clear the skip flag
+  if(!g.skipPlayerIds) g.skipPlayerIds = [];
+  g.skipPlayerIds = g.skipPlayerIds.filter(id => id !== currentPlayer.id);
   g.rsvpPlayerIds.push(currentPlayer.id);
   g.playerCards[currentPlayer.id] = generatePlayerCards(currentPlayer, g.id);
   await saveDB();
   playerLog(`Nakapag-RSVP ka na! Naghihintay na lang ng unang draw... 🎯`,'ok');
   postToSlack(buildRsvpMessage(currentPlayer.name, g.rsvpPlayerIds.length));
+  refreshPlayerScreen();
+}
+
+// Player taps "I'm NOT Playing This Round" — only works while lobby is open.
+// Lets the admin see who's deliberately sitting out vs. who just hasn't answered yet,
+// so the host doesn't have to keep waiting on someone who was never going to join.
+async function playerSkip(){
+  if(!currentPlayer || !DB.game) return;
+  const g = DB.game;
+  if(!g.lobbyOpen){
+    playerLog('Sarado na ang RSVP — huli na para mag-sit out. Sa susunod na round ka na lang!','err');
+    return;
+  }
+  if(!g.skipPlayerIds) g.skipPlayerIds = [];
+  if(g.skipPlayerIds.includes(currentPlayer.id)) return; // already marked, no-op
+  // Switching your mind from "playing" back to "not playing" — pull them out of RSVP too
+  g.rsvpPlayerIds = (g.rsvpPlayerIds||[]).filter(id => id !== currentPlayer.id);
+  delete g.playerCards[currentPlayer.id];
+  g.skipPlayerIds.push(currentPlayer.id);
+  await saveDB();
+  playerLog(`Okay, sit-out ka muna ngayong round. Sasali ka na lang sa susunod! 👍`,'ok');
   refreshPlayerScreen();
 }
 
@@ -1678,6 +1722,7 @@ async function refreshAdminGame(){
     document.getElementById('adminPatternGrid').innerHTML='';
     document.getElementById('adminCardsWrap').innerHTML='<div class="empty-state">Start a game to see player cards.</div>';
     document.getElementById('adminStats').innerHTML='';
+    document.getElementById('adminLobbyStatus').style.display='none';
     return;
   }
 
@@ -1685,6 +1730,22 @@ async function refreshAdminGame(){
   drawBtn.disabled=!g.active||g.ended;
   patBtn.disabled=!g.active||g.ended;
   bingoBtn.disabled=!g.active||g.ended;
+
+  // Lobby status line — lets the host see at a glance who's playing, who's sitting out,
+  // and who's still undecided, so they don't have to just wait blindly on stragglers.
+  const lobbyStatusEl = document.getElementById('adminLobbyStatus');
+  if(lobbyStatusEl){
+    if(g.lobbyOpen){
+      const activePlayers = DB.players.filter(p=>p.active!==false);
+      const playingCount = (g.rsvpPlayerIds||[]).length;
+      const skipCount = (g.skipPlayerIds||[]).length;
+      const pendingCount = Math.max(0, activePlayers.length - playingCount - skipCount);
+      lobbyStatusEl.style.display='block';
+      lobbyStatusEl.innerHTML = `🙋 ${playingCount} playing &nbsp;·&nbsp; 😴 ${skipCount} sitting out &nbsp;·&nbsp; ⏳ ${pendingCount} pending — draw whenever you're ready, no need to wait for everyone.`;
+    } else {
+      lobbyStatusEl.style.display='none';
+    }
+  }
 
   // Ball
   if(g.drawnNumbers.length>0){
@@ -2070,11 +2131,18 @@ function renderRsvpPanel(g){
     // RSVPd but no cards yet — show generate button
     // cardGenPanel is now always visible — no show needed
     content.innerHTML = `<div style="color:var(--teal);font-weight:700;font-size:14px;">✅ Nakapag-RSVP ka na! I-generate mo na ang iyong cards sa ibaba. 👇</div>`;
+  } else if((g.skipPlayerIds||[]).includes(currentPlayer.id)){
+    // Marked themselves as sitting out — still let them flip back to "playing" while lobby is open
+    content.innerHTML = `
+      <div style="color:var(--muted);font-weight:700;font-size:14px;margin-bottom:10px;">😴 Naka-sit out ka ngayong round. Sasali ka sa susunod!</div>
+      <button class="btn btn-gold" style="width:100%;" onclick="playerRsvp()">🙋 Actually, I'm Playing</button>
+    `;
   } else if(g.lobbyOpen){
     // cardGenPanel is now always visible — no hide needed
     content.innerHTML = `
       <div style="font-size:13px;color:var(--muted);margin-bottom:10px;">Sasali ka ba ngayong round? I-confirm bago mag-umpisa ang unang draw!</div>
-      <button class="btn btn-gold" style="width:100%;" onclick="playerRsvp()">🙋 I'm Playing This Round</button>
+      <button class="btn btn-gold" style="width:100%;margin-bottom:8px;" onclick="playerRsvp()">🙋 I'm Playing This Round</button>
+      <button class="btn btn-outline" style="width:100%;" onclick="playerSkip()">🙅 I'm NOT Playing This Round</button>
     `;
   } else if(!hasCards){
     // Lobby closed but player never RSVP'd — still let them generate cards (Item 2)
@@ -2082,6 +2150,106 @@ function renderRsvpPanel(g){
     content.innerHTML = `<div style="color:var(--gold);font-weight:700;font-size:14px;">⚠️ Late ka! RSVP ay sarado na — pero pwede ka pa ring sumali. I-generate ang iyong cards sa ibaba!</div>`;
   } else {
     content.innerHTML = `<div style="color:var(--success);font-weight:700;font-size:14px;">✅ Nakalaro ka na! Mark mo na ang iyong cards!</div>`;
+  }
+}
+
+// ════════════════════════════════════════════════════════════
+//  BUY AN EXTRA CARD (spends Marcus Ganzo points via the backend)
+// ════════════════════════════════════════════════════════════
+let _buyCardCandidates = null; // cached 5-candidate grids while player is picking
+
+function renderMiniCardGrid(grid){
+  let html = '<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:2px;margin:6px 0;">';
+  LETTERS.forEach(l => { html += `<div style="text-align:center;font-size:10px;font-weight:700;color:var(--gold);">${l}</div>`; });
+  grid.forEach(cell => {
+    html += `<div style="text-align:center;font-size:11px;background:var(--deep);border-radius:3px;padding:3px 0;">${cell==='FREE'?'★':cell}</div>`;
+  });
+  html += '</div>';
+  return html;
+}
+
+async function refreshBuyCardPanel(){
+  const panel = document.getElementById('buyCardPanel');
+  const content = document.getElementById('buyCardPanelContent');
+  if(!panel || !content) return;
+  const g = DB.game;
+  if(!g || !g.active || g.ended || !currentPlayer){ panel.style.display='none'; return; }
+  if((g.skipPlayerIds||[]).includes(currentPlayer.id)){ panel.style.display='none'; return; }
+
+  if(!currentPlayer.slackUserId){
+    panel.style.display='block';
+    content.innerHTML = `<div>Wala ka pang linked Slack ID — sabihan ang admin para ma-link, para makabili ka ng extra card gamit ang Marcus points!</div>`;
+    return;
+  }
+
+  panel.style.display='block';
+  const purchasesThisShift = (g.cardPurchases && g.cardPurchases[currentPlayer.id]) || 0;
+  if(purchasesThisShift >= 3){
+    content.innerHTML = `<div>Nakabili ka na ng max 3 extra cards ngayong shift. Good luck sa laro! 🍀</div>`;
+    return;
+  }
+
+  try {
+    const r = await fetch(`${BACKEND_URL}/points-balance?slackUserId=${encodeURIComponent(currentPlayer.slackUserId)}`);
+    const j = await r.json();
+    const balance = j.total ?? 0;
+    if(_buyCardCandidates){
+      // Player already hit "Buy" — show the 5 candidates to pick from
+      content.innerHTML = `<div style="margin-bottom:8px;">Piliin ang isa sa 5 cards na ito (${5} pts):</div>` +
+        `<div style="display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;">` +
+        _buyCardCandidates.map((grid,i) => `
+          <div style="min-width:110px;border:1px solid rgba(245,200,66,.25);border-radius:8px;padding:6px;">
+            ${renderMiniCardGrid(grid)}
+            <button class="btn btn-gold btn-sm" style="width:100%;" onclick="choosePurchasedCard(${i})">Pick this</button>
+          </div>`).join('') +
+        `</div>`;
+    } else if(balance >= 5){
+      content.innerHTML = `<div style="margin-bottom:8px;">Balance: <strong>${balance} pts</strong> — 5 pts = 1 extra card (${purchasesThisShift}/3 nabili ngayong shift).</div>` +
+        `<button class="btn btn-gold btn-sm" style="width:100%;" onclick="startBuyCard()">🎟️ Buy an Extra Card (5 pts)</button>`;
+    } else {
+      content.innerHTML = `<div>Balance: <strong>${balance} pts</strong> — kailangan ng 5 pts para makabili ng extra card. Sagot pa sa check-ins! 💪</div>`;
+    }
+  } catch(e){
+    content.innerHTML = `<div style="color:var(--danger);">Hindi ma-check ang points balance ngayon — try ulit mamaya.</div>`;
+  }
+}
+
+function startBuyCard(){
+  if(!DB.game) return;
+  // Generate 5 candidate cards client-side (random seeds — not tied to any existing card)
+  _buyCardCandidates = Array.from({length:5}, () => generateCard(Math.floor(Math.random()*1e9)));
+  refreshBuyCardPanel();
+}
+
+async function choosePurchasedCard(candidateIndex){
+  if(!currentPlayer || !DB.game || !_buyCardCandidates) return;
+  const grid = _buyCardCandidates[candidateIndex];
+  try {
+    const r = await fetch(`${BACKEND_URL}/buy-card`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ playerId: currentPlayer.id, slackUserId: currentPlayer.slackUserId }),
+    });
+    const j = await r.json();
+    if(!r.ok || !j.ok){
+      alert(j.error || 'Hindi na-process ang pagbili. Baka kulang points o may problema sa connection.');
+      _buyCardCandidates = null;
+      refreshBuyCardPanel();
+      return;
+    }
+    // Success — add the chosen card to the player's hand and record the purchase locally too
+    const g = DB.game;
+    if(!g.playerCards[currentPlayer.id]) g.playerCards[currentPlayer.id] = [];
+    const nextIndex = g.playerCards[currentPlayer.id].length;
+    g.playerCards[currentPlayer.id].push({ cardIndex: nextIndex, grid, purchased: true });
+    if(!g.cardPurchases) g.cardPurchases = {};
+    g.cardPurchases[currentPlayer.id] = j.purchasesThisShift;
+    await saveDB();
+    _buyCardCandidates = null;
+    playerLog(`Nabili ang extra card! Natitirang points: ${j.newTotal}`, 'ok');
+    refreshPlayerScreen();
+  } catch(e){
+    alert('Hindi na-process ang pagbili — try ulit.');
   }
 }
 
@@ -2101,6 +2269,7 @@ async function refreshPlayerScreen(){
 
   if(!g||(!g.active&&!g.ended)){
     document.getElementById('rsvpPanel').style.display='none';
+    document.getElementById('buyCardPanel').style.display='none';
     document.getElementById('playerCardsWrap').innerHTML='<div class="empty-state">Waiting for the host to start the game... 🌙</div>';
     bingoBtn.disabled=true;
     document.getElementById('playerLastDraw').textContent='Waiting for draw...';
@@ -2109,6 +2278,7 @@ async function refreshPlayerScreen(){
   }
 
   renderRsvpPanel(g);
+  refreshBuyCardPanel();
 
   const hasRsvpd = (g.rsvpPlayerIds||[]).includes(currentPlayer.id);
   const calledSet=new Set(g.calledSet); // true called numbers — NOT shown to player on cards
