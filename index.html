@@ -287,8 +287,7 @@ textarea{resize:vertical;min-height:60px;}
     <!-- TAB: ROSTER -->
     <div class="tab-content active" id="tab-roster">
       <div class="info-box">
-        ℹ️ <strong>Default PIN is 1234</strong> for all players. Players can change their own PIN after logging in. Ang indicator sa <em>PIN Status</em> column ay nagpapakita kung sinong nagpalit na ng kanilang PIN.<br>
-        ⚠️ <strong>Jan Rome</strong> is set to Inactive by default per admin rule.
+        ℹ️ <strong>Default PIN is 1234</strong> for all players. Players can change their own PIN after logging in. Ang indicator sa <em>PIN Status</em> column ay nagpapakita kung sinong nagpalit na ng kanilang PIN.
       </div>
       <div class="panel">
         <div class="panel-title">Add New Player</div>
@@ -780,22 +779,48 @@ const PATTERNS = [
 //  STATE & STORAGE
 // ════════════════════════════════════════════════════════════
 
-// Default roster — all start with PIN 1234. Jan Rome is seeded but inactive (per admin rule).
+// Default roster — all start with PIN 1234.
+// slackUserId embedded from the team's active-staff roster (2026-07-18) so admin no longer
+// has to retype it per player. JJ confirmed = Jhaysen. Lei removed (not on active-staff list).
+// Rendy added per admin request.
 const DEFAULT_ROSTER = [
-  'Gilda','Winnie','Charlz','Juna','Jenifer','Mitzi','Skye','MJ',
-  'Issa','Fatima','Rose','Gretchen','JJ','Wence','Jubilee','Nica',
-  'Jenn','Ochi','Cha','Cath','Claire','Eri','Lei',
-  'Angelica','Kat','Felix'
+  {name:'Gilda',    slackUserId:'U03SY14FH38'},
+  {name:'Winnie',   slackUserId:'U03T0MHQN8J'},
+  {name:'Charlz',   slackUserId:'U041ZU6HC4R'},
+  {name:'Juna',     slackUserId:'U04C38GBYN4'},
+  {name:'Jenifer',  slackUserId:'U05V4B5M43V'},
+  {name:'Mitzi',    slackUserId:'U066J36EM08'},
+  {name:'Skye',     slackUserId:'U06F1SLMG20'},
+  {name:'MJ',       slackUserId:'U06JKU5SPKR'},
+  {name:'Issa',     slackUserId:'U06PJJJ0M5X'},
+  {name:'Fatima',   slackUserId:'U06RSKBGBNK'},
+  {name:'Rose',     slackUserId:'U0747NJP4R0'},
+  {name:'Gretchen', slackUserId:'U07KFBU01N3'},
+  {name:'JJ',       slackUserId:'U07Q3T07Q95'},
+  {name:'Wence',    slackUserId:'U088DJ4A98B'},
+  {name:'Jubilee',  slackUserId:'U087EGF7Y02'},
+  {name:'Nica',     slackUserId:'U08JPDP6JSU'},
+  {name:'Jenn',     slackUserId:'U08RDQ8J5T7'},
+  {name:'Ochi',     slackUserId:'U096AQQ6VD2'},
+  {name:'Cha',      slackUserId:'U09CA7XUHDF'},
+  {name:'Cath',     slackUserId:'U09HQDNNUQP'},
+  {name:'Claire',   slackUserId:'U0AM1J3CVUN'},
+  {name:'Eri',      slackUserId:'U0B97DFCW9K'},
+  {name:'Angelica', slackUserId:'U06Q9DKKK9Q'},
+  {name:'Kat',      slackUserId:'U0BGE2PF9B7'},
+  {name:'Felix',    slackUserId:'U0BGE6GK8N9'},
+  {name:'Rendy',    slackUserId:'U03SN00B170'},
 ];
 
 function buildDefaultPlayers() {
-  return DEFAULT_ROSTER.map((name, idx) => ({
+  return DEFAULT_ROSTER.map((entry, idx) => ({
     id: 'default_' + idx,
-    name,
+    name: entry.name,
     pin: '1234',
     maxCards: 2,
     active: true,
     pinChanged: false,
+    slackUserId: entry.slackUserId || '',
   }));
 }
 
