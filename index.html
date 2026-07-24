@@ -282,6 +282,7 @@ textarea{resize:vertical;min-height:60px;}
       <button class="tab-btn" onclick="switchAdminTab('game')">🎱 Game Control</button>
       <button class="tab-btn" onclick="switchAdminTab('dashboard')">📊 Live Dashboard</button>
       <button class="tab-btn" onclick="switchAdminTab('settings')">⚙️ Settings</button>
+      <button class="tab-btn" onclick="switchAdminTab('history')">🪙 Transaction History</button>
     </div>
 
     <!-- TAB: ROSTER -->
@@ -524,6 +525,30 @@ textarea{resize:vertical;min-height:60px;}
       <div style="font-size:11px;color:var(--muted);margin-top:6px;">Clear All resets everything. Reset Roster restores the 26 default players with PIN 1234.</div>
       </div>
     </div>
+
+    <!-- TAB: TRANSACTION HISTORY (SMB Tokens) -->
+    <div class="tab-content" id="tab-history">
+      <div class="panel">
+        <div class="panel-title">💰 SMB Token Leaderboard</div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:10px;">Richest players right now — bragging rights only, no gameplay effect.</div>
+        <div id="tokenLeaderboardContent"><div class="empty-state">No tokens in circulation yet.</div></div>
+      </div>
+      <div class="panel">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+          <div class="panel-title" style="margin-bottom:0;">📜 All Transactions</div>
+          <button class="btn btn-outline btn-sm" onclick="refreshHistoryTab()">🔄 Refresh</button>
+        </div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:10px;">Cash-ins, card purchases, asks, gives, and shop purchases — everyone's activity, newest first (last 100).</div>
+        <div id="tokenHistoryContent"><div class="empty-state">No transactions yet.</div></div>
+      </div>
+      <div class="panel">
+        <div class="panel-title">🔥 Weekly Featured Shop Items</div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:10px;">Toggle which shop items are "on sale" this week (−1 SMB Token, min 1). Update this each week to keep the shop feeling fresh.</div>
+        <div id="shopFeaturedContent"></div>
+        <button class="btn btn-gold btn-sm" style="margin-top:8px;" onclick="saveShopFeatured()">Save Featured Items</button>
+        <div id="shopFeaturedSaved" style="color:var(--success);font-size:12px;margin-top:6px;"></div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -533,6 +558,7 @@ textarea{resize:vertical;min-height:60px;}
     <div class="player-header">
       <div style="font-size:11px;letter-spacing:3px;color:var(--teal);text-transform:uppercase;margin-bottom:4px;">🌙 Bayaning Puyat BINGO</div>
       <h2 id="playerName">Player</h2>
+      <div id="playerTokenBalance" style="display:inline-block;margin-top:2px;font-size:13px;font-weight:700;color:var(--gold);background:rgba(245,200,66,.12);border:1px solid rgba(245,200,66,.3);border-radius:20px;padding:3px 12px;">🪙 0 SMB Tokens</div>
       <div class="welcome" id="playerWelcome">Welcome! Handa ka na ba? 🎯</div>
       <div id="playerPrizeDisplay" style="display:none;background:rgba(245,200,66,.12);border:1px solid rgba(245,200,66,.3);border-radius:8px;padding:8px 14px;margin-top:8px;font-size:13px;text-align:center;">
         🏆 <strong>Prize ngayong gabi:</strong> <span id="playerPrizeText" style="color:var(--gold);">—</span>
@@ -574,10 +600,29 @@ textarea{resize:vertical;min-height:60px;}
       <div id="rsvpPanelContent"></div>
     </div>
 
-    <!-- Buy an Extra Card (Marcus points) -->
+    <!-- Cash In: convert Marcus points into SMB Tokens -->
+    <div class="panel" id="cashInPanel" style="display:none;padding:14px;">
+      <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;color:var(--gold);text-transform:uppercase;margin-bottom:8px;">💰 Cash In: Points → SMB Tokens</div>
+      <div id="cashInPanelContent" style="font-size:13px;color:var(--muted);"></div>
+    </div>
+
+    <!-- Buy an Extra Card (spends SMB Tokens) -->
     <div class="panel" id="buyCardPanel" style="display:none;padding:14px;">
       <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;color:var(--gold);text-transform:uppercase;margin-bottom:8px;">🎟️ Buy an Extra Card</div>
       <div id="buyCardPanelContent" style="font-size:13px;color:var(--muted);"></div>
+    </div>
+
+    <!-- Ask / Give SMB Tokens (lobby-only, before first ball is drawn) -->
+    <div class="panel" id="tokenTransferPanel" style="display:none;padding:14px;">
+      <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;color:var(--teal);text-transform:uppercase;margin-bottom:8px;">🙏 Ask / 🎁 Give SMB Tokens</div>
+      <div id="tokenTransferPanelContent" style="font-size:13px;color:var(--muted);"></div>
+    </div>
+
+    <!-- SMB Token Shop: marker themes & card skins (cosmetic-only) -->
+    <div class="panel" id="tokenShopPanel" style="display:none;padding:14px;">
+      <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;color:var(--gold);text-transform:uppercase;margin-bottom:6px;">🛒 SMB Token Shop</div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:10px;">Spend your SMB Tokens on marker themes and card skins — all cosmetic, no gameplay edge. Tap an item to unlock it, then tap "Equip" to use it. Items marked 🔥 are on sale this week!</div>
+      <div id="tokenShopPanelContent" style="font-size:13px;color:var(--muted);"></div>
     </div>
 
     <!-- Pattern display for player -->
@@ -591,6 +636,7 @@ textarea{resize:vertical;min-height:60px;}
     <div id="playerCardsSection">
       <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;color:var(--teal);text-transform:uppercase;margin-bottom:10px;">Your Cards</div>
       <div class="emoji-palette" id="emojiPalette"></div>
+      <div id="emojiPaletteHint" style="text-align:center;font-size:11px;color:var(--muted);margin-top:-8px;margin-bottom:10px;"></div>
       <div class="marking-hint">👆 I-tap ang numero para markahan. Tap ulit para tanggalin. <strong>Ikaw ang bahala sa pagmarka — kung hindi mo na-mark, ikaw ang nakaligtaan!</strong></div>
       <div class="cards-wrap" id="playerCardsWrap">
         <div class="empty-state">Waiting for the host to start the game...</div>
@@ -834,6 +880,7 @@ let DB = {
 };
 
 let currentPlayer = null;
+let _myTokenBalance = 0; // cached SMB Token balance for the logged-in player
 // Legacy timer vars kept for compatibility
 let adminTimer = null, adminCountdown = null, adminSecondsLeft = 0;
 let nextDrawAt = null;
@@ -1188,6 +1235,7 @@ function switchAdminTab(name) {
   if(tabEl) tabEl.classList.add('active');
   event.target.classList.add('active');
   if(name==='dashboard') refreshDashboard();
+  if(name==='history') refreshHistoryTab();
 }
 
 // ════════════════════════════════════════════════════════════
@@ -2088,11 +2136,21 @@ function showPlayerScreen(){
   window._playerPoll=setInterval(refreshPlayerScreen,5000);
 }
 
-// Selected emoji marker per player (persisted to localStorage, separate from game data)
-const EMOJI_OPTIONS = ['✅','🔴','⭐','🔥','💯','💚','❌','🟡','🐶','🐱','🍕','🍔'];
+// Selected emoji marker per player (persisted to localStorage, separate from game data).
+// ❌ (X marker) is free for everyone. Every other marker lives in a purchasable
+// Marker Theme pack from the SMB Token Shop — locked until unlocked there.
+const FREE_MARKER = '❌';
+function unlockedMarkerEmojis(){
+  const owned = (currentPlayer && DB.unlocks && DB.unlocks[currentPlayer.id] && DB.unlocks[currentPlayer.id].markerThemes) || [];
+  const emojis = [FREE_MARKER];
+  MARKER_THEMES.filter(t => owned.includes(t.id)).forEach(t => emojis.push(...t.emojis));
+  return emojis;
+}
 function getPlayerEmoji(){
-  try { return localStorage.getItem('smbBingoEmoji_'+(currentPlayer?currentPlayer.id:'')) || '✅'; }
-  catch(e){ return '✅'; }
+  try {
+    const saved = localStorage.getItem('smbBingoEmoji_'+(currentPlayer?currentPlayer.id:''));
+    return saved && unlockedMarkerEmojis().includes(saved) ? saved : FREE_MARKER;
+  } catch(e){ return FREE_MARKER; }
 }
 function setPlayerEmoji(em){
   try { localStorage.setItem('smbBingoEmoji_'+(currentPlayer?currentPlayer.id:''), em); } catch(e){}
@@ -2103,13 +2161,19 @@ function renderEmojiPalette(){
   if(!pal) return;
   const current = getPlayerEmoji();
   pal.innerHTML = '';
-  EMOJI_OPTIONS.forEach(em=>{
+  unlockedMarkerEmojis().forEach(em=>{
     const btn = document.createElement('div');
     btn.className = `emoji-opt${em===current?' selected':''}`;
     btn.textContent = em;
     btn.onclick = ()=>{ setPlayerEmoji(em); renderEmojiPalette(); };
     pal.appendChild(btn);
   });
+  const hint = document.getElementById('emojiPaletteHint');
+  if(hint){
+    const owned = (currentPlayer && DB.unlocks && DB.unlocks[currentPlayer.id] && DB.unlocks[currentPlayer.id].markerThemes) || [];
+    const lockedCount = MARKER_THEMES.length - owned.length;
+    hint.textContent = lockedCount > 0 ? `🔒 ${lockedCount} more marker theme${lockedCount===1?'':'s'} available in the Shop below.` : 'All marker themes unlocked! 🎉';
+  }
 }
 
 async function toggleCellMark(cardIndex, cellIndex){
@@ -2198,8 +2262,130 @@ function renderRsvpPanel(g){
 }
 
 // ════════════════════════════════════════════════════════════
-//  BUY AN EXTRA CARD (spends Marcus Ganzo points via the backend)
+//  SMB TOKENS ECONOMY — Points → Tokens (cash in), Tokens → Cards (buy),
+//  Tokens ↔ Tokens (ask/give), Tokens → Shop (marker themes, card skins).
+//  All witty announcements post to the same BINGO Slack channel via postToSlack().
 // ════════════════════════════════════════════════════════════
+const POINTS_PER_TOKEN = 5;
+
+// Mirrors the backend catalog (server is the source of truth for price/validity —
+// this copy is just so the shop UI can render without an extra round trip).
+const MARKER_THEMES = [
+  { id: 'classic', name: 'Classic Pack', emojis: ['✅','🔴','⭐','🟡'], price: 3 },
+  { id: 'fire', name: 'Fire Pack', emojis: ['🔥','💯','💚'], price: 2 },
+  { id: 'critter', name: 'Critter Pack', emojis: ['🐶','🐱'], price: 2 },
+  { id: 'foodie', name: 'Foodie Pack', emojis: ['🍕','🍔'], price: 2 },
+];
+const CARD_SKINS = [
+  { id: 'gold', name: 'Golden Card', price: 2, css: 'border-color:#f5c842;box-shadow:0 0 0 1px #f5c842 inset;' },
+  { id: 'sunset', name: 'Sunset Gradient', price: 2, css: 'background:linear-gradient(135deg,#ff7e5f,#feb47b)!important;' },
+  { id: 'mint', name: 'Mint Fresh', price: 2, css: 'background:linear-gradient(135deg,#43e97b,#38f9d7)!important;' },
+  { id: 'royal', name: 'Royal Purple', price: 3, css: 'border-color:#7b2ff7;box-shadow:0 0 0 1px #7b2ff7 inset;' },
+];
+
+function pickWitty(list, vars){
+  let msg = list[Math.floor(Math.random()*list.length)];
+  Object.keys(vars).forEach(k => { msg = msg.split(`{${k}}`).join(vars[k]); });
+  return msg;
+}
+function isFeatured(itemId){ return Array.isArray(DB.shopFeatured) && DB.shopFeatured.includes(itemId); }
+function shopPrice(item){ return isFeatured(item.id) ? Math.max(1, item.price - 1) : item.price; }
+
+const CASHIN_MESSAGES = [
+  'Nagconvert na si {name} ng {n} SMB Token{s}! Alam na this. 💰',
+  '💸 *Ka-ching!* Pinalitan ni {name} ang points niya ng {n} SMB Token{s}.',
+  'May bagong yaman: si {name} ay may dagdag {n} SMB Token{s} ngayon! 🤑',
+  '{name} just went to the bank — {n} SMB Token{s} added sa wallet! 🏦',
+];
+const BUYCARD_MESSAGES = [
+  'Namili si {name} ng 1 Bingo Card. May lamang ka na. 🙂',
+  '🎟️ Si {name} ay nag-invest ng 1 SMB Token para sa extra card. Bet na bet!',
+  'Isa pang card para kay {name}! Swerte na lang ang kailangan ngayon. 🍀',
+  '{name} said "one more chance" — bought an extra card! 🎫',
+];
+const GIVE_MESSAGES = [
+  'Nagbigay si {from} ng {n} SMB Token{s} kay {to}! Kabutihang-loob talaga. 🎁',
+  '🤝 {from} → {to}: {n} SMB Token{s} pinadala. Ganito dapat, teamwork!',
+  'May bagong angel sa BINGO GC — si {from} ay nagbigay ng {n} SMB Token{s} kay {to}. 😇',
+  '{from} shared {n} SMB Token{s} with {to}. Sharing is caring! 💛',
+];
+const ASK_MESSAGES = [
+  'Humihingi si {name} ng {n} SMB Token{s} sa grupo! Sino kaya ang bibigay? 🙏',
+  '📣 Tawag ni {name}: kailangan niya ng {n} SMB Token{s}. Sino ang tutulong?',
+  '{name} is asking the group for {n} SMB Token{s} — bida ka ba ngayong gabi? 🦸',
+  'SOS mula kay {name}: {n} SMB Token{s} na lang, please! 😅',
+];
+const SHOP_MESSAGES = [
+  'Nag-shopping si {name} sa SMB Token Shop! Nakuha niya ang "{item}". ✨',
+  '🛍️ {name} just unlocked "{item}" from the SMB Token Shop!',
+  'Bagong drip para kay {name}: "{item}"! 💅',
+];
+
+async function refreshTokenBalance(){
+  const el = document.getElementById('playerTokenBalance');
+  if(!el || !currentPlayer) return;
+  try {
+    const r = await fetch(`${BACKEND_URL}/tokens-balance?playerId=${encodeURIComponent(currentPlayer.id)}`);
+    const j = await r.json();
+    _myTokenBalance = j.balance ?? 0;
+    el.textContent = `🪙 ${_myTokenBalance} SMB Token${_myTokenBalance===1?'':'s'}`;
+  } catch(e){ /* leave last known value on screen */ }
+}
+
+// ─── CASH IN: points → tokens ───────────────────────────────────────────────
+async function refreshCashInPanel(){
+  const panel = document.getElementById('cashInPanel');
+  const content = document.getElementById('cashInPanelContent');
+  if(!panel || !content || !currentPlayer) return;
+
+  if(!currentPlayer.slackUserId){
+    panel.style.display='block';
+    content.innerHTML = `<div>Wala ka pang linked Slack ID — sabihan ang admin para ma-link, para makapag-cash-in ka ng points!</div>`;
+    return;
+  }
+  panel.style.display='block';
+  try {
+    const r = await fetch(`${BACKEND_URL}/points-balance?slackUserId=${encodeURIComponent(currentPlayer.slackUserId)}`);
+    const j = await r.json();
+    const balance = j.total ?? 0;
+    const maxTokens = Math.floor(balance / POINTS_PER_TOKEN);
+    if(maxTokens >= 1){
+      const leftover = balance - (maxTokens*POINTS_PER_TOKEN);
+      content.innerHTML = `<div style="margin-bottom:8px;">Points balance: <strong>${balance} pts</strong> (${POINTS_PER_TOKEN} pts = 1 SMB Token).</div>` +
+        `<button class="btn btn-gold btn-sm" style="width:100%;" onclick="doCashIn(${maxTokens})">💰 Cash In ${maxTokens} SMB Token${maxTokens===1?'':'s'}${leftover?` (${leftover} pts left over)`:''}</button>`;
+    } else {
+      content.innerHTML = `<div>Points balance: <strong>${balance} pts</strong> — kailangan ng ${POINTS_PER_TOKEN}+ pts para makapag-cash-in ng 1 token. Sagot pa sa check-ins! 💪</div>`;
+    }
+  } catch(e){
+    content.innerHTML = `<div style="color:var(--danger);">Hindi ma-check ang points balance ngayon — try ulit mamaya.</div>`;
+  }
+}
+
+async function doCashIn(tokens){
+  if(!currentPlayer || !tokens || tokens < 1) return;
+  try {
+    const r = await fetch(`${BACKEND_URL}/cash-in`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ playerId: currentPlayer.id, slackUserId: currentPlayer.slackUserId, tokens }),
+    });
+    const j = await r.json();
+    if(!r.ok || !j.ok){
+      alert(j.error || 'Hindi na-process ang cash-in.');
+      return;
+    }
+    playerLog(`Na-cash in ang ${tokens} SMB Token${tokens===1?'':'s'}! Bagong balance: ${j.newTokenBalance} 🪙`, 'ok');
+    postToSlack(pickWitty(CASHIN_MESSAGES, { name: currentPlayer.name, n: tokens, s: tokens===1?'':'s' }));
+    await refreshTokenBalance();
+    await refreshCashInPanel();
+    await refreshBuyCardPanel();
+    await refreshTokenShopPanel();
+  } catch(e){
+    alert('Hindi na-process ang cash-in — try ulit.');
+  }
+}
+
+// ─── BUY AN EXTRA CARD (spends SMB Tokens) ──────────────────────────────────
 let _buyCardCandidates = null; // cached 7-candidate grids while player is picking
 
 function renderMiniCardGrid(grid){
@@ -2220,12 +2406,6 @@ async function refreshBuyCardPanel(){
   if(!g || !g.active || g.ended || !currentPlayer){ panel.style.display='none'; return; }
   if((g.skipPlayerIds||[]).includes(currentPlayer.id)){ panel.style.display='none'; return; }
 
-  if(!currentPlayer.slackUserId){
-    panel.style.display='block';
-    content.innerHTML = `<div>Wala ka pang linked Slack ID — sabihan ang admin para ma-link, para makabili ka ng extra card gamit ang Marcus points!</div>`;
-    return;
-  }
-
   panel.style.display='block';
   const purchasesThisShift = (g.cardPurchases && g.cardPurchases[currentPlayer.id]) || 0;
   if(purchasesThisShift >= 3){
@@ -2233,34 +2413,27 @@ async function refreshBuyCardPanel(){
     return;
   }
 
-  try {
-    const r = await fetch(`${BACKEND_URL}/points-balance?slackUserId=${encodeURIComponent(currentPlayer.slackUserId)}`);
-    const j = await r.json();
-    const balance = j.total ?? 0;
-    if(_buyCardCandidates){
-      // Player already hit "Buy" — show the 5 candidates to pick from
-      content.innerHTML = `<div style="margin-bottom:8px;">Piliin ang isa sa 7 cards na ito (${5} pts):</div>` +
-        `<div style="display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;">` +
-        _buyCardCandidates.map((grid,i) => `
-          <div style="min-width:110px;border:1px solid rgba(245,200,66,.25);border-radius:8px;padding:6px;">
-            ${renderMiniCardGrid(grid)}
-            <button class="btn btn-gold btn-sm" style="width:100%;" onclick="choosePurchasedCard(${i})">Pick this</button>
-          </div>`).join('') +
-        `</div>`;
-    } else if(balance >= 5){
-      content.innerHTML = `<div style="margin-bottom:8px;">Balance: <strong>${balance} pts</strong> — 5 pts = 1 extra card (${purchasesThisShift}/3 nabili ngayong shift).</div>` +
-        `<button class="btn btn-gold btn-sm" style="width:100%;" onclick="startBuyCard()">🎟️ Buy an Extra Card (5 pts)</button>`;
-    } else {
-      content.innerHTML = `<div>Balance: <strong>${balance} pts</strong> — kailangan ng 5 pts para makabili ng extra card. Sagot pa sa check-ins! 💪</div>`;
-    }
-  } catch(e){
-    content.innerHTML = `<div style="color:var(--danger);">Hindi ma-check ang points balance ngayon — try ulit mamaya.</div>`;
+  const balance = _myTokenBalance ?? 0;
+  if(_buyCardCandidates){
+    // Player already hit "Buy" — show the 7 candidates to pick from
+    content.innerHTML = `<div style="margin-bottom:8px;">Piliin ang isa sa 7 cards na ito (1 🪙 SMB Token):</div>` +
+      `<div style="display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;">` +
+      _buyCardCandidates.map((grid,i) => `
+        <div style="min-width:110px;border:1px solid rgba(245,200,66,.25);border-radius:8px;padding:6px;">
+          ${renderMiniCardGrid(grid)}
+          <button class="btn btn-gold btn-sm" style="width:100%;" onclick="choosePurchasedCard(${i})">Pick this</button>
+        </div>`).join('') +
+      `</div>`;
+  } else if(balance >= 1){
+    content.innerHTML = `<div style="margin-bottom:8px;">Balance: <strong>${balance} 🪙</strong> — 1 SMB Token = 1 extra card (${purchasesThisShift}/3 nabili ngayong shift).</div>` +
+      `<button class="btn btn-gold btn-sm" style="width:100%;" onclick="startBuyCard()">🎟️ Buy an Extra Card (1 🪙)</button>`;
+  } else {
+    content.innerHTML = `<div>Balance: <strong>${balance} 🪙</strong> — kailangan ng 1 SMB Token para makabili ng extra card. Cash in muna sa panel sa taas! 💪</div>`;
   }
 }
 
 function startBuyCard(){
   if(!DB.game) return;
-  // Generate 5 candidate cards client-side (random seeds — not tied to any existing card)
   _buyCardCandidates = Array.from({length:7}, () => generateCard(Math.floor(Math.random()*1e9)));
   refreshBuyCardPanel();
 }
@@ -2272,11 +2445,11 @@ async function choosePurchasedCard(candidateIndex){
     const r = await fetch(`${BACKEND_URL}/buy-card`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ playerId: currentPlayer.id, slackUserId: currentPlayer.slackUserId }),
+      body: JSON.stringify({ playerId: currentPlayer.id }),
     });
     const j = await r.json();
     if(!r.ok || !j.ok){
-      alert(j.error || 'Hindi na-process ang pagbili. Baka kulang points o may problema sa connection.');
+      alert(j.error || 'Hindi na-process ang pagbili. Baka kulang SMB Tokens o may problema sa connection.');
       _buyCardCandidates = null;
       refreshBuyCardPanel();
       return;
@@ -2290,10 +2463,177 @@ async function choosePurchasedCard(candidateIndex){
     g.cardPurchases[currentPlayer.id] = j.purchasesThisShift;
     await saveDB();
     _buyCardCandidates = null;
-    playerLog(`Nabili ang extra card! Natitirang points: ${j.newTotal}`, 'ok');
+    _myTokenBalance = j.newTokenBalance;
+    playerLog(`Nabili ang extra card! Natitirang SMB Tokens: ${j.newTokenBalance}`, 'ok');
+    postToSlack(pickWitty(BUYCARD_MESSAGES, { name: currentPlayer.name }));
     refreshPlayerScreen();
   } catch(e){
     alert('Hindi na-process ang pagbili — try ulit.');
+  }
+}
+
+// ─── ASK / GIVE — SMB Token transfers between teammates, lobby-only ────────
+async function refreshTokenTransferPanel(){
+  const panel = document.getElementById('tokenTransferPanel');
+  const content = document.getElementById('tokenTransferPanelContent');
+  if(!panel || !content || !currentPlayer) return;
+
+  const g = DB.game;
+  // Only available in the lobby, before the first ball is drawn.
+  if(!g || !g.active || !g.lobbyOpen || g.ended){ panel.style.display='none'; return; }
+
+  panel.style.display='block';
+  const teammates = DB.players.filter(p => p.active!==false && p.id!==currentPlayer.id);
+  const options = teammates.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+  content.innerHTML = `
+    <div style="margin-bottom:10px;">Your balance: <strong>${_myTokenBalance ?? 0} 🪙</strong> — only available before the game starts.</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
+      <input type="number" id="askGiveAmount" min="1" step="1" placeholder="Amount" style="width:80px;"/>
+      <select id="askGiveTarget" style="flex:1;min-width:120px;"><option value="">— Pili ng teammate (para sa Give) —</option>${options}</select>
+    </div>
+    <div style="display:flex;gap:8px;">
+      <button class="btn btn-outline btn-sm" style="flex:1;" onclick="doAskTokens()">🙏 Ask (post to group)</button>
+      <button class="btn btn-gold btn-sm" style="flex:1;" onclick="doGiveTokens()">🎁 Give</button>
+    </div>
+  `;
+}
+
+async function doAskTokens(){
+  const amount = parseInt(document.getElementById('askGiveAmount')?.value, 10);
+  if(!currentPlayer || !Number.isInteger(amount) || amount < 1){
+    alert('Lagyan muna ng valid amount!');
+    return;
+  }
+  postToSlack(pickWitty(ASK_MESSAGES, { name: currentPlayer.name, n: amount, s: amount===1?'':'s' }));
+  playerLog(`Na-post sa BINGO GC ang request mo para sa ${amount} SMB Token${amount===1?'':'s'}. 🙏`, 'ok');
+  // Log-only call so the admin Transaction History tab shows Asks too (no balance change).
+  try {
+    await fetch(`${BACKEND_URL}/log-ask`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ playerId: currentPlayer.id, amount }),
+    });
+  } catch(e){ /* broadcast already happened, logging failure is non-fatal */ }
+}
+
+async function doGiveTokens(){
+  const amount = parseInt(document.getElementById('askGiveAmount')?.value, 10);
+  const targetId = document.getElementById('askGiveTarget')?.value;
+  if(!currentPlayer || !Number.isInteger(amount) || amount < 1){
+    alert('Lagyan muna ng valid amount!');
+    return;
+  }
+  if(!targetId){
+    alert('Pumili muna ng teammate na bibigyan!');
+    return;
+  }
+  try {
+    const r = await fetch(`${BACKEND_URL}/give-tokens`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ fromPlayerId: currentPlayer.id, toPlayerId: targetId, amount }),
+    });
+    const j = await r.json();
+    if(!r.ok || !j.ok){
+      alert(j.error || 'Hindi na-process ang paghahatid ng tokens.');
+      return;
+    }
+    const target = DB.players.find(p => p.id===targetId);
+    _myTokenBalance = j.fromBalance;
+    playerLog(`Nabigay ang ${amount} SMB Token${amount===1?'':'s'} kay ${target?target.name:'teammate'}! Bagong balance mo: ${j.fromBalance} 🪙`, 'ok');
+    postToSlack(pickWitty(GIVE_MESSAGES, { from: currentPlayer.name, to: target?target.name:'kanyang teammate', n: amount, s: amount===1?'':'s' }));
+    document.getElementById('askGiveAmount').value='';
+    document.getElementById('askGiveTarget').value='';
+    await refreshTokenBalance();
+    await refreshTokenTransferPanel();
+    await refreshBuyCardPanel();
+  } catch(e){
+    alert('Hindi na-process ang paghahatid ng tokens — try ulit.');
+  }
+}
+
+// ─── SHOP — marker themes & card skins (cosmetic-only spend) ───────────────
+async function refreshTokenShopPanel(){
+  const panel = document.getElementById('tokenShopPanel');
+  const content = document.getElementById('tokenShopPanelContent');
+  if(!panel || !content || !currentPlayer) return;
+  panel.style.display='block';
+
+  const owned = (DB.unlocks && DB.unlocks[currentPlayer.id]) || { markerThemes: [], cardSkins: [] };
+  const equipped = (DB.equippedSkin && DB.equippedSkin[currentPlayer.id]) || 'default';
+
+  const themeRows = MARKER_THEMES.map(t => {
+    const has = (owned.markerThemes||[]).includes(t.id);
+    const price = shopPrice(t);
+    return `<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:8px 10px;margin-bottom:6px;">
+      <div><strong>${t.name}</strong> ${isFeatured(t.id)?'🔥':''}<div style="font-size:16px;">${t.emojis.join(' ')}</div></div>
+      ${has ? `<span style="color:var(--gold);font-size:12px;">✓ Unlocked</span>` : `<button class="btn btn-gold btn-sm" onclick="buyShopItem('markerTheme','${t.id}')">${price} 🪙</button>`}
+    </div>`;
+  }).join('');
+
+  const skinRows = [`<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:8px 10px;margin-bottom:6px;">
+      <div><strong>Classic Navy</strong> (default)</div>
+      ${equipped==='default' ? `<span style="color:var(--gold);font-size:12px;">✓ Equipped</span>` : `<button class="btn btn-outline btn-sm" onclick="equipSkin('default')">Equip</button>`}
+    </div>`].concat(CARD_SKINS.map(s => {
+    const has = (owned.cardSkins||[]).includes(s.id);
+    const price = shopPrice(s);
+    const isEquipped = equipped === s.id;
+    return `<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:8px 10px;margin-bottom:6px;">
+      <div><strong>${s.name}</strong> ${isFeatured(s.id)?'🔥':''}</div>
+      ${has
+        ? (isEquipped ? `<span style="color:var(--gold);font-size:12px;">✓ Equipped</span>` : `<button class="btn btn-outline btn-sm" onclick="equipSkin('${s.id}')">Equip</button>`)
+        : `<button class="btn btn-gold btn-sm" onclick="buyShopItem('cardSkin','${s.id}')">${price} 🪙</button>`}
+    </div>`;
+  })).join('');
+
+  content.innerHTML = `
+    <div style="font-weight:700;color:var(--gold);font-size:12px;margin-bottom:4px;">🖍️ Marker Themes</div>
+    ${themeRows}
+    <div style="font-weight:700;color:var(--gold);font-size:12px;margin:10px 0 4px;">🎨 Card Skins</div>
+    ${skinRows}
+  `;
+}
+
+async function buyShopItem(type, itemId){
+  if(!currentPlayer) return;
+  try {
+    const r = await fetch(`${BACKEND_URL}/buy-shop-item`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ playerId: currentPlayer.id, type, itemId }),
+    });
+    const j = await r.json();
+    if(!r.ok || !j.ok){
+      alert(j.error || 'Hindi na-process ang pagbili ng shop item.');
+      return;
+    }
+    _myTokenBalance = j.newTokenBalance;
+    if(!DB.unlocks) DB.unlocks = {};
+    DB.unlocks[currentPlayer.id] = j.unlocks;
+    const item = (type==='markerTheme'?MARKER_THEMES:CARD_SKINS).find(i=>i.id===itemId);
+    playerLog(`Na-unlock: ${item?item.name:itemId}! Bagong balance: ${j.newTokenBalance} 🪙`, 'ok');
+    postToSlack(pickWitty(SHOP_MESSAGES, { name: currentPlayer.name, item: item?item.name:itemId }));
+    await refreshTokenBalance();
+    await refreshTokenShopPanel();
+    renderEmojiPalette();
+  } catch(e){
+    alert('Hindi na-process ang pagbili — try ulit.');
+  }
+}
+
+async function equipSkin(skinId){
+  if(!currentPlayer) return;
+  try {
+    const r = await fetch(`${BACKEND_URL}/equip-skin`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ playerId: currentPlayer.id, skinId }),
+    });
+    const j = await r.json();
+    if(!r.ok || !j.ok){ alert(j.error || 'Hindi na-equip.'); return; }
+    if(!DB.equippedSkin) DB.equippedSkin = {};
+    DB.equippedSkin[currentPlayer.id] = j.equippedSkin;
+    await refreshTokenShopPanel();
+    refreshPlayerScreen();
+  } catch(e){
+    alert('Hindi na-equip — try ulit.');
   }
 }
 
@@ -2306,6 +2646,11 @@ async function refreshPlayerScreen(){
   if(!fresh){ currentPlayer=null; return; }
   currentPlayer = fresh;
 
+  // Token balance, Cash In, and Shop are available any time a player is logged
+  // in, regardless of whether a game is currently running.
+  refreshTokenBalance();
+  refreshCashInPanel();
+  refreshTokenShopPanel();
   renderEmojiPalette();
 
   const g=DB.game;
@@ -2314,6 +2659,7 @@ async function refreshPlayerScreen(){
   if(!g||(!g.active&&!g.ended)){
     document.getElementById('rsvpPanel').style.display='none';
     document.getElementById('buyCardPanel').style.display='none';
+    document.getElementById('tokenTransferPanel').style.display='none';
     document.getElementById('playerCardsWrap').innerHTML='<div class="empty-state">Waiting for the host to start the game... 🌙</div>';
     bingoBtn.disabled=true;
     document.getElementById('playerLastDraw').textContent='Waiting for draw...';
@@ -2323,6 +2669,7 @@ async function refreshPlayerScreen(){
 
   renderRsvpPanel(g);
   refreshBuyCardPanel();
+  refreshTokenTransferPanel();
 
   const hasRsvpd = (g.rsvpPlayerIds||[]).includes(currentPlayer.id);
   const calledSet=new Set(g.calledSet); // true called numbers — NOT shown to player on cards
@@ -2383,16 +2730,20 @@ async function refreshPlayerScreen(){
   let anyWin=false;
   const emptyCalledSet = new Set(); // pass empty set so "called" styling never auto-applies
 
+  const equippedSkin = (DB.equippedSkin && DB.equippedSkin[currentPlayer.id]) || 'default';
+  const skinDef = CARD_SKINS.find(s => s.id === equippedSkin);
   if(cards.length > 0){
     cards.forEach((card,ci)=>{
       if(!card||!card.grid) return;
       const cardMarks = myMarks[ci] || {};
       const win=checkWinManual(card.grid,g.pattern,cardMarks);
       if(win) anyWin=true;
-      wrap.appendChild(makeBingoCardEl(
+      const cardEl = makeBingoCardEl(
         currentPlayer.name, `Card ${ci+1}`, card.grid, emptyCalledSet, g.pattern, win,
         { interactive:true, marks:cardMarks, cardIndex:ci, onCellClick:toggleCellMark }
-      ));
+      );
+      if(skinDef && skinDef.css) cardEl.style.cssText += skinDef.css;
+      wrap.appendChild(cardEl);
     });
   } else if(!hasRsvpd && g.lobbyOpen){
     wrap.innerHTML = '<div class="empty-state">RSVP muna sa itaas para makakuha ng card! 👆</div>';
@@ -2758,6 +3109,84 @@ async function clearLeaderboard(){
   await saveDB();
   refreshDashboard();
   adminLog('Leaderboard cleared.','info');
+}
+
+// ════════════════════════════════════════════════════════════
+//  ADMIN: SMB TOKEN TRANSACTION HISTORY TAB
+// ════════════════════════════════════════════════════════════
+const TOKEN_EVENT_LABELS = {
+  cash_in: '💰 Cash In', buy_card: '🎟️ Buy Card', give: '🎁 Give', ask: '🙏 Ask', shop_purchase: '🛒 Shop Purchase',
+};
+function playerNameById(id){ const p=DB.players.find(x=>x.id===id); return p?p.name:(id||'—'); }
+
+async function refreshHistoryTab(){
+  await loadDB(); // pull the latest tokens/tokenLog/shopFeatured before rendering
+  renderTokenLeaderboard();
+  renderTokenLog();
+  renderShopFeaturedCheckboxes();
+}
+
+function renderTokenLeaderboard(){
+  const el = document.getElementById('tokenLeaderboardContent');
+  if(!el) return;
+  const tokens = DB.tokens || {};
+  const rows = Object.keys(tokens)
+    .map(id => ({ id, name: playerNameById(id), balance: tokens[id] }))
+    .filter(r => r.balance > 0)
+    .sort((a,b) => b.balance - a.balance);
+  if(rows.length === 0){ el.innerHTML = '<div class="empty-state">No tokens in circulation yet.</div>'; return; }
+  el.innerHTML = `<div style="overflow-x:auto;"><table class="roster-table"><thead><tr><th>#</th><th>Player</th><th>Balance</th></tr></thead><tbody>` +
+    rows.map((r,i) => `<tr><td>${i+1}</td><td>${r.name}</td><td>🪙 ${r.balance}</td></tr>`).join('') +
+    `</tbody></table></div>`;
+}
+
+function renderTokenLog(){
+  const el = document.getElementById('tokenHistoryContent');
+  if(!el) return;
+  const log = DB.tokenLog || [];
+  if(log.length === 0){ el.innerHTML = '<div class="empty-state">No transactions yet.</div>'; return; }
+  el.innerHTML = `<div style="overflow-x:auto;"><table class="roster-table"><thead><tr><th>When</th><th>Type</th><th>Detail</th></tr></thead><tbody>` +
+    log.map(e => {
+      const when = new Date(e.ts).toLocaleString('en-PH', { timeZone: 'Asia/Manila', month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' });
+      const label = TOKEN_EVENT_LABELS[e.type] || e.type;
+      let detail = '';
+      if(e.type === 'cash_in') detail = `${playerNameById(e.playerId)} converted ${e.pointsSpent} pts → ${e.amount} 🪙`;
+      else if(e.type === 'buy_card') detail = `${playerNameById(e.playerId)} spent ${e.amount} 🪙 on an extra card`;
+      else if(e.type === 'give') detail = `${playerNameById(e.fromPlayerId)} → ${playerNameById(e.toPlayerId)}: ${e.amount} 🪙`;
+      else if(e.type === 'ask') detail = `${playerNameById(e.playerId)} asked the group for ${e.amount} 🪙`;
+      else if(e.type === 'shop_purchase') detail = `${playerNameById(e.playerId)} unlocked "${e.itemName}" for ${e.amount} 🪙`;
+      return `<tr><td>${when}</td><td>${label}</td><td>${detail}</td></tr>`;
+    }).join('') +
+    `</tbody></table></div>`;
+}
+
+function renderShopFeaturedCheckboxes(){
+  const el = document.getElementById('shopFeaturedContent');
+  if(!el) return;
+  const featured = DB.shopFeatured || [];
+  const items = [...MARKER_THEMES, ...CARD_SKINS];
+  el.innerHTML = items.map(i => `
+    <label style="display:inline-flex;align-items:center;gap:6px;margin:4px 10px 4px 0;font-weight:400;text-transform:none;">
+      <input type="checkbox" data-item-id="${i.id}" ${featured.includes(i.id)?'checked':''}/> ${i.name} (${i.price} 🪙 → ${Math.max(1,i.price-1)} 🪙)
+    </label>`).join('');
+}
+
+async function saveShopFeatured(){
+  const checked = Array.from(document.querySelectorAll('#shopFeaturedContent input[type=checkbox]:checked')).map(el => el.dataset.itemId);
+  try {
+    const r = await fetch(`${BACKEND_URL}/shop-featured`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ itemIds: checked }),
+    });
+    const j = await r.json();
+    if(!r.ok || !j.ok){ document.getElementById('shopFeaturedSaved').textContent = j.error || 'Failed to save.'; return; }
+    DB.shopFeatured = j.shopFeatured;
+    document.getElementById('shopFeaturedSaved').textContent = '✅ Saved! Featured items updated.';
+    renderShopFeaturedCheckboxes();
+    setTimeout(()=>{ const s=document.getElementById('shopFeaturedSaved'); if(s) s.textContent=''; }, 3000);
+  } catch(e){
+    document.getElementById('shopFeaturedSaved').textContent = 'Failed to save — try again.';
+  }
 }
 
 // ════════════════════════════════════════════════════════════
