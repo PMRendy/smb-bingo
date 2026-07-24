@@ -651,6 +651,8 @@ textarea{resize:vertical;min-height:60px;}
     <!-- False BINGO tease -->
     <div id="falseBingoTease" style="display:none;background:rgba(155,127,232,.15);border:1px solid rgba(155,127,232,.3);border-radius:10px;padding:16px;margin-top:10px;text-align:center;font-size:14px;color:var(--purple);font-weight:600;"></div>
 
+    <button class="btn btn-outline btn-full" style="margin-top:10px;" onclick="openPuroModal()">🎉 PURO NA AKO MGA SIS!</button>
+
     <div class="log-box" id="playerLog" style="margin-top:12px;"></div>
 
     <div style="text-align:center;margin-top:16px;">
@@ -716,6 +718,18 @@ textarea{resize:vertical;min-height:60px;}
       <button class="btn btn-gold" style="flex:1;" onclick="savePinChange()">Save New PIN</button>
       <button class="btn btn-outline" style="flex:1;" onclick="document.getElementById('pinChangeOverlay').classList.remove('show');">Cancel</button>
     </div>
+  </div>
+</div>
+
+<!-- ════════════════════ PURO NA AKO MODAL ════════════════════ -->
+<div class="overlay" id="puroOverlay">
+  <div class="modal" style="text-align:left;">
+    <button class="modal-close" onclick="document.getElementById('puroOverlay').classList.remove('show');">×</button>
+    <h2 style="font-size:22px;margin-bottom:10px;">🎉 Puro Na Ako Mga Sis!</h2>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:12px;">I-share ang iyong marked card sa group chat! Ang mga hindi mo pa na-mark ay hindi makikita — puro lang ang marked numbers ang lalabas.</p>
+    <label>Custom Message (optional)</label>
+    <textarea id="puroMessageInput" rows="3" maxlength="200" placeholder="e.g. Malapit na ako, sis! 🔥"></textarea>
+    <button class="btn btn-gold btn-full" onclick="submitPuroSnapshot()">📣 I-Post sa GC</button>
   </div>
 </div>
 
@@ -1921,7 +1935,8 @@ function makeBingoCardEl(agentName,cardLabel,grid,calledSet,pattern,isWinner,opt
         // Admin: only highlight cells that are called AND part of the winning pattern
         else if(!interactive && isCalled && isPatternCell) cls+=' called';
         const clickAttr = (interactive && !isFree) ? ` data-cell="${i}" data-card="${cardIndex}"` : '';
-        const content = isFree ? 'FREE<br>★' : (interactive && mark ? `<span class="cell-num">${val}</span><span class="cell-mark">${mark}</span>` : val);
+        const freeName = (agentName||'').length>10 ? agentName.slice(0,9)+'…' : (agentName||'');
+        const content = isFree ? `FREE<br>${freeName}` : (interactive && mark ? `<span class="cell-num">${val}</span><span class="cell-mark">${mark}</span>` : val);
         return `<div class="${cls}"${clickAttr}>${content}</div>`;
       }).join('')}
     </div>
@@ -2763,6 +2778,68 @@ async function refreshPlayerScreen(){
     playerLog(`Game ended — ${g.claimedBy||'someone'} ang nanalo!`,'info');
     bingoBtn.disabled=true;
   }
+}
+
+// ─── PURO NA AKO MGA SIS: text snapshot of marked-only card → Slack GC ─────
+function openPuroModal(){
+  const g = DB.game;
+  if(!currentPlayer){ return; }
+  const cards = (g.playerCards && g.playerCards[currentPlayer.id]) || [];
+  if(!g || !g.active || cards.length===0){
+    alert('Wala ka pang card na pwedeng i-share ngayon.');
+    return;
+  }
+  document.getElementById('puroOverlay').classList.add('show');
+}
+
+function buildPuroCardBlock(card, cardMarks, cardLabel, ownerName){
+  const lines = ['  B    I    N    G    O'];
+  const freeTag = (ownerName||'').length>4 ? ownerName.slice(0,4) : (ownerName||'FREE');
+  for(let row=0; row<5; row++){
+    const cells = [];
+    for(let col=0; col<5; col++){
+      const i = row*5+col;
+      const val = card.grid[i];
+      const isFree = val==='FREE';
+      const isMarked = isFree || !!(cardMarks[String(i)] || cardMarks[i]);
+      let txt;
+      if(isFree) txt = freeTag;
+      else if(isMarked) txt = String(val);
+      else txt = '····';
+      cells.push(txt.padStart(4,' '));
+    }
+    lines.push(cells.join(' '));
+  }
+  return `*${cardLabel}*\n\`\`\`\n${lines.join('\n')}\n\`\`\``;
+}
+
+async function submitPuroSnapshot(){
+  const g = DB.game;
+  if(!currentPlayer || !g){ return; }
+  const cards = (g.playerCards && g.playerCards[currentPlayer.id]) || [];
+  const myMarks = (g.playerMarks && g.playerMarks[currentPlayer.id]) || {};
+  if(cards.length===0){ alert('Wala ka pang card.'); return; }
+
+  const msgInput = document.getElementById('puroMessageInput');
+  const customMsg = (msgInput && msgInput.value || '').trim();
+
+  let text = `🎉 *PURO NA AKO MGA SIS!* — ${currentPlayer.name}\n`;
+  if(customMsg) text += `> ${customMsg}\n`;
+  text += '\n';
+  cards.forEach((card,ci)=>{
+    if(!card || !card.grid) return;
+    const cardMarks = myMarks[ci] || {};
+    text += buildPuroCardBlock(card, cardMarks, `Card ${ci+1}`, currentPlayer.name) + '\n\n';
+  });
+
+  document.getElementById('puroOverlay').classList.remove('show');
+  try {
+    await postToSlack(text.trim());
+  } catch(e) {
+    alert('Hindi na-post sa GC — try ulit.');
+    return;
+  }
+  if(msgInput) msgInput.value = '';
 }
 
 async function playerClaimBingo(){
