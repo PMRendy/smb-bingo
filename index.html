@@ -303,8 +303,8 @@ textarea{resize:vertical;min-height:60px;}
           <div>
             <label>Max Cards per Game</label>
             <select id="newPlayerCards">
-              <option value="1">1 Card</option>
-              <option value="2" selected>2 Cards</option>
+              <option value="1" selected>1 Card</option>
+              <option value="2">2 Cards</option>
               <option value="3">3 Cards</option>
               <option value="4">4 Cards</option>
             </select>
@@ -1212,7 +1212,7 @@ async function addPlayer() {
   errEl.textContent='';
   document.getElementById('newPlayerName').value='';
   document.getElementById('newPlayerPin').value='';
-  document.getElementById('newPlayerCards').value='2';
+  document.getElementById('newPlayerCards').value='1';
   if(document.getElementById('newPlayerSlackId')) document.getElementById('newPlayerSlackId').value='';
   refreshRosterUI();
 }
@@ -2200,7 +2200,7 @@ function renderRsvpPanel(g){
 // ════════════════════════════════════════════════════════════
 //  BUY AN EXTRA CARD (spends Marcus Ganzo points via the backend)
 // ════════════════════════════════════════════════════════════
-let _buyCardCandidates = null; // cached 5-candidate grids while player is picking
+let _buyCardCandidates = null; // cached 7-candidate grids while player is picking
 
 function renderMiniCardGrid(grid){
   let html = '<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:2px;margin:6px 0;">';
@@ -2239,7 +2239,7 @@ async function refreshBuyCardPanel(){
     const balance = j.total ?? 0;
     if(_buyCardCandidates){
       // Player already hit "Buy" — show the 5 candidates to pick from
-      content.innerHTML = `<div style="margin-bottom:8px;">Piliin ang isa sa 5 cards na ito (${5} pts):</div>` +
+      content.innerHTML = `<div style="margin-bottom:8px;">Piliin ang isa sa 7 cards na ito (${5} pts):</div>` +
         `<div style="display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;">` +
         _buyCardCandidates.map((grid,i) => `
           <div style="min-width:110px;border:1px solid rgba(245,200,66,.25);border-radius:8px;padding:6px;">
@@ -2261,7 +2261,7 @@ async function refreshBuyCardPanel(){
 function startBuyCard(){
   if(!DB.game) return;
   // Generate 5 candidate cards client-side (random seeds — not tied to any existing card)
-  _buyCardCandidates = Array.from({length:5}, () => generateCard(Math.floor(Math.random()*1e9)));
+  _buyCardCandidates = Array.from({length:7}, () => generateCard(Math.floor(Math.random()*1e9)));
   refreshBuyCardPanel();
 }
 
