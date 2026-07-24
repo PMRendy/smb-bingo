@@ -488,6 +488,7 @@ textarea{resize:vertical;min-height:60px;}
           <div>
             <label>Draw Interval</label>
             <select id="settingsInterval">
+              <option value="1">Every 1 minute</option>
               <option value="3">Every 3 minutes</option>
               <option value="5">Every 5 minutes</option>
               <option value="10" selected>Every 10 minutes</option>
@@ -579,22 +580,6 @@ textarea{resize:vertical;min-height:60px;}
       <div id="cardGenHint" style="font-size:11px;color:var(--muted);margin-top:4px;"></div>
     </div>
 
-    <!-- Live ball -->
-    <div class="live-ball-player" id="playerLiveBall">
-      <div>
-        <div class="big-ball empty" id="playerBigBall" style="width:80px;height:80px;">
-          <div class="ball-letter dim" style="font-size:16px;">—</div>
-          <div class="ball-number dim" style="font-size:34px;">—</div>
-        </div>
-      </div>
-      <div style="flex:1;">
-        <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Latest Draw</div>
-        <div style="font-weight:700;font-size:16px;" id="playerLastDraw">Waiting for draw...</div>
-        <div class="tagline-box" id="playerTagline" style="text-align:left;margin:6px 0 0;padding:6px 10px;min-height:auto;font-size:12px;">—</div>
-        <div class="live-numbers" id="playerCalledSummary"></div>
-      </div>
-    </div>
-
     <!-- RSVP -->
     <div class="panel" id="rsvpPanel" style="display:none;text-align:center;padding:18px;">
       <div id="rsvpPanelContent"></div>
@@ -625,6 +610,18 @@ textarea{resize:vertical;min-height:60px;}
       <div id="tokenShopPanelContent" style="font-size:13px;color:var(--muted);"></div>
     </div>
 
+    <!-- Bingo Wins Leaderboard (all-time) -->
+    <div class="panel" id="playerWinsLeaderboardPanel" style="padding:14px;margin-bottom:14px;">
+      <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;color:var(--gold);text-transform:uppercase;margin-bottom:8px;">🏆 Bingo Wins Leaderboard</div>
+      <div id="playerWinsLeaderboardContent" style="font-size:13px;color:var(--muted);"></div>
+    </div>
+
+    <!-- Richest Bingo Player (SMB Token balances) -->
+    <div class="panel" id="playerRichestPanel" style="padding:14px;margin-bottom:14px;">
+      <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;color:var(--gold);text-transform:uppercase;margin-bottom:8px;">💰 Richest Bingo Player</div>
+      <div id="playerRichestContent" style="font-size:13px;color:var(--muted);"></div>
+    </div>
+
     <!-- Pattern display for player -->
     <div id="playerPatternDisplay" style="display:none;background:var(--deep);border:1px solid rgba(245,200,66,.15);border-radius:var(--r);padding:14px;margin-bottom:14px;text-align:center;">
       <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;color:var(--teal);text-transform:uppercase;margin-bottom:6px;">Tonight's Winning Pattern</div>
@@ -640,6 +637,22 @@ textarea{resize:vertical;min-height:60px;}
       <div class="marking-hint">👆 I-tap ang numero para markahan. Tap ulit para tanggalin. <strong>Ikaw ang bahala sa pagmarka — kung hindi mo na-mark, ikaw ang nakaligtaan!</strong></div>
       <div class="cards-wrap" id="playerCardsWrap">
         <div class="empty-state">Waiting for the host to start the game...</div>
+      </div>
+    </div>
+
+    <!-- Live ball -->
+    <div class="live-ball-player" id="playerLiveBall">
+      <div>
+        <div class="big-ball empty" id="playerBigBall" style="width:80px;height:80px;">
+          <div class="ball-letter dim" style="font-size:16px;">—</div>
+          <div class="ball-number dim" style="font-size:34px;">—</div>
+        </div>
+      </div>
+      <div style="flex:1;">
+        <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Latest Draw</div>
+        <div style="font-weight:700;font-size:16px;" id="playerLastDraw">Waiting for draw...</div>
+        <div class="tagline-box" id="playerTagline" style="text-align:left;margin:6px 0 0;padding:6px 10px;min-height:auto;font-size:12px;">—</div>
+        <div class="live-numbers" id="playerCalledSummary"></div>
       </div>
     </div>
 
@@ -1382,6 +1395,27 @@ function generateCard(seed){
   return rm;
 }
 
+// Two card grids are "the same" if they carry the same 24 playable numbers
+// (order/position doesn't matter for the "more chances to win" purpose).
+function cardSignature(grid){
+  return grid.filter(v => v !== 'FREE').slice().sort((a,b)=>a-b).join(',');
+}
+
+// Generate a card grid guaranteed not to collide with any signature in existingSignatures.
+// The seeded LCG used by generateCard() has a small state space (233280), so with enough
+// purchases across a shift the birthday paradox makes duplicate cards realistic — this
+// dedupes so every purchased/generated card is guaranteed to show a unique number set.
+function generateUniqueCard(existingSignatures){
+  let grid, sig, attempts = 0;
+  do {
+    grid = generateCard(Math.floor(Math.random()*1e9));
+    sig = cardSignature(grid);
+    attempts++;
+  } while(existingSignatures.has(sig) && attempts < 50);
+  existingSignatures.add(sig);
+  return grid;
+}
+
 function generatePlayerCards(player, gameId){
   const cards=[];
   for(let i=0;i<player.maxCards;i++){
@@ -1504,6 +1538,7 @@ async function adminStartGame(){
   if(DB.players.filter(p=>p.active!==false).length===0){
     alert('Walang active na player! Magdagdag muna ng players sa Roster tab.');return;
   }
+  _endingGame = false;
   const gameId=generateId();
   const pattern=resolveSelectedPattern();
 
@@ -1732,8 +1767,13 @@ function adminBingoClaim(){
   adminEndGame(claimant);
 }
 
+let _endingGame = false;
 async function adminEndGame(claimant){
-  if(!DB.game) return;
+  // Guard against double-firing (double-click, or a second admin tab/device racing
+  // to end the same game) which used to post the win announcement to Slack twice.
+  if(!DB.game || DB.game.ended || _endingGame) return;
+  _endingGame = true;
+  document.getElementById('adminBingoBtn').disabled=true;
   DB.game.active=false;DB.game.ended=true;DB.game.claimedBy=claimant;
   DB.game.endedAt=Date.now();
 
@@ -1770,6 +1810,7 @@ async function adminEndGame(claimant){
 async function adminResetGame(){
   if(!confirm('I-reset ang laro? Mabubura ang kasalukuyang game.')) return;
   stopAutoDrawTimer();
+  _endingGame = false;
   _drawLock = false;
   _lastLoadedAt = 0;
   _lastKnownDrawCount = 0;
@@ -2450,8 +2491,15 @@ async function refreshBuyCardPanel(){
 }
 
 function startBuyCard(){
-  if(!DB.game) return;
-  _buyCardCandidates = Array.from({length:7}, () => generateCard(Math.floor(Math.random()*1e9)));
+  if(!DB.game || !currentPlayer) return;
+  // Never offer a candidate that duplicates one of the player's existing cards,
+  // or any other candidate in this same batch — every card should widen their odds.
+  const existingSignatures = new Set(
+    ((DB.game.playerCards && DB.game.playerCards[currentPlayer.id]) || [])
+      .filter(c => c && c.grid)
+      .map(c => cardSignature(c.grid))
+  );
+  _buyCardCandidates = Array.from({length:7}, () => generateUniqueCard(existingSignatures));
   refreshBuyCardPanel();
 }
 
@@ -2654,6 +2702,63 @@ async function equipSkin(skinId){
   }
 }
 
+// ─── Player-facing leaderboards (Bingo Wins + Richest Bingo Player) ────────
+// Player IDs excluded from the public "Richest Bingo Player" board — used for
+// admin/house accounts whose balance isn't really part of the player contest.
+const RICHEST_BOARD_HIDDEN_IDS = ['default_25']; // Rendy
+
+function renderPlayerWinsLeaderboard(){
+  const el = document.getElementById('playerWinsLeaderboardContent');
+  if(!el) return;
+  const history = DB.gameHistory || [];
+  const tally = {};
+  history.forEach(h => { if(h.winner) tally[h.winner] = (tally[h.winner]||0) + 1; });
+  const sorted = Object.entries(tally).sort((a,b) => b[1]-a[1]).slice(0, 10);
+  if(sorted.length === 0){
+    el.innerHTML = '<div class="empty-state">No games completed yet — be the first BINGO winner! 🎯</div>';
+    return;
+  }
+  const medals = ['🥇','🥈','🥉'];
+  const rows = sorted.map(([name, wins], i) => `
+    <tr${name===currentPlayer.name ? ' style="background:rgba(245,200,66,.08);"' : ''}>
+      <td style="font-size:16px;">${medals[i] || '🎖️'}</td>
+      <td style="font-weight:700;">${name}${name===currentPlayer.name ? ' (You)' : ''}</td>
+      <td style="color:var(--gold);font-weight:700;">${wins} win${wins!==1?'s':''}</td>
+    </tr>`).join('');
+  el.innerHTML = `<div style="overflow-x:auto;"><table class="roster-table">
+    <thead><tr><th>#</th><th>Player</th><th>Wins</th></tr></thead>
+    <tbody>${rows}</tbody>
+  </table></div>`;
+}
+
+function renderPlayerRichestBoard(){
+  const el = document.getElementById('playerRichestContent');
+  if(!el) return;
+  const tokens = DB.tokens || {};
+  const rows = Object.keys(tokens)
+    .filter(id => !RICHEST_BOARD_HIDDEN_IDS.includes(id))
+    .map(id => ({ id, name: playerNameById(id), balance: tokens[id] }))
+    .filter(r => r.balance > 0)
+    .sort((a,b) => b.balance - a.balance)
+    .slice(0, 10);
+  if(rows.length === 0){
+    el.innerHTML = '<div class="empty-state">No SMB Tokens in circulation yet — Cash In your points to be #1! 🪙</div>';
+    return;
+  }
+  const medals = ['🥇','🥈','🥉'];
+  const isMe = r => currentPlayer && r.id === currentPlayer.id;
+  const rowsHtml = rows.map((r, i) => `
+    <tr${isMe(r) ? ' style="background:rgba(245,200,66,.08);"' : ''}>
+      <td style="font-size:16px;">${medals[i] || '🎖️'}</td>
+      <td style="font-weight:700;">${r.name}${isMe(r) ? ' (You)' : ''}</td>
+      <td style="color:var(--gold);font-weight:700;">🪙 ${r.balance}</td>
+    </tr>`).join('');
+  el.innerHTML = `<div style="overflow-x:auto;"><table class="roster-table">
+    <thead><tr><th>#</th><th>Player</th><th>Balance</th></tr></thead>
+    <tbody>${rowsHtml}</tbody>
+  </table></div>`;
+}
+
 async function refreshPlayerScreen(){
   if(!currentPlayer) return; // guard: poll may fire after logout
   // Only load from backend if we haven't just written (avoids poll wiping fresh marks)
@@ -2669,6 +2774,8 @@ async function refreshPlayerScreen(){
   refreshCashInPanel();
   refreshTokenShopPanel();
   renderEmojiPalette();
+  renderPlayerWinsLeaderboard();
+  renderPlayerRichestBoard();
 
   const g=DB.game;
   const bingoBtn=document.getElementById('playerBingoBtn');
@@ -2936,7 +3043,7 @@ async function saveSettings(){
   const proxy=document.getElementById('settingsProxyUrl').value.trim();
   if(pin&&!/^\d{4}$/.test(pin)){alert('PIN ay dapat 4 digits!');return;}
   if(pin) DB.adminPin=pin;
-  if([3,5,10,15,20,25,30].includes(interval)) DB.drawIntervalMin=interval;
+  if([1,3,5,10,15,20,25,30].includes(interval)) DB.drawIntervalMin=interval;
   if(webhook) DB.webhookUrl=webhook;
   DB.proxyUrl=proxy;
 
