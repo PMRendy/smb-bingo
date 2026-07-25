@@ -210,6 +210,22 @@ textarea{resize:vertical;min-height:60px;}
 .flex-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
 .winner-badge{display:inline-block;background:rgba(78,203,132,.2);color:var(--success);border-radius:4px;padding:2px 8px;font-size:11px;font-weight:700;letter-spacing:1px;}
 
+/* ── SHOP ITEM GRID (4 columns, wraps to 2 on narrow phones) ── */
+.shop-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:10px;}
+@media(max-width:420px){.shop-grid{grid-template-columns:repeat(2,1fr);}}
+.shop-tile{background:var(--card-bg);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:10px 6px 8px;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:5px;min-height:98px;}
+.shop-tile .st-icon{font-size:20px;line-height:1;}
+.shop-tile .st-swatch{width:26px;height:26px;border-radius:50%;background:var(--panel);}
+.shop-tile .st-name{font-size:10.5px;font-weight:700;color:var(--white);line-height:1.2;flex:1;display:flex;align-items:center;justify-content:center;}
+.shop-tile .st-action{width:100%;}
+.shop-tile .btn-sm{width:100%;padding:5px 0;font-size:10.5px;box-sizing:border-box;}
+.shop-tile .st-status{font-size:10px;color:var(--gold);}
+
+/* ── LEADERBOARD GRID (side-by-side board cards; full tables don't fit 4-across) ── */
+.board-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;}
+.board-grid .panel{margin-bottom:0;}
+@media(max-width:640px){.board-grid{grid-template-columns:1fr;}}
+
 /* ── COLLAPSIBLE PANEL GROUPS (accordion) ── */
 .panel-group{margin-bottom:14px;border-radius:var(--r);overflow:hidden;}
 .panel-group summary{cursor:pointer;padding:14px;background:var(--card-bg);border:1px solid rgba(245,200,66,.2);border-radius:var(--r);font-size:12px;font-weight:700;letter-spacing:1.5px;color:var(--gold);text-transform:uppercase;list-style:none;user-select:none;}
@@ -293,6 +309,7 @@ textarea{resize:vertical;min-height:60px;}
       <button class="tab-btn" onclick="switchAdminTab('dashboard')">📊 Live Dashboard</button>
       <button class="tab-btn" onclick="switchAdminTab('settings')">⚙️ Settings</button>
       <button class="tab-btn" onclick="switchAdminTab('history')">🪙 Transaction History</button>
+      <button class="tab-btn" onclick="switchAdminTab('topics')">🗓️ Weekly Topics</button>
     </div>
 
     <!-- TAB: ROSTER -->
@@ -560,6 +577,18 @@ textarea{resize:vertical;min-height:60px;}
         <div id="shopFeaturedSaved" style="color:var(--success);font-size:12px;margin-top:6px;"></div>
       </div>
     </div>
+
+    <!-- TAB: WEEKLY TOPICS (feeds Marcus-Ganzo's hourly check-in) -->
+    <div class="tab-content" id="tab-topics">
+      <div class="panel">
+        <div class="panel-title">🗓️ Weekly Hourly Check-in Topics</div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:14px;">Set once, runs the whole week — Marcus Ganzo's hourly check-in uses whatever topic is set for that day (days left blank are skipped). Managed here so it's all in one place.</div>
+        <div id="weeklyTopicsContent"><div class="empty-state">Loading topics…</div></div>
+        <button class="btn btn-gold btn-sm" style="margin-top:10px;" onclick="saveWeeklyTopics()">Save Week</button>
+        <div id="weeklyTopicsSaved" style="color:var(--success);font-size:12px;margin-top:6px;"></div>
+        <div id="weeklyTopicsError" style="color:var(--danger);font-size:12px;margin-top:6px;"></div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -640,26 +669,34 @@ textarea{resize:vertical;min-height:60px;}
       </div>
     </details>
 
-    <!-- Leaderboards (collapsible group — Wins, Richest, Big Spender) -->
+    <!-- Leaderboards (collapsible group — Wins, Richest, Big Spender, Check-in Points) -->
     <details class="panel-group" id="leaderboardsGroup">
       <summary>🏆 Leaderboards</summary>
       <div class="panel-group-body">
-        <!-- Bingo Wins Leaderboard (all-time) -->
-        <div class="panel" id="playerWinsLeaderboardPanel">
-          <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;color:var(--gold);text-transform:uppercase;margin-bottom:8px;">🏆 Bingo Wins Leaderboard</div>
-          <div id="playerWinsLeaderboardContent" style="font-size:13px;color:var(--muted);"></div>
-        </div>
+        <div class="board-grid">
+          <!-- Bingo Wins Leaderboard (all-time) -->
+          <div class="panel" id="playerWinsLeaderboardPanel">
+            <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;color:var(--gold);text-transform:uppercase;margin-bottom:8px;">🏆 Bingo Wins Leaderboard</div>
+            <div id="playerWinsLeaderboardContent" style="font-size:13px;color:var(--muted);"></div>
+          </div>
 
-        <!-- Richest Bingo Player (SMB Token balances) -->
-        <div class="panel" id="playerRichestPanel">
-          <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;color:var(--gold);text-transform:uppercase;margin-bottom:8px;">💰 Richest Bingo Player</div>
-          <div id="playerRichestContent" style="font-size:13px;color:var(--muted);"></div>
-        </div>
+          <!-- Richest Bingo Player (SMB Token balances) -->
+          <div class="panel" id="playerRichestPanel">
+            <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;color:var(--gold);text-transform:uppercase;margin-bottom:8px;">💰 Richest Bingo Player</div>
+            <div id="playerRichestContent" style="font-size:13px;color:var(--muted);"></div>
+          </div>
 
-        <!-- Big Spender (SMB Tokens spent all-time) -->
-        <div class="panel" id="playerBigSpenderPanel">
-          <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;color:var(--gold);text-transform:uppercase;margin-bottom:8px;">🔥 Big Spender Board</div>
-          <div id="playerBigSpenderContent" style="font-size:13px;color:var(--muted);"></div>
+          <!-- Big Spender (SMB Tokens spent all-time) -->
+          <div class="panel" id="playerBigSpenderPanel">
+            <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;color:var(--gold);text-transform:uppercase;margin-bottom:8px;">🔥 Big Spender Board</div>
+            <div id="playerBigSpenderContent" style="font-size:13px;color:var(--muted);"></div>
+          </div>
+
+          <!-- Hourly Check-in Points (running lifetime total from Marcus-Ganzo) -->
+          <div class="panel" id="playerCheckinPointsPanel">
+            <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;color:var(--gold);text-transform:uppercase;margin-bottom:8px;">⏰ Hourly Check-in Points</div>
+            <div id="playerCheckinPointsContent" style="font-size:13px;color:var(--muted);"></div>
+          </div>
         </div>
       </div>
     </details>
@@ -1306,6 +1343,57 @@ function switchAdminTab(name) {
   event.target.classList.add('active');
   if(name==='dashboard') refreshDashboard();
   if(name==='history') refreshHistoryTab();
+  if(name==='topics') refreshWeeklyTopicsTab();
+}
+
+// ════════════════════════════════════════════════════════════
+//  WEEKLY TOPICS (proxied to the Marcus-Ganzo backend so Rendy
+//  can manage hourly check-in topics from one admin panel)
+// ════════════════════════════════════════════════════════════
+async function refreshWeeklyTopicsTab(){
+  const el = document.getElementById('weeklyTopicsContent');
+  const errEl = document.getElementById('weeklyTopicsError');
+  if(!el) return;
+  errEl.textContent = '';
+  el.innerHTML = '<div class="empty-state">Loading topics…</div>';
+  try {
+    const r = await fetch(`${COSMETICS_BACKEND_URL}/topics`);
+    const j = await r.json();
+    if(!r.ok || !j.days){ throw new Error(j.error || 'Failed to load topics'); }
+    el.innerHTML = j.days.map(([key, label]) => `
+      <div style="margin-bottom:10px;">
+        <label style="font-size:11px;font-weight:700;color:var(--teal);text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:4px;">${label}</label>
+        <input type="text" id="topic-${key}" value="${(j.topics[key]||'').replace(/"/g,'&quot;')}" placeholder="No topic set — check-in skipped this day" style="width:100%;padding:9px 10px;background:var(--panel);border:1px solid rgba(255,255,255,.1);border-radius:8px;color:var(--white);font-size:13px;">
+      </div>
+    `).join('');
+  } catch(e){
+    el.innerHTML = '';
+    errEl.textContent = 'Could not load topics — ' + e.message;
+  }
+}
+
+async function saveWeeklyTopics(){
+  const savedEl = document.getElementById('weeklyTopicsSaved');
+  const errEl = document.getElementById('weeklyTopicsError');
+  savedEl.textContent = ''; errEl.textContent = '';
+  const days = [['mon','Monday'],['tue','Tuesday'],['wed','Wednesday'],['thu','Thursday'],['fri','Friday']];
+  const topics = {};
+  days.forEach(([key]) => {
+    const input = document.getElementById('topic-'+key);
+    if(input) topics[key] = input.value.trim();
+  });
+  try {
+    const r = await fetch(`${COSMETICS_BACKEND_URL}/topics`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ topics }),
+    });
+    const j = await r.json();
+    if(!r.ok || !j.ok) throw new Error(j.error || 'Failed to save topics');
+    savedEl.textContent = '✓ Saved — Marcus will use these topics all week.';
+    setTimeout(() => { savedEl.textContent = ''; }, 4000);
+  } catch(e){
+    errEl.textContent = 'Could not save — ' + e.message;
+  }
 }
 
 // ════════════════════════════════════════════════════════════
@@ -2372,6 +2460,18 @@ const POINTS_PER_TOKEN = 5;
 
 // Mirrors the backend catalog (server is the source of truth for price/validity —
 // this copy is just so the shop UI can render without an extra round trip).
+// Shared helper: renders one 4-col shop grid tile. `iconHtml` is the visual
+// (emoji(s) or a CSS swatch), `name` the label, `actionHtml` the button/status.
+function shopTile(iconHtml, name, actionHtml){
+  return `<div class="shop-tile"><div class="st-icon">${iconHtml}</div><div class="st-name">${name}</div><div class="st-action">${actionHtml}</div></div>`;
+}
+function shopTileIcon(item){
+  if(item.emoji) return item.emoji;
+  if(item.emojis) return item.emojis.slice(0,3).join('');
+  if(item.css) return `<span class="st-swatch" style="${item.css}"></span>`;
+  return '🎁';
+}
+
 const MARKER_THEMES = [
   { id: 'classic', name: 'Classic Pack', emojis: ['✅','🔴','⭐','🟡'], price: 3 },
   { id: 'fire', name: 'Fire Pack', emojis: ['🔥','💯','💚'], price: 2 },
@@ -2784,35 +2884,31 @@ async function refreshTokenShopPanel(){
   const owned = (DB.unlocks && DB.unlocks[currentPlayer.id]) || { markerThemes: [], cardSkins: [] };
   const equipped = (DB.equippedSkin && DB.equippedSkin[currentPlayer.id]) || 'default';
 
-  const themeRows = MARKER_THEMES.map(t => {
+  const themeTiles = MARKER_THEMES.map(t => {
     const has = (owned.markerThemes||[]).includes(t.id);
     const price = shopPrice(t);
-    return `<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:8px 10px;margin-bottom:6px;">
-      <div><strong>${t.name}</strong> ${isFeatured(t.id)?'🔥':''}<div style="font-size:16px;">${t.emojis.join(' ')}</div></div>
-      ${has ? `<span style="color:var(--gold);font-size:12px;">✓ Unlocked</span>` : `<button class="btn btn-gold btn-sm" onclick="buyShopItem('markerTheme','${t.id}')">${price} 🪙</button>`}
-    </div>`;
+    const name = `${t.name}${isFeatured(t.id)?' 🔥':''}`;
+    const action = has ? `<span class="st-status">✓ Owned</span>` : `<button class="btn btn-gold btn-sm" onclick="buyShopItem('markerTheme','${t.id}')">${price} 🪙</button>`;
+    return shopTile(shopTileIcon(t), name, action);
   }).join('');
 
-  const skinRows = [`<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:8px 10px;margin-bottom:6px;">
-      <div><strong>Classic Navy</strong> (default)</div>
-      ${equipped==='default' ? `<span style="color:var(--gold);font-size:12px;">✓ Equipped</span>` : `<button class="btn btn-outline btn-sm" onclick="equipSkin('default')">Equip</button>`}
-    </div>`].concat(CARD_SKINS.map(s => {
+  const skinTiles = [shopTile('🔷', 'Classic Navy', equipped==='default' ? `<span class="st-status">✓ Equipped</span>` : `<button class="btn btn-outline btn-sm" onclick="equipSkin('default')">Equip</button>`)]
+    .concat(CARD_SKINS.map(s => {
     const has = (owned.cardSkins||[]).includes(s.id);
     const price = shopPrice(s);
     const isEquipped = equipped === s.id;
-    return `<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:8px 10px;margin-bottom:6px;">
-      <div><strong>${s.name}</strong> ${isFeatured(s.id)?'🔥':''}</div>
-      ${has
-        ? (isEquipped ? `<span style="color:var(--gold);font-size:12px;">✓ Equipped</span>` : `<button class="btn btn-outline btn-sm" onclick="equipSkin('${s.id}')">Equip</button>`)
-        : `<button class="btn btn-gold btn-sm" onclick="buyShopItem('cardSkin','${s.id}')">${price} 🪙</button>`}
-    </div>`;
-  })).join('');
+    const name = `${s.name}${isFeatured(s.id)?' 🔥':''}`;
+    const action = has
+      ? (isEquipped ? `<span class="st-status">✓ Equipped</span>` : `<button class="btn btn-outline btn-sm" onclick="equipSkin('${s.id}')">Equip</button>`)
+      : `<button class="btn btn-gold btn-sm" onclick="buyShopItem('cardSkin','${s.id}')">${price} 🪙</button>`;
+    return shopTile(shopTileIcon(s), name, action);
+  }));
 
   content.innerHTML = `
     <div style="font-weight:700;color:var(--gold);font-size:12px;margin-bottom:4px;">🖍️ Marker Themes</div>
-    ${themeRows}
+    <div class="shop-grid">${themeTiles}</div>
     <div style="font-weight:700;color:var(--gold);font-size:12px;margin:10px 0 4px;">🎨 Card Skins</div>
-    ${skinRows}
+    <div class="shop-grid">${skinTiles.join('')}</div>
   `;
 }
 
@@ -2870,24 +2966,20 @@ function renderCosmeticsShopPanel(){
   const sections = COSMETIC_CATEGORIES.map(cat => {
     const owned = ownedCosmetics(currentPlayer.id, cat.key);
     const equipped = equippedCosmetic(currentPlayer.id, cat.key);
-    const rows = cat.catalog.map(item => {
+    const tiles = cat.catalog.map(item => {
       const has = owned.includes(item.id);
       const isEquipped = equipped === item.id;
-      const label = item.emoji ? `${item.emoji} ${item.name}` : item.name;
       let action;
       if(!has){
         action = `<button class="btn btn-gold btn-sm" onclick="buyCosmetic('${cat.key}','${item.id}')">${item.price} 🪙</button>`;
       } else if(isEquipped){
-        action = `<span style="color:var(--gold);font-size:12px;">✓ Equipped</span>`;
+        action = `<span class="st-status">✓ Equipped</span>`;
       } else {
         action = `<button class="btn btn-outline btn-sm" onclick="equipCosmetic('${cat.key}','${item.id}')">Equip</button>`;
       }
-      return `<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:8px 10px;margin-bottom:6px;">
-        <div><strong>${label}</strong></div>
-        ${action}
-      </div>`;
+      return shopTile(shopTileIcon(item), item.name, action);
     }).join('');
-    return `<div style="font-weight:700;color:var(--gold);font-size:12px;margin:10px 0 4px;">${cat.label}</div>${rows}`;
+    return `<div style="font-weight:700;color:var(--gold);font-size:12px;margin:10px 0 4px;">${cat.label}</div><div class="shop-grid">${tiles}</div>`;
   }).join('');
 
   content.innerHTML = sections;
@@ -2948,18 +3040,15 @@ function renderTitlesShopPanel(){
     ? `<div style="margin-bottom:10px;font-size:12px;">Active title: <strong style="color:var(--teal);">${activeText}</strong> — expires ${new Date(active.expiresAt).toLocaleDateString('en-PH',{weekday:'short',month:'short',day:'numeric'})} or at Monday reset.</div>`
     : `<div style="margin-bottom:10px;font-size:12px;color:var(--muted);">No active title — pick one below!</div>`;
 
-  const rows = TITLES_CATALOG.map(t => {
+  const tiles = TITLES_CATALOG.map(t => {
     const isActive = active && active.titleId === t.id;
     const action = isActive
-      ? `<span style="color:var(--gold);font-size:12px;">✓ Active</span>`
+      ? `<span class="st-status">✓ Active</span>`
       : `<button class="btn btn-gold btn-sm" onclick="buyTitle('${t.id}')">${t.price} 🪙</button>`;
-    return `<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:8px 10px;margin-bottom:6px;">
-      <div><strong>${t.text}</strong></div>
-      ${action}
-    </div>`;
+    return shopTile('🏷️', t.text, action);
   }).join('');
 
-  content.innerHTML = statusHtml + rows;
+  content.innerHTML = statusHtml + '<div class="shop-grid">' + tiles + '</div>';
 }
 
 async function buyTitle(titleId){
@@ -3083,6 +3172,51 @@ function renderPlayerBigSpenderBoard(){
   </table></div>`;
 }
 
+// Hourly Check-in Points board — lifetime running total from Marcus-Ganzo's
+// hourly check-ins (not the shift-held-back spendable balance). Matched to
+// Bingo players via slackUserId so titles/badge frames show correctly.
+let _lastCheckinFetchTs = 0;
+async function renderPlayerCheckinPointsBoard(){
+  const el = document.getElementById('playerCheckinPointsContent');
+  if(!el) return;
+  // Points only change hourly — avoid hammering the Marcus backend on every
+  // 5s player-screen poll. Re-fetch at most once every 60s per player.
+  const now = Date.now();
+  if(now - _lastCheckinFetchTs < 60000 && el.dataset.loaded === '1') return;
+  _lastCheckinFetchTs = now;
+  if(el.dataset.loaded !== '1') el.innerHTML = '<div class="empty-state">Loading…</div>';
+  try {
+    const r = await fetch(`${COSMETICS_BACKEND_URL}/checkin-leaderboard`);
+    const j = await r.json();
+    if(!r.ok || !j.rows) throw new Error(j.error || 'Failed to load');
+    const rows = (j.rows || []).slice(0, 10);
+    if(rows.length === 0){
+      el.innerHTML = '<div class="empty-state">No check-in points yet — answer tonight\'s hourly check-in! ⏰</div>';
+      el.dataset.loaded = '1';
+      return;
+    }
+    const medals = ['🥇','🥈','🥉'];
+    const isMe = row => currentPlayer && currentPlayer.slackUserId === row.user_id;
+    const rowsHtml = rows.map((row, i) => {
+      const p = (DB.players||[]).find(pl => pl.slackUserId === row.user_id);
+      const flair = p ? nameWithFlair(p.id, p.name) : row.name;
+      return `
+      <tr${isMe(row) ? ' style="background:rgba(245,200,66,.08);"' : ''}>
+        <td style="font-size:16px;">${medals[i] || '🎖️'}</td>
+        <td style="font-weight:700;">${flair}${isMe(row) ? ' (You)' : ''}</td>
+        <td style="color:var(--gold);font-weight:700;">${row.total} pt${row.total!==1?'s':''}</td>
+      </tr>`;
+    }).join('');
+    el.innerHTML = `<div style="overflow-x:auto;"><table class="roster-table">
+      <thead><tr><th>#</th><th>Player</th><th>Points</th></tr></thead>
+      <tbody>${rowsHtml}</tbody>
+    </table></div>`;
+    el.dataset.loaded = '1';
+  } catch(e){
+    if(el.dataset.loaded !== '1') el.innerHTML = '<div class="empty-state">Could not load check-in points right now.</div>';
+  }
+}
+
 async function refreshPlayerScreen(){
   if(!currentPlayer) return; // guard: poll may fire after logout
   // Only load from backend if we haven't just written (avoids poll wiping fresh marks)
@@ -3105,6 +3239,7 @@ async function refreshPlayerScreen(){
   renderPlayerWinsLeaderboard();
   renderPlayerRichestBoard();
   renderPlayerBigSpenderBoard();
+  renderPlayerCheckinPointsBoard();
 
   const g=DB.game;
   const bingoBtn=document.getElementById('playerBingoBtn');
