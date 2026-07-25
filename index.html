@@ -3437,7 +3437,7 @@ function renderAvatarStudioPanel(){
       if(!has){
         action = `<button class="btn btn-gold btn-sm" onclick="buyCosmetic('${cat.key}','${item.id}')">${item.price} 🪙</button>`;
       } else if(isEquipped){
-        action = `<span class="st-status">✓ Equipped</span>`;
+        action = `<span class="st-status">✓ Equipped</span> <button class="btn btn-outline btn-sm" onclick="equipCosmetic('${cat.key}',null)">Unequip</button>`;
       } else {
         action = `<button class="btn btn-outline btn-sm" onclick="equipCosmetic('${cat.key}','${item.id}')">Equip</button>`;
       }
@@ -3454,7 +3454,7 @@ async function setAvatarGender(gender){
   try {
     const r = await fetch(`${COSMETICS_BACKEND_URL}/set-avatar-gender`, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ playerId: currentPlayer.id, gender }),
+      body: JSON.stringify({ playerId: currentPlayer.id, playerName: currentPlayer.name, gender }),
     });
     const j = await r.json();
     if(!r.ok || !j.ok){ alert(j.error || 'Hindi na-process.'); return; }
@@ -3486,7 +3486,7 @@ function renderCosmeticsShopPanel(){
       if(!has){
         action = `<button class="btn btn-gold btn-sm" onclick="buyCosmetic('${cat.key}','${item.id}')">${item.price} 🪙</button>`;
       } else if(isEquipped){
-        action = `<span class="st-status">✓ Equipped</span>`;
+        action = `<span class="st-status">✓ Equipped</span> <button class="btn btn-outline btn-sm" onclick="equipCosmetic('${cat.key}',null)">Unequip</button>`;
       } else {
         action = `<button class="btn btn-outline btn-sm" onclick="equipCosmetic('${cat.key}','${item.id}')">Equip</button>`;
       }
@@ -3503,7 +3503,7 @@ async function buyCosmetic(category, itemId){
   try {
     const r = await fetch(`${COSMETICS_BACKEND_URL}/buy-cosmetic`, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ playerId: currentPlayer.id, category, itemId }),
+      body: JSON.stringify({ playerId: currentPlayer.id, playerName: currentPlayer.name, category, itemId }),
     });
     const j = await r.json();
     if(!r.ok || !j.ok){ alert(j.error || 'Hindi na-process ang pagbili.'); return; }
@@ -3533,6 +3533,7 @@ async function equipCosmetic(category, itemId){
     if(!DB.equipped2) DB.equipped2 = {};
     DB.equipped2[currentPlayer.id] = j.equipped2;
     renderCosmeticsShopPanel();
+    renderAvatarStudioPanel();
     renderEmojiPalette();
     refreshPlayerScreen();
   } catch(e){
@@ -3569,7 +3570,7 @@ async function buyTitle(titleId){
   try {
     const r = await fetch(`${COSMETICS_BACKEND_URL}/buy-title`, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ playerId: currentPlayer.id, titleId }),
+      body: JSON.stringify({ playerId: currentPlayer.id, playerName: currentPlayer.name, titleId }),
     });
     const j = await r.json();
     if(!r.ok || !j.ok){ alert(j.error || 'Hindi na-process ang pagbili ng title.'); return; }
