@@ -2772,12 +2772,17 @@ const AVATAR_BACKGROUNDS = [
   { id: 'galaxy', name: 'Galaxy', price: 40, css: 'background:linear-gradient(135deg,#0f0c29,#302b63,#24243e);' },
   { id: 'gold', name: 'Gold Shine', price: 60, css: 'background:linear-gradient(135deg,#f5c842,#f7971e);' },
 ];
+// Hair — a color ring around the avatar (2026-07-25 redesign). No plain
+// "hair-only" emoji exists (every hair emoji is a whole extra face, which
+// glitches when stacked), so hair is a color instead of a style. IDs kept
+// stable from the old style-based catalog so existing owned/equipped data
+// isn't orphaned — only names/rendering changed.
 const AVATAR_HAIR = [
-  { id: 'short', name: 'Short & Neat', price: 20, emoji: '✂️' },
-  { id: 'curly', name: 'Curly', price: 30, emoji: '🦱' },
-  { id: 'spiky', name: 'Spiky', price: 30, emoji: '💇' },
-  { id: 'long', name: 'Long', price: 30, emoji: '👱' },
-  { id: 'bald', name: 'Bald & Proud', price: 20, emoji: '👨‍🦲' },
+  { id: 'short', name: 'Brown', price: 20, hex: '#6b3f1d', css: 'background:#6b3f1d;' },
+  { id: 'curly', name: 'Black', price: 20, hex: '#1c1c1c', css: 'background:#1c1c1c;' },
+  { id: 'spiky', name: 'Blonde', price: 30, hex: '#e8c468', css: 'background:#e8c468;' },
+  { id: 'long', name: 'Red', price: 30, hex: '#b33a1e', css: 'background:#b33a1e;' },
+  { id: 'bald', name: 'Silver', price: 40, hex: '#c0c0c0', css: 'background:#c0c0c0;' },
 ];
 const AVATAR_OUTFITS = [
   { id: 'casual', name: 'Casual Tee', price: 30, emoji: '👕' },
@@ -2799,12 +2804,37 @@ const AVATAR_FRAMES = [
   { id: 'gold', name: 'Gold Ring', price: 70, css: 'outline:3px solid #f5c842;outline-offset:2px;box-shadow:0 0 10px #f5c842;' },
   { id: 'diamond', name: 'Diamond Ring', price: 100, css: 'outline:3px solid #b9f2ff;outline-offset:2px;box-shadow:0 0 12px #b9f2ff;' },
 ];
+// ─── Kikay Pack (2026-07-25) — first batch of glam/fashion cosmetics,
+// requested by Rendy for the aesthetically-inclined staff. Launch small,
+// expand later (more lipstick/nail colors, jewelry pieces, lashes, outfits).
+// Same generic buy-cosmetic/equip-cosmetic flow as the other avatar categories.
+const AVATAR_LIPSTICK = [
+  { id: 'red', name: 'Red', price: 15, hex: '#c0392b', css: 'background:#c0392b;' },
+  { id: 'pink', name: 'Pink', price: 15, hex: '#e75480', css: 'background:#e75480;' },
+  { id: 'nude', name: 'Nude', price: 15, hex: '#c98a6b', css: 'background:#c98a6b;' },
+  { id: 'wine', name: 'Wine', price: 20, hex: '#5c1f2e', css: 'background:#5c1f2e;' },
+];
+const AVATAR_NAILS = [
+  { id: 'red', name: 'Red', price: 10, hex: '#c0392b', css: 'background:#c0392b;' },
+  { id: 'pink', name: 'Pink', price: 10, hex: '#e75480', css: 'background:#e75480;' },
+  { id: 'black', name: 'Black', price: 10, hex: '#1c1c1c', css: 'background:#1c1c1c;' },
+  { id: 'glitter', name: 'Glitter Gold', price: 20, hex: '#f5c842', css: 'background:#f5c842;' },
+];
+const AVATAR_EARRINGS = [
+  { id: 'studs', name: 'Stud Earrings', price: 15, emoji: '⚪' },
+  { id: 'hoops', name: 'Hoop Earrings', price: 20, emoji: '⭕' },
+  { id: 'pearls', name: 'Pearl Drops', price: 25, emoji: '🔘' },
+  { id: 'diamonds', name: 'Diamond Studs', price: 35, emoji: '💎' },
+];
 const AVATAR_CATEGORIES = [
   { key: 'avatarBackground', label: '🎨 Background', catalog: AVATAR_BACKGROUNDS },
-  { key: 'avatarHair', label: '💇 Hair', catalog: AVATAR_HAIR },
+  { key: 'avatarHair', label: '💇 Hair Color', catalog: AVATAR_HAIR },
   { key: 'avatarOutfit', label: '👕 Outfit', catalog: AVATAR_OUTFITS },
   { key: 'avatarAccessory', label: '✨ Accessory', catalog: AVATAR_ACCESSORIES },
   { key: 'avatarFrame', label: '⭕ Frame', catalog: AVATAR_FRAMES },
+  { key: 'avatarLipstick', label: '💄 Lipstick', catalog: AVATAR_LIPSTICK },
+  { key: 'avatarNails', label: '💅 Nails', catalog: AVATAR_NAILS },
+  { key: 'avatarEarrings', label: '💎 Earrings', catalog: AVATAR_EARRINGS },
 ];
 const AVATAR_GENDER_SWITCH_FEE = 15;
 // Fun/witty weekly titles — 5 tokens, resets every Monday. Keep in sync with
@@ -2857,6 +2887,28 @@ function nameWithFlair(playerId, name){
 function avatarGenderFor(playerId){
   return (DB.avatarGender && DB.avatarGender[playerId]) || 'boy';
 }
+// Per-item accessory placement so each object actually sits where it's worn
+// (shades over the eyes, cap/crown/headphones on the head, bowtie at the
+// neck) instead of a generic corner badge. Values are fractions of `size`.
+const ACCESSORY_POSITIONS = {
+  shades:      { top: 0.34, size: 0.36 },
+  cap:         { top: -0.16, size: 0.48 },
+  crown:       { top: -0.22, size: 0.42 },
+  headphones:  { top: -0.06, size: 0.50 },
+  bowtie:      { bottom: -0.06, size: 0.28 },
+};
+// Doll-body color per outfit (Barbie/Ken-style silhouette), shown only at
+// large sizes (profile/modal), not on tiny leaderboard icons.
+const OUTFIT_BODY_CSS = {
+  casual:    'background:linear-gradient(180deg,#5aa9e6,#3d7fc4);',
+  formal:    'background:linear-gradient(180deg,#c94f4f,#8f2d2d);',
+  sporty:    'background:linear-gradient(180deg,#4caf50,#2e7d32);',
+  superhero: 'background:linear-gradient(180deg,#e74c3c,#2c3e93);',
+  royal:     'background:linear-gradient(180deg,#8e44ad,#5b2c6f);',
+};
+const BODY_DEFAULT_CSS = 'background:linear-gradient(180deg,#94a3b8,#64748b);';
+const DOLL_BODY_MIN_SIZE = 80; // below this, stay head-only (too small to read a body)
+
 function avatarHtml(playerId, size, clickable){
   size = size || 40;
   clickable = clickable !== false; // default true — any avatar can be tapped to magnify
@@ -2871,13 +2923,49 @@ function avatarHtml(playerId, size, clickable){
   const acc = accId && AVATAR_ACCESSORIES.find(i=>i.id===accId);
   const outfitId = equippedCosmetic(playerId, 'avatarOutfit');
   const outfit = outfitId && AVATAR_OUTFITS.find(i=>i.id===outfitId);
+  const lipstickId = equippedCosmetic(playerId, 'avatarLipstick');
+  const lipstick = lipstickId && AVATAR_LIPSTICK.find(i=>i.id===lipstickId);
+  const nailsId = equippedCosmetic(playerId, 'avatarNails');
+  const nails = nailsId && AVATAR_NAILS.find(i=>i.id===nailsId);
+  const earringsId = equippedCosmetic(playerId, 'avatarEarrings');
+  const earrings = earringsId && AVATAR_EARRINGS.find(i=>i.id===earringsId);
   const baseEmoji = gender === 'girl' ? '👧' : '👦';
   const bgCss = bg ? bg.css : 'background:#16293f;';
-  const frameCss = frame ? frame.css : 'outline:1px solid rgba(255,255,255,.15);outline-offset:1px;';
-  const badgeSize = Math.max(10, Math.round(size * 0.4));
-  const showOutfitBadge = outfit && size >= 50; // too small to show a 3rd overlay on tiny leaderboard icons
+  // Frame and hair-ring both use box-shadow — since inline styles only keep
+  // the LAST box-shadow declaration, merge them into one comma-separated
+  // value instead of concatenating two separate box-shadow: rules.
+  const rawFrameCss = frame ? frame.css : 'outline:1px solid rgba(255,255,255,.15);outline-offset:1px;';
+  const frameOutlinePart = rawFrameCss.replace(/box-shadow:[^;]+;?/, '');
+  const frameShadowMatch = rawFrameCss.match(/box-shadow:([^;]+);?/);
+  const shadowValues = [];
+  if(frameShadowMatch) shadowValues.push(frameShadowMatch[1].trim());
+  if(hair) shadowValues.push(`inset 0 0 0 ${Math.max(2,Math.round(size*0.045))}px ${hair.hex}`);
+  const frameCss = frameOutlinePart;
+  const hairRingCss = shadowValues.length ? `box-shadow:${shadowValues.join(',')};` : '';
+
+  const accPos = acc && ACCESSORY_POSITIONS[acc.id];
+  const accHtml = accPos ? `<span style="position:absolute;${accPos.top!==undefined?`top:${Math.round(size*accPos.top)}px;`:''}${accPos.bottom!==undefined?`bottom:${Math.round(size*accPos.bottom)}px;`:''}left:50%;transform:translateX(-50%);font-size:${Math.round(size*accPos.size)}px;z-index:5;">${acc.emoji}</span>` : '';
+
+  const showKikay = size >= 50; // too small to show these extra layers on tiny leaderboard icons
+  const lipstickHtml = (showKikay && lipstick) ? `<span style="position:absolute;top:${Math.round(size*0.58)}px;left:50%;transform:translateX(-50%);width:${Math.round(size*0.16)}px;height:${Math.round(size*0.07)}px;border-radius:50%;background:${lipstick.hex};z-index:4;"></span>` : '';
+  const nailsHtml = (showKikay && nails) ? `<span style="position:absolute;bottom:${Math.round(size*-0.02)}px;right:${Math.round(size*0.10)}px;width:${Math.round(size*0.16)}px;height:${Math.round(size*0.16)}px;border-radius:50%;background:${nails.hex};z-index:3;box-shadow:0 0 0 1px rgba(0,0,0,.25);"></span>` : '';
+  const earringsHtml = (showKikay && earrings) ? `<span style="position:absolute;top:${Math.round(size*0.40)}px;left:${Math.round(size*-0.06)}px;font-size:${Math.round(size*0.22)}px;z-index:4;">${earrings.emoji}</span><span style="position:absolute;top:${Math.round(size*0.40)}px;right:${Math.round(size*-0.06)}px;font-size:${Math.round(size*0.22)}px;z-index:4;">${earrings.emoji}</span>` : '';
+
   const clickAttrs = clickable ? `onclick="openAvatarModal('${playerId}');event.stopPropagation();" style="cursor:pointer;` : `style="`;
-  return `<span ${clickAttrs}position:relative;display:inline-flex;align-items:center;justify-content:center;width:${size}px;height:${size}px;border-radius:50%;${bgCss}${frameCss}font-size:${Math.round(size*0.55)}px;line-height:1;vertical-align:middle;">${baseEmoji}${hair&&hair.emoji?`<span style="position:absolute;top:-${Math.round(size*0.12)}px;left:50%;transform:translateX(-50%);font-size:${Math.round(size*0.4)}px;">${hair.emoji}</span>`:''}${acc?`<span style="position:absolute;bottom:-${Math.round(size*0.08)}px;right:-${Math.round(size*0.08)}px;font-size:${badgeSize}px;">${acc.emoji}</span>`:''}${showOutfitBadge?`<span style="position:absolute;bottom:-${Math.round(size*0.08)}px;left:-${Math.round(size*0.08)}px;font-size:${badgeSize}px;">${outfit.emoji}</span>`:''}</span>`;
+  const headHtml = `<span ${clickAttrs}position:relative;display:inline-flex;align-items:center;justify-content:center;width:${size}px;height:${size}px;border-radius:50%;${bgCss}${frameCss}${hairRingCss}font-size:${Math.round(size*0.55)}px;line-height:1;vertical-align:middle;z-index:2;">${baseEmoji}${accHtml}${lipstickHtml}${nailsHtml}${earringsHtml}</span>`;
+
+  if(size < DOLL_BODY_MIN_SIZE) return headHtml; // small views stay head-only
+
+  // Large views (profile/modal/avatar studio) get a mini doll-style body
+  // underneath, colored per equipped outfit — always shown (neutral gray by
+  // default) so it never looks like a floating head.
+  const bodyCss = (outfit && OUTFIT_BODY_CSS[outfit.id]) || BODY_DEFAULT_CSS;
+  const bodyWidth = Math.round(size * 0.72);
+  const bodyHeight = Math.round(size * 0.5);
+  const bodyRadius = Math.round(size * 0.14);
+  const bodyRadiusBottom = Math.round(size * 0.24);
+  const bodyHtml = `<div style="width:${bodyWidth}px;height:${bodyHeight}px;margin-top:${Math.round(size*-0.15)}px;border-radius:${bodyRadius}px ${bodyRadius}px ${bodyRadiusBottom}px ${bodyRadiusBottom}px;box-shadow:0 2px 6px rgba(0,0,0,.35);z-index:1;${bodyCss}"></div>`;
+  return `<div style="display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;">${headHtml}${bodyHtml}</div>`;
 }
 
 // Magnified avatar view — opens when any avatar circle is clicked, whether
