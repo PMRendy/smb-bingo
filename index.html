@@ -1436,6 +1436,8 @@ async function refreshAdminTeamBattlesTab(){
   const prevChecked = new Set(Array.from(el.querySelectorAll('.tbAdminTeamCheck:checked')).map(c=>c.value));
   const prevPatternSel = el.querySelector('#tbAdminPatternSelect');
   const prevPatternIdx = prevPatternSel ? prevPatternSel.value : null;
+  const prevModeSel = el.querySelector('#tbAdminPatternModeSelect');
+  const prevModeVal = prevModeSel ? prevModeSel.value : null;
   const firstLoad = !el.dataset.loadedOnce;
   if(firstLoad) el.innerHTML = '<div class="empty-state">Loading...</div>';
   await fetchTeamBattleState();
@@ -1473,11 +1475,24 @@ async function refreshAdminTeamBattlesTab(){
   }
   // Winning Pattern selector is always visible (not gated behind having 2+ locked teams already)
   // so the admin can set/preview it ahead of time — Start button stays disabled until enough teams are locked.
+  // Mode: preset (from PATTERNS) or Custom — Draw My Own (reuses the same tap-to-design editor UI as
+  // the main game's pattern setup, but its own state (tbCustomPatternCells) so it never collides.
   html += `<div style="margin-top:10px;">
     <label style="font-size:11px;color:var(--muted);">Winning Pattern (for the next match)</label>
-    <select id="tbAdminPatternSelect" style="width:100%;background:var(--panel,#16293f);border:1px solid rgba(255,255,255,.15);border-radius:6px;padding:8px;color:#fff;font-size:13px;margin:4px 0 10px;">
-      ${PATTERNS.map((p,i)=>`<option value="${i}">${p.name}</option>`).join('')}
+    <select id="tbAdminPatternModeSelect" onchange="tbOnPatternModeChange()" style="width:100%;background:var(--panel,#16293f);border:1px solid rgba(255,255,255,.15);border-radius:6px;padding:8px;color:#fff;font-size:13px;margin:4px 0 8px;">
+      <option value="preset">Choose Preset</option>
+      <option value="custom">Custom — Draw My Own</option>
     </select>
+    <div id="tbPresetPickerWrap">
+      <select id="tbAdminPatternSelect" style="width:100%;background:var(--panel,#16293f);border:1px solid rgba(255,255,255,.15);border-radius:6px;padding:8px;color:#fff;font-size:13px;margin-bottom:10px;">
+        ${PATTERNS.map((p,i)=>`<option value="${i}">${p.name}</option>`).join('')}
+      </select>
+    </div>
+    <div id="tbCustomPickerWrap" style="display:none;margin-bottom:10px;text-align:center;">
+      <div style="font-size:11px;color:var(--muted);margin-bottom:6px;">Tap cells to design the winning pattern. Center is always FREE.</div>
+      <div class="pattern-grid" id="tbCustomPatternEditor" style="width:130px;gap:4px;margin:0 auto;"></div>
+      <button class="btn btn-outline btn-sm" style="margin-top:8px;" onclick="tbClearCustomPattern()">Clear</button>
+    </div>
     <button class="btn btn-gold" style="width:100%;" onclick="tbAdminStartMatch()" ${locked.length<2?'disabled title="Need at least 2 locked teams first"':''}>Start Match with Selected Teams</button>
   </div>`;
 
@@ -1490,6 +1505,11 @@ async function refreshAdminTeamBattlesTab(){
     const sel = el.querySelector('#tbAdminPatternSelect');
     if(sel) sel.value = prevPatternIdx;
   }
+  if(prevModeVal !== null){
+    const modeSel = el.querySelector('#tbAdminPatternModeSelect');
+    if(modeSel) modeSel.value = prevModeVal;
+  }
+  tbOnPatternModeChange();
 
   // Show each live match's registered cards, marked up exactly like the main
   // Game Control card wall (called numbers highlighted, winning cells flagged) —
@@ -1513,12 +1533,66 @@ async function refreshAdminTeamBattlesTab(){
   }
 }
 
+// Team Battles custom pattern state — deliberately separate from the main game's
+// customPatternCells so drawing one doesn't affect the other.
+let tbCustomPatternCells = Array(25).fill(false);
+tbCustomPatternCells[12] = true; // center FREE always on
+
+function tbOnPatternModeChange(){
+  const modeSel = document.getElementById('tbAdminPatternModeSelect');
+  const mode = modeSel ? modeSel.value : 'preset';
+  const presetWrap = document.getElementById('tbPresetPickerWrap');
+  const customWrap = document.getElementById('tbCustomPickerWrap');
+  if(presetWrap) presetWrap.style.display = mode==='custom' ? 'none' : 'block';
+  if(customWrap) customWrap.style.display = mode==='custom' ? 'block' : 'none';
+  if(mode==='custom') tbRenderCustomPatternEditor();
+}
+
+function tbRenderCustomPatternEditor(){
+  const grid = document.getElementById('tbCustomPatternEditor');
+  if(!grid) return;
+  grid.innerHTML='';
+  tbCustomPatternCells.forEach((on,i)=>{
+    const isCenter = i===12;
+    const cell=document.createElement('div');
+    cell.className=`pcell editable${on?' on':''}${isCenter?' center':''}`;
+    if(!isCenter){
+      cell.onclick=()=>{
+        tbCustomPatternCells[i]=!tbCustomPatternCells[i];
+        tbRenderCustomPatternEditor();
+      };
+    }
+    grid.appendChild(cell);
+  });
+}
+
+function tbClearCustomPattern(){
+  tbCustomPatternCells = Array(25).fill(false);
+  tbCustomPatternCells[12]=true;
+  tbRenderCustomPatternEditor();
+}
+
+function tbResolveSelectedPattern(){
+  const modeSel = document.getElementById('tbAdminPatternModeSelect');
+  const mode = modeSel ? modeSel.value : 'preset';
+  if(mode==='custom'){
+    const hasAnyMark = tbCustomPatternCells.some((v,i)=>v&&i!==12);
+    if(!hasAnyMark){
+      alert('Tap at least one cell to design a custom pattern first.');
+      return null;
+    }
+    return { name:'Custom Pattern', cells:[...tbCustomPatternCells] };
+  }
+  const patIdx = parseInt(document.getElementById('tbAdminPatternSelect').value, 10);
+  return PATTERNS[patIdx];
+}
+
 async function tbAdminStartMatch(){
   const checks = Array.from(document.querySelectorAll('.tbAdminTeamCheck:checked'));
   const teamIds = checks.map(c=>c.value);
   if(teamIds.length < 2){ alert('Select at least 2 locked teams.'); return; }
-  const patIdx = parseInt(document.getElementById('tbAdminPatternSelect').value, 10);
-  const pattern = PATTERNS[patIdx];
+  const pattern = tbResolveSelectedPattern();
+  if(!pattern) return;
   try {
     const r = await fetch(`${COSMETICS_BACKEND_URL}/team-battle-start-match`, {
       method:'POST', headers:{'Content-Type':'application/json'},
