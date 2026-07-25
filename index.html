@@ -310,6 +310,7 @@ textarea{resize:vertical;min-height:60px;}
       <button class="tab-btn" onclick="switchAdminTab('settings')">⚙️ Settings</button>
       <button class="tab-btn" onclick="switchAdminTab('history')">🪙 Transaction History</button>
       <button class="tab-btn" onclick="switchAdminTab('topics')">🗓️ Weekly Topics</button>
+      <button class="tab-btn" onclick="switchAdminTab('teambattles')">⚔️ Team Battles</button>
     </div>
 
     <!-- TAB: ROSTER -->
@@ -589,6 +590,14 @@ textarea{resize:vertical;min-height:60px;}
         <div id="weeklyTopicsError" style="color:var(--danger);font-size:12px;margin-top:6px;"></div>
       </div>
     </div>
+
+    <div class="tab-content" id="tab-teambattles">
+      <div class="panel">
+        <div class="panel-title">⚔️ Team Battles — 3v3 Token Wager</div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:14px;">Players form 3-player teams themselves (leader pays 1 token, invites 2 more, locks in at 3/3). Once at least 2 teams are locked, pick which ones to pit against each other and set the winning pattern below.</div>
+        <div id="adminTeamBattlesContent"><div class="empty-state">Loading...</div></div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -697,6 +706,17 @@ textarea{resize:vertical;min-height:60px;}
             <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;color:var(--gold);text-transform:uppercase;margin-bottom:8px;">⏰ Hourly Check-in Points</div>
             <div id="playerCheckinPointsContent" style="font-size:13px;color:var(--muted);"></div>
           </div>
+        </div>
+      </div>
+    </details>
+
+    <!-- Team Battles: 3v3 leader-formed token wager mode -->
+    <details class="panel-group" id="teamBattlesGroup">
+      <summary>⚔️ Team Battles (3v3)</summary>
+      <div class="panel-group-body">
+        <div class="panel" id="teamBattlesPanel">
+          <div style="font-size:12px;color:var(--muted);margin-bottom:10px;">Form a 3-player team (1 token entry each), lock in, and battle another team — winner takes the whole pot! An admin needs 2+ locked teams to start a battle.</div>
+          <div id="teamBattlesPanelContent" style="font-size:13px;color:var(--muted);">Loading...</div>
         </div>
       </div>
     </details>
@@ -1344,6 +1364,7 @@ function switchAdminTab(name) {
   if(name==='dashboard') refreshDashboard();
   if(name==='history') refreshHistoryTab();
   if(name==='topics') refreshWeeklyTopicsTab();
+  if(name==='teambattles') refreshAdminTeamBattlesTab();
 }
 
 // ════════════════════════════════════════════════════════════
@@ -1394,6 +1415,73 @@ async function saveWeeklyTopics(){
   } catch(e){
     errEl.textContent = 'Could not save — ' + e.message;
   }
+}
+
+// ════════════════════════════════════════════════════════════
+//  ADMIN: TEAM BATTLES — pick 2+ locked teams + pattern, start the match
+// ════════════════════════════════════════════════════════════
+async function refreshAdminTeamBattlesTab(){
+  const el = document.getElementById('adminTeamBattlesContent');
+  if(!el) return;
+  el.innerHTML = '<div class="empty-state">Loading...</div>';
+  await fetchTeamBattleState();
+  const state = _teamBattlesState;
+  if(!state){ el.innerHTML = '<div class="empty-state">Could not load Team Battles.</div>'; return; }
+
+  const locked = (state.teams||[]).filter(t=>t.status==='locked');
+  const forming = (state.teams||[]).filter(t=>t.status==='forming');
+  const live = (state.teams||[]).filter(t=>t.status==='in_progress');
+
+  let html = `<div style="font-size:12px;color:var(--gold);font-weight:700;margin-bottom:10px;">${state.leaderSlots.used} / ${state.leaderSlots.max} leader slots active</div>`;
+
+  if(forming.length){
+    html += `<div style="font-size:11px;font-weight:700;color:var(--teal);text-transform:uppercase;margin-bottom:6px;">Still Forming</div>`;
+    html += forming.map(t=>`<div style="font-size:12px;color:var(--muted);margin-bottom:4px;">${escapeHtml(t.name)} — ${t.members.filter(m=>m.inviteStatus==='accepted').length}/3 (leader: ${escapeHtml(t.leaderName)})</div>`).join('');
+  }
+  if(live.length){
+    html += `<div style="font-size:11px;font-weight:700;color:var(--teal);text-transform:uppercase;margin:10px 0 6px;">Live Matches</div>`;
+    live.forEach(t=>{
+      const match = (state.matches||[]).find(m=>m.id===t.matchId);
+      html += `<div style="font-size:12px;color:var(--muted);margin-bottom:4px;">${escapeHtml(t.name)} — battling now (${match?escapeHtml(match.pattern.name||'Custom'):'?'}) — ${t.members.filter(m=>m.won).length}/3 won</div>`;
+    });
+  }
+
+  html += `<div style="font-size:11px;font-weight:700;color:var(--teal);text-transform:uppercase;margin:10px 0 6px;">Locked Teams — Ready to Battle</div>`;
+  if(!locked.length){
+    html += `<div class="empty-state">No locked teams yet (need 2+).</div>`;
+  } else {
+    html += locked.map(t=>`
+      <label style="display:flex;align-items:center;gap:8px;background:var(--deep);border-radius:8px;padding:8px 12px;margin-bottom:6px;font-size:13px;cursor:pointer;">
+        <input type="checkbox" class="tbAdminTeamCheck" value="${t.id}">
+        ${escapeHtml(t.name)} — ${t.members.map(m=>escapeHtml(m.name)).join(', ')}
+      </label>`).join('');
+    html += `<div style="margin-top:10px;">
+      <label style="font-size:11px;color:var(--muted);">Winning Pattern</label>
+      <select id="tbAdminPatternSelect" style="width:100%;background:var(--panel,#16293f);border:1px solid rgba(255,255,255,.15);border-radius:6px;padding:8px;color:#fff;font-size:13px;margin:4px 0 10px;">
+        ${PATTERNS.map((p,i)=>`<option value="${i}">${p.name}</option>`).join('')}
+      </select>
+      <button class="btn btn-gold" style="width:100%;" onclick="tbAdminStartMatch()">Start Match with Selected Teams</button>
+    </div>`;
+  }
+
+  el.innerHTML = html;
+}
+
+async function tbAdminStartMatch(){
+  const checks = Array.from(document.querySelectorAll('.tbAdminTeamCheck:checked'));
+  const teamIds = checks.map(c=>c.value);
+  if(teamIds.length < 2){ alert('Select at least 2 locked teams.'); return; }
+  const patIdx = parseInt(document.getElementById('tbAdminPatternSelect').value, 10);
+  const pattern = PATTERNS[patIdx];
+  try {
+    const r = await fetch(`${COSMETICS_BACKEND_URL}/team-battle-start-match`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ teamIds, pattern }),
+    });
+    const j = await r.json();
+    if(!r.ok || !j.ok){ alert(j.error || 'Could not start match.'); return; }
+    await refreshAdminTeamBattlesTab();
+  } catch(e){ alert('Could not start match — try again.'); }
 }
 
 // ════════════════════════════════════════════════════════════
@@ -3074,6 +3162,259 @@ async function buyTitle(titleId){
   }
 }
 
+// ─── Team Battles: 3v3 leader-formed token wager mode ──────────────────────
+function escapeHtml(str){
+  return String(str==null?'':str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+let _teamBattlesState = null;
+
+async function fetchTeamBattleState(){
+  try {
+    const r = await fetch(`${COSMETICS_BACKEND_URL}/team-battle-state`);
+    const j = await r.json();
+    if(j.ok) _teamBattlesState = j;
+  } catch(e){ /* transient — keep last known state */ }
+}
+
+function tbActiveTeamFor(state, playerId){
+  return (state.teams||[]).find(t=>['forming','locked','in_progress'].includes(t.status) && t.members.some(m=>m.playerId===playerId && m.inviteStatus==='accepted'));
+}
+
+async function renderTeamBattlesPanel(){
+  const el = document.getElementById('teamBattlesPanelContent');
+  if(!el || !currentPlayer) return;
+  await fetchTeamBattleState();
+  const state = _teamBattlesState;
+  if(!state){ el.innerHTML = '<div class="empty-state">Could not load Team Battles right now.</div>'; return; }
+
+  const myId = currentPlayer.id;
+  const myTeam = tbActiveTeamFor(state, myId);
+  const myInvites = (state.teams||[]).filter(t=>t.status==='forming' && t.members.some(m=>m.playerId===myId && m.inviteStatus==='invited'));
+
+  let html = `<div style="font-size:12px;color:var(--gold);font-weight:700;margin-bottom:10px;">${state.leaderSlots.used} / ${state.leaderSlots.max} leader slots active</div>`;
+
+  // Pending invites for me
+  if(myInvites.length){
+    html += myInvites.map(t=>`
+      <div style="background:var(--card-bg,var(--deep));border:1px solid rgba(46,202,213,.4);border-radius:8px;padding:10px 12px;margin-bottom:8px;">
+        <div style="font-size:13px;margin-bottom:8px;"><strong>${t.leaderName}</strong> invited you to join "<span style="color:var(--gold);">${escapeHtml(t.name)}</span>" — entry: 1 token.</div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-gold btn-sm" style="flex:1;" onclick="tbRespond('${t.id}','accept')">Accept</button>
+          <button class="btn btn-outline btn-sm" style="flex:1;" onclick="tbRespond('${t.id}','decline')">Decline</button>
+        </div>
+      </div>`).join('');
+  }
+
+  if(myTeam){
+    html += tbRenderMyTeam(myTeam, state, myId);
+  } else {
+    html += `
+      <div style="display:flex;gap:8px;margin-bottom:10px;">
+        <input id="tbNewTeamName" placeholder="Name your team..." style="flex:1;background:var(--deep);border:1px solid rgba(255,255,255,.15);border-radius:6px;padding:8px 10px;color:var(--white,#fff);font-size:13px;">
+        <button class="btn btn-gold btn-sm" onclick="tbCreateTeam()">Pay 1 🪙 &amp; Become Leader</button>
+      </div>`;
+  }
+
+  const others = (state.teams||[]).filter(t=>['forming','locked','in_progress'].includes(t.status) && t.id !== (myTeam && myTeam.id));
+  if(others.length){
+    html += `<div style="font-size:11px;font-weight:700;letter-spacing:1px;color:var(--teal);text-transform:uppercase;margin:12px 0 6px;">Other Teams</div>`;
+    html += others.map(t=>{
+      const statusLabel = t.status==='forming' ? `FORMING ${t.members.filter(m=>m.inviteStatus==='accepted').length}/3` : t.status==='locked' ? 'LOCKED — awaiting admin' : 'LIVE';
+      return `<div style="display:flex;justify-content:space-between;background:var(--deep);border-radius:8px;padding:8px 12px;margin-bottom:6px;font-size:13px;">
+        <span>${escapeHtml(t.name)} <span style="color:var(--muted);font-size:11px;">(${statusLabel})</span></span>
+        <span style="color:var(--muted);font-size:11px;">Leader: ${escapeHtml(t.leaderName)}</span>
+      </div>`;
+    }).join('');
+  }
+
+  const recentMatches = (state.matches||[]).filter(m=>m.status==='complete').slice(0,3);
+  if(recentMatches.length){
+    html += `<div style="font-size:11px;font-weight:700;letter-spacing:1px;color:var(--teal);text-transform:uppercase;margin:12px 0 6px;">Recent Results</div>`;
+    html += recentMatches.map(m=>{
+      const winner = (state.teams||[]).find(t=>t.id===m.winnerTeamId);
+      return `<div style="font-size:12px;color:var(--muted);margin-bottom:4px;">🏆 "${winner?escapeHtml(winner.name):'?'}" won +${m.potPerWinner} 🪙 each</div>`;
+    }).join('');
+  }
+
+  el.innerHTML = html;
+}
+
+function tbRenderMyTeam(t, state, myId){
+  const isLeader = t.leaderId === myId;
+  const accepted = t.members.filter(m=>m.inviteStatus==='accepted');
+  const secondsLeft = t.status==='forming' && t.lockDeadline ? Math.max(0, Math.round((t.lockDeadline - Date.now())/1000)) : null;
+
+  let rows = t.members.map(m=>{
+    const tag = m.inviteStatus==='accepted' ? '<span style="color:var(--success,#4ecb84);font-size:11px;">PAID</span>' : m.inviteStatus==='invited' ? '<span style="color:var(--teal);font-size:11px;">invited...</span>' : '';
+    return `<div style="display:flex;justify-content:space-between;padding:6px 0;font-size:13px;">${m.role==='leader'?'👑 ':'🟢 '}${escapeHtml(m.name)} ${tag}</div>`;
+  }).join('');
+
+  let body = `<div style="background:var(--deep);border-radius:8px;padding:12px;margin-bottom:8px;">
+    <div style="font-weight:700;color:var(--gold);margin-bottom:6px;">${escapeHtml(t.name)} — ${accepted.length}/3 ${t.status==='locked'?'🔒 LOCKED':''}${t.status==='in_progress'?'⚔️ LIVE':''}</div>
+    ${rows}`;
+
+  if(t.status==='forming'){
+    if(secondsLeft !== null) body += `<div style="font-size:11px;color:var(--danger,#e05c5c);margin-top:6px;">⏰ ${secondsLeft}s left to lock in or the team is abolished (refund).</div>`;
+    if(isLeader){
+      if(accepted.length < 3){
+        const eligible = tbEligiblePlayers(state, myId);
+        body += `<div style="margin-top:8px;">
+          <select id="tbInviteSelect" style="width:100%;background:var(--panel,#16293f);border:1px solid rgba(255,255,255,.15);border-radius:6px;padding:6px;color:#fff;font-size:12px;margin-bottom:6px;">
+            ${eligible.length ? eligible.map(p=>`<option value="${p.id}">${escapeHtml(p.name)} (${p.tokens} 🪙)</option>`).join('') : '<option value="">No eligible players (need an available token)</option>'}
+          </select>
+          <button class="btn btn-teal btn-sm" style="width:100%;" onclick="tbInvite('${t.id}')" ${eligible.length?'':'disabled'}>Send Invite</button>
+        </div>`;
+      } else {
+        body += `<button class="btn btn-gold btn-sm" style="width:100%;margin-top:8px;" onclick="tbLockIn('${t.id}')">Lock In Team</button>`;
+      }
+      body += `<button class="btn btn-outline btn-sm" style="width:100%;margin-top:6px;" onclick="tbBackout('${t.id}')">Back Out (refund)</button>`;
+    }
+  }
+
+  if(['locked','in_progress'].includes(t.status)){
+    const myMember = t.members.find(m=>m.playerId===myId);
+    const myCards = (DB.game && DB.game.playerCards && DB.game.playerCards[myId]) || [];
+    if(myCards.length > 1 && myMember && !myMember.cardId && myMember.cardId !== 0){
+      body += `<div style="margin-top:8px;font-size:12px;">You have ${myCards.length} cards — pick one to play for the team:
+        <div style="display:flex;gap:6px;margin-top:6px;">${myCards.map((c,i)=>`<button class="btn btn-outline btn-sm" onclick="tbSelectCard('${t.id}',${i})">Card ${i+1}</button>`).join('')}</div></div>`;
+    }
+  }
+
+  if(t.status==='in_progress' && t.matchId){
+    const match = (state.matches||[]).find(m=>m.id===t.matchId);
+    if(match && match.status==='live'){
+      const myMember = t.members.find(m=>m.playerId===myId);
+      const cardId = myMember && (myMember.cardId ?? (((DB.game&&DB.game.playerCards&&DB.game.playerCards[myId]||[]).length===1)?0:null));
+      const myCards = (DB.game && DB.game.playerCards && DB.game.playerCards[myId]) || [];
+      const myGrid = cardId!=null ? (myCards[cardId] && myCards[cardId].grid) : null;
+      const calledSet = new Set((DB.game && DB.game.calledSet) || []);
+      const iWon = myGrid && typeof checkWin==='function' && checkWin(myGrid, match.pattern, calledSet);
+      body += `<div style="margin-top:8px;font-size:12px;color:var(--muted);">Pattern: <strong style="color:var(--gold);">${escapeHtml(match.pattern.name||'Custom')}</strong></div>`;
+      body += `<div style="margin-top:6px;">${t.members.map(m=>`<div style="display:flex;justify-content:space-between;font-size:12px;padding:3px 0;"><span>${escapeHtml(m.name)}</span><span>${m.won?'✅ Won':'—'}</span></div>`).join('')}</div>`;
+      if(myMember && !myMember.won){
+        body += `<button class="btn btn-gold btn-sm" style="width:100%;margin-top:8px;" ${iWon?'':'disabled'} onclick="tbDeclareWin('${match.id}','${t.id}')">${iWon?'🏆 I Hit The Pattern!':'Keep playing...'}</button>`;
+      }
+    }
+  }
+
+  body += `</div>`;
+  return body;
+}
+
+function tbEligiblePlayers(state, excludeId){
+  const committed = new Set();
+  (state.teams||[]).forEach(t=>{
+    if(['forming','locked','in_progress'].includes(t.status)){
+      t.members.forEach(m=>{ if(m.inviteStatus==='accepted') committed.add(m.playerId); });
+    }
+  });
+  return (DB.players||[]).filter(p=>p.active!==false && p.id!==excludeId && !committed.has(p.id) && ((DB.tokens||{})[p.id]||0) >= 1)
+    .map(p=>({ id:p.id, name:p.name, tokens: (DB.tokens||{})[p.id]||0 }));
+}
+
+async function tbCreateTeam(){
+  if(!currentPlayer) return;
+  const nameEl = document.getElementById('tbNewTeamName');
+  const teamName = (nameEl && nameEl.value || '').trim();
+  if(!teamName){ alert('Give your team a name first.'); return; }
+  try {
+    const r = await fetch(`${COSMETICS_BACKEND_URL}/team-battle-create`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ playerId: currentPlayer.id, playerName: currentPlayer.name, teamName }),
+    });
+    const j = await r.json();
+    if(!r.ok || !j.ok){ alert(j.error || 'Could not create team.'); return; }
+    await refreshTokenBalance();
+    await renderTeamBattlesPanel();
+  } catch(e){ alert('Could not create team — try again.'); }
+}
+
+async function tbInvite(teamId){
+  if(!currentPlayer) return;
+  const sel = document.getElementById('tbInviteSelect');
+  const inviteePlayerId = sel && sel.value;
+  if(!inviteePlayerId) return;
+  const inviteeName = sel.options[sel.selectedIndex].text.replace(/\s*\(.*\)$/,'');
+  try {
+    const r = await fetch(`${COSMETICS_BACKEND_URL}/team-battle-invite`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ teamId, leaderId: currentPlayer.id, inviteePlayerId, inviteeName }),
+    });
+    const j = await r.json();
+    if(!r.ok || !j.ok){ alert(j.error || 'Could not send invite.'); return; }
+    await renderTeamBattlesPanel();
+  } catch(e){ alert('Could not send invite — try again.'); }
+}
+
+async function tbRespond(teamId, action){
+  if(!currentPlayer) return;
+  try {
+    const r = await fetch(`${COSMETICS_BACKEND_URL}/team-battle-respond`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ teamId, playerId: currentPlayer.id, action }),
+    });
+    const j = await r.json();
+    if(!r.ok || !j.ok){ alert(j.error || 'Could not respond to invite.'); return; }
+    await refreshTokenBalance();
+    await renderTeamBattlesPanel();
+  } catch(e){ alert('Could not respond — try again.'); }
+}
+
+async function tbLockIn(teamId){
+  if(!currentPlayer) return;
+  try {
+    const r = await fetch(`${COSMETICS_BACKEND_URL}/team-battle-lockin`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ teamId, leaderId: currentPlayer.id }),
+    });
+    const j = await r.json();
+    if(!r.ok || !j.ok){ alert(j.error || 'Could not lock in.'); return; }
+    await renderTeamBattlesPanel();
+  } catch(e){ alert('Could not lock in — try again.'); }
+}
+
+async function tbBackout(teamId){
+  if(!currentPlayer) return;
+  if(!confirm('Back out and disband this team? Everyone who paid gets refunded.')) return;
+  try {
+    const r = await fetch(`${COSMETICS_BACKEND_URL}/team-battle-backout`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ teamId, leaderId: currentPlayer.id }),
+    });
+    const j = await r.json();
+    if(!r.ok || !j.ok){ alert(j.error || 'Could not back out.'); return; }
+    await refreshTokenBalance();
+    await renderTeamBattlesPanel();
+  } catch(e){ alert('Could not back out — try again.'); }
+}
+
+async function tbSelectCard(teamId, cardId){
+  if(!currentPlayer) return;
+  try {
+    const r = await fetch(`${COSMETICS_BACKEND_URL}/team-battle-select-card`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ teamId, playerId: currentPlayer.id, cardId }),
+    });
+    const j = await r.json();
+    if(!r.ok || !j.ok){ alert(j.error || 'Could not select card.'); return; }
+    await renderTeamBattlesPanel();
+  } catch(e){ alert('Could not select card — try again.'); }
+}
+
+async function tbDeclareWin(matchId, teamId){
+  if(!currentPlayer) return;
+  try {
+    const r = await fetch(`${COSMETICS_BACKEND_URL}/team-battle-declare-win`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ matchId, teamId, playerId: currentPlayer.id }),
+    });
+    const j = await r.json();
+    if(!r.ok || !j.ok){ alert(j.error || 'Could not register your win.'); return; }
+    if(j.teamComplete) await refreshTokenBalance();
+    await renderTeamBattlesPanel();
+  } catch(e){ alert('Could not register your win — try again.'); }
+}
+
 // ─── Player-facing leaderboards (Bingo Wins + Richest Bingo Player) ────────
 // Player IDs excluded from the public "Richest Bingo Player" board — used for
 // admin/house accounts whose balance isn't really part of the player contest.
@@ -3240,6 +3581,7 @@ async function refreshPlayerScreen(){
   renderPlayerRichestBoard();
   renderPlayerBigSpenderBoard();
   renderPlayerCheckinPointsBoard();
+  renderTeamBattlesPanel();
 
   const g=DB.game;
   const bingoBtn=document.getElementById('playerBingoBtn');
