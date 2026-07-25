@@ -679,6 +679,18 @@ textarea{resize:vertical;min-height:60px;}
       </div>
     </details>
 
+    <!-- Avatar Studio: Boy/Girl base + unlockable Background/Hair/Outfit/Accessory/Frame.
+         Purchases live ONLY here, not in the Shop & Tokens tab (per Rendy, 2026-07-25). -->
+    <details class="panel-group" id="avatarStudioGroup">
+      <summary>🧑 Avatar Studio</summary>
+      <div class="panel-group-body">
+        <div class="panel" id="avatarStudioPanel">
+          <div style="font-size:12px;color:var(--muted);margin-bottom:10px;">Build your look! Pick Boy/Girl, then unlock Background, Hair, Outfit, Accessory, and Frame pieces with SMB Tokens. Your avatar shows on your profile and every leaderboard.</div>
+          <div id="avatarStudioPanelContent" style="font-size:13px;color:var(--muted);">Loading...</div>
+        </div>
+      </div>
+    </details>
+
     <!-- Leaderboards (collapsible group — Wins, Richest, Big Spender, Check-in Points) -->
     <details class="panel-group" id="leaderboardsGroup">
       <summary>🏆 Leaderboards</summary>
@@ -2728,6 +2740,54 @@ const COSMETIC_CATEGORIES = [
   { key: 'soundPack', label: '🔊 Sound Packs', catalog: SOUND_PACKS },
   { key: 'emojiPack', label: '😄 Emoji Packs (extra markers)', catalog: EMOJI_PACKS2 },
 ];
+
+// ─── Avatar Studio catalog (2026-07-25) — Boy/Girl base + 5 unlockable
+// categories. Sold ONLY inside the Avatar Studio screen (not the Shop tab),
+// per Rendy. Keep in sync with the cosmetics backend's lib/catalog.js.
+// No custom art assets exist for this app (same as the rest of the cosmetics
+// system) so avatars are built from emoji + CSS color swatches, layered.
+const AVATAR_BACKGROUNDS = [
+  { id: 'sunset', name: 'Sunset', price: 20, css: 'background:linear-gradient(135deg,#ff7e5f,#feb47b);' },
+  { id: 'ocean', name: 'Ocean Blue', price: 20, css: 'background:linear-gradient(135deg,#2193b0,#6dd5ed);' },
+  { id: 'forest', name: 'Forest Green', price: 20, css: 'background:linear-gradient(135deg,#134e5e,#71b280);' },
+  { id: 'galaxy', name: 'Galaxy', price: 40, css: 'background:linear-gradient(135deg,#0f0c29,#302b63,#24243e);' },
+  { id: 'gold', name: 'Gold Shine', price: 60, css: 'background:linear-gradient(135deg,#f5c842,#f7971e);' },
+];
+const AVATAR_HAIR = [
+  { id: 'short', name: 'Short & Neat', price: 20, emoji: '✂️' },
+  { id: 'curly', name: 'Curly', price: 30, emoji: '🦱' },
+  { id: 'spiky', name: 'Spiky', price: 30, emoji: '💇' },
+  { id: 'long', name: 'Long', price: 30, emoji: '👱' },
+  { id: 'bald', name: 'Bald & Proud', price: 20, emoji: '👨‍🦲' },
+];
+const AVATAR_OUTFITS = [
+  { id: 'casual', name: 'Casual Tee', price: 30, emoji: '👕' },
+  { id: 'formal', name: 'Barong/Terno', price: 60, emoji: '🥻' },
+  { id: 'sporty', name: 'Sporty', price: 40, emoji: '🎽' },
+  { id: 'superhero', name: 'Superhero', price: 80, emoji: '🦸' },
+  { id: 'royal', name: 'Royal Robe', price: 100, emoji: '🤴' },
+];
+const AVATAR_ACCESSORIES = [
+  { id: 'shades', name: 'Cool Shades', price: 20, emoji: '🕶️' },
+  { id: 'cap', name: 'Cap', price: 20, emoji: '🧢' },
+  { id: 'crown', name: 'Crown', price: 80, emoji: '👑' },
+  { id: 'headphones', name: 'Headphones', price: 30, emoji: '🎧' },
+  { id: 'bowtie', name: 'Bowtie', price: 30, emoji: '🎀' },
+];
+const AVATAR_FRAMES = [
+  { id: 'bronze', name: 'Bronze Ring', price: 20, css: 'outline:3px solid #cd7f32;outline-offset:2px;' },
+  { id: 'silver', name: 'Silver Ring', price: 40, css: 'outline:3px solid #c0c0c0;outline-offset:2px;box-shadow:0 0 8px #c0c0c0;' },
+  { id: 'gold', name: 'Gold Ring', price: 70, css: 'outline:3px solid #f5c842;outline-offset:2px;box-shadow:0 0 10px #f5c842;' },
+  { id: 'diamond', name: 'Diamond Ring', price: 100, css: 'outline:3px solid #b9f2ff;outline-offset:2px;box-shadow:0 0 12px #b9f2ff;' },
+];
+const AVATAR_CATEGORIES = [
+  { key: 'avatarBackground', label: '🎨 Background', catalog: AVATAR_BACKGROUNDS },
+  { key: 'avatarHair', label: '💇 Hair', catalog: AVATAR_HAIR },
+  { key: 'avatarOutfit', label: '👕 Outfit', catalog: AVATAR_OUTFITS },
+  { key: 'avatarAccessory', label: '✨ Accessory', catalog: AVATAR_ACCESSORIES },
+  { key: 'avatarFrame', label: '⭕ Frame', catalog: AVATAR_FRAMES },
+];
+const AVATAR_GENDER_SWITCH_FEE = 15;
 // Fun/witty weekly titles — 5 tokens, resets every Monday. Keep in sync with
 // the cosmetics backend's lib/catalog.js.
 const TITLES_CATALOG = [
@@ -2759,10 +2819,38 @@ function nameWithFlair(playerId, name){
   const icon = equippedCosmetic(playerId, 'luckyIcon');
   const iconEmoji = icon && LUCKY_ICONS.find(i=>i.id===icon);
   const title = activeTitleFor(playerId);
-  let out = name;
+  let out = `${avatarHtml(playerId, 22)} ${name}`;
   if(iconEmoji) out = `${iconEmoji.emoji} ${out}`;
   if(title) out += ` <span style="font-size:10px;font-weight:700;color:var(--teal);background:rgba(96,213,196,.12);border:1px solid rgba(96,213,196,.3);border-radius:10px;padding:1px 7px;margin-left:4px;">${title}</span>`;
   return out;
+}
+
+// ─── Avatar Studio — composite avatar circle, reused in leaderboard rows
+// (small), the profile header (medium), and the Avatar Studio preview (large).
+// No custom art assets exist for this app — built entirely from emoji + CSS
+// gradients/outlines, same approach as the rest of the cosmetics system.
+function avatarGenderFor(playerId){
+  return (DB.avatarGender && DB.avatarGender[playerId]) || 'boy';
+}
+function avatarHtml(playerId, size){
+  size = size || 40;
+  const gender = avatarGenderFor(playerId);
+  const bgId = equippedCosmetic(playerId, 'avatarBackground');
+  const bg = bgId && AVATAR_BACKGROUNDS.find(i=>i.id===bgId);
+  const frameId = equippedCosmetic(playerId, 'avatarFrame');
+  const frame = frameId && AVATAR_FRAMES.find(i=>i.id===frameId);
+  const hairId = equippedCosmetic(playerId, 'avatarHair');
+  const hair = hairId && AVATAR_HAIR.find(i=>i.id===hairId);
+  const accId = equippedCosmetic(playerId, 'avatarAccessory');
+  const acc = accId && AVATAR_ACCESSORIES.find(i=>i.id===accId);
+  const outfitId = equippedCosmetic(playerId, 'avatarOutfit');
+  const outfit = outfitId && AVATAR_OUTFITS.find(i=>i.id===outfitId);
+  const baseEmoji = gender === 'girl' ? '👧' : '👦';
+  const bgCss = bg ? bg.css : 'background:#16293f;';
+  const frameCss = frame ? frame.css : 'outline:1px solid rgba(255,255,255,.15);outline-offset:1px;';
+  const badgeSize = Math.max(10, Math.round(size * 0.4));
+  const showOutfitBadge = outfit && size >= 50; // too small to show a 3rd overlay on tiny leaderboard icons
+  return `<span style="position:relative;display:inline-flex;align-items:center;justify-content:center;width:${size}px;height:${size}px;border-radius:50%;${bgCss}${frameCss}font-size:${Math.round(size*0.55)}px;line-height:1;vertical-align:middle;">${baseEmoji}${hair&&hair.emoji?`<span style="position:absolute;top:-${Math.round(size*0.12)}px;left:50%;transform:translateX(-50%);font-size:${Math.round(size*0.4)}px;">${hair.emoji}</span>`:''}${acc?`<span style="position:absolute;bottom:-${Math.round(size*0.08)}px;right:-${Math.round(size*0.08)}px;font-size:${badgeSize}px;">${acc.emoji}</span>`:''}${showOutfitBadge?`<span style="position:absolute;bottom:-${Math.round(size*0.08)}px;left:-${Math.round(size*0.08)}px;font-size:${badgeSize}px;">${outfit.emoji}</span>`:''}</span>`;
 }
 
 // Applies the player's own equipped badge frame / lucky icon / active title
@@ -3165,6 +3253,73 @@ async function equipSkin(skinId){
 }
 
 // ─── Cosmetics Shop (badge frames, sound packs, lucky icons, emoji packs) ──
+// ─── Avatar Studio: Boy/Girl base (first pick free, switching costs a fee) +
+// 5 unlockable categories (Background, Hair, Outfit, Accessory, Frame).
+// Purchases/equips reuse the same generic buyCosmetic()/equipCosmetic() calls
+// as the Cosmetics Shop — only the gender toggle needs its own endpoint.
+function renderAvatarStudioPanel(){
+  const panel = document.getElementById('avatarStudioPanel');
+  const content = document.getElementById('avatarStudioPanelContent');
+  if(!panel || !content || !currentPlayer) return;
+  panel.style.display = 'block';
+
+  const gender = avatarGenderFor(currentPlayer.id);
+  const hasPickedGender = !!(DB.avatarGender && DB.avatarGender[currentPlayer.id]);
+  const genderNote = hasPickedGender
+    ? `Switching costs ${AVATAR_GENDER_SWITCH_FEE} 🪙 — your first pick was free.`
+    : `Your first pick is free!`;
+
+  const preview = `<div style="text-align:center;margin-bottom:14px;">${avatarHtml(currentPlayer.id, 90)}</div>`;
+
+  const genderToggle = `<div style="text-align:center;margin-bottom:6px;">
+    <button class="btn ${gender==='boy'?'btn-gold':'btn-outline'} btn-sm" style="margin-right:6px;" onclick="setAvatarGender('boy')">👦 Boy</button>
+    <button class="btn ${gender==='girl'?'btn-gold':'btn-outline'} btn-sm" onclick="setAvatarGender('girl')">👧 Girl</button>
+  </div>
+  <div style="text-align:center;font-size:11px;color:var(--muted);margin-bottom:14px;">${genderNote}</div>`;
+
+  const sections = AVATAR_CATEGORIES.map(cat => {
+    const owned = ownedCosmetics(currentPlayer.id, cat.key);
+    const equipped = equippedCosmetic(currentPlayer.id, cat.key);
+    const tiles = cat.catalog.map(item => {
+      const has = owned.includes(item.id);
+      const isEquipped = equipped === item.id;
+      let action;
+      if(!has){
+        action = `<button class="btn btn-gold btn-sm" onclick="buyCosmetic('${cat.key}','${item.id}')">${item.price} 🪙</button>`;
+      } else if(isEquipped){
+        action = `<span class="st-status">✓ Equipped</span>`;
+      } else {
+        action = `<button class="btn btn-outline btn-sm" onclick="equipCosmetic('${cat.key}','${item.id}')">Equip</button>`;
+      }
+      return shopTile(shopTileIcon(item), item.name, action);
+    }).join('');
+    return `<div style="font-weight:700;color:var(--gold);font-size:12px;margin:10px 0 4px;">${cat.label}</div><div class="shop-grid">${tiles}</div>`;
+  }).join('');
+
+  content.innerHTML = preview + genderToggle + sections;
+}
+
+async function setAvatarGender(gender){
+  if(!currentPlayer) return;
+  try {
+    const r = await fetch(`${COSMETICS_BACKEND_URL}/set-avatar-gender`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ playerId: currentPlayer.id, gender }),
+    });
+    const j = await r.json();
+    if(!r.ok || !j.ok){ alert(j.error || 'Hindi na-process.'); return; }
+    if(!DB.avatarGender) DB.avatarGender = {};
+    DB.avatarGender[currentPlayer.id] = j.gender;
+    if(j.tokens !== null && j.tokens !== undefined) _myTokenBalance = j.tokens;
+    if(j.feeCharged) playerLog(`Avatar switched to ${gender} for ${j.feeCharged} 🪙.`, 'ok');
+    await refreshTokenBalance();
+    renderAvatarStudioPanel();
+    refreshPlayerNameBadge();
+  } catch(e){
+    alert('Hindi na-process — try ulit.');
+  }
+}
+
 function renderCosmeticsShopPanel(){
   const panel = document.getElementById('cosmeticsShopPanel');
   const content = document.getElementById('cosmeticsShopPanelContent');
@@ -3709,6 +3864,7 @@ async function refreshPlayerScreen(){
   refreshTokenShopPanel();
   renderCosmeticsShopPanel();
   renderTitlesShopPanel();
+  renderAvatarStudioPanel();
   renderEmojiPalette();
   refreshPlayerNameBadge();
   playCosmeticSoundIfNewBall();
