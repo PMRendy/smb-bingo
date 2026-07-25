@@ -209,6 +209,16 @@ textarea{resize:vertical;min-height:60px;}
 .warn-box{background:rgba(245,200,66,.08);border:1px solid rgba(245,200,66,.2);border-radius:8px;padding:12px;font-size:12px;color:var(--gold);margin-bottom:12px;line-height:1.5;}
 .flex-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
 .winner-badge{display:inline-block;background:rgba(78,203,132,.2);color:var(--success);border-radius:4px;padding:2px 8px;font-size:11px;font-weight:700;letter-spacing:1px;}
+
+/* ── COLLAPSIBLE PANEL GROUPS (accordion) ── */
+.panel-group{margin-bottom:14px;border-radius:var(--r);overflow:hidden;}
+.panel-group summary{cursor:pointer;padding:14px;background:var(--card-bg);border:1px solid rgba(245,200,66,.2);border-radius:var(--r);font-size:12px;font-weight:700;letter-spacing:1.5px;color:var(--gold);text-transform:uppercase;list-style:none;user-select:none;}
+.panel-group summary::-webkit-details-marker{display:none;}
+.panel-group summary::after{content:'▾';float:right;color:var(--muted);transition:transform .15s;}
+.panel-group[open] summary::after{transform:rotate(180deg);}
+.panel-group[open] summary{border-bottom-left-radius:0;border-bottom-right-radius:0;}
+.panel-group-body{border:1px solid rgba(245,200,66,.2);border-top:none;border-bottom-left-radius:var(--r);border-bottom-right-radius:var(--r);padding:12px 0 2px;}
+.panel-group .panel{border:none;background:transparent;padding:0 14px 14px;margin-bottom:0;}
 </style>
 </head>
 <body>
@@ -585,62 +595,74 @@ textarea{resize:vertical;min-height:60px;}
       <div id="rsvpPanelContent"></div>
     </div>
 
-    <!-- Cash In: convert Marcus points into SMB Tokens -->
-    <div class="panel" id="cashInPanel" style="display:none;padding:14px;">
-      <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;color:var(--gold);text-transform:uppercase;margin-bottom:8px;">💰 Cash In: Points → SMB Tokens</div>
-      <div id="cashInPanelContent" style="font-size:13px;color:var(--muted);"></div>
-    </div>
+    <!-- Shop & Tokens (collapsible group — was 6 always-open panels, too much scrolling) -->
+    <details class="panel-group" id="shopTokensGroup">
+      <summary>💰 Shop &amp; Tokens</summary>
+      <div class="panel-group-body">
+        <!-- Cash In: convert Marcus points into SMB Tokens -->
+        <div class="panel" id="cashInPanel" style="display:none;">
+          <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;color:var(--gold);text-transform:uppercase;margin-bottom:8px;">💰 Cash In: Points → SMB Tokens</div>
+          <div id="cashInPanelContent" style="font-size:13px;color:var(--muted);"></div>
+        </div>
 
-    <!-- Buy an Extra Card (spends SMB Tokens) -->
-    <div class="panel" id="buyCardPanel" style="display:none;padding:14px;">
-      <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;color:var(--gold);text-transform:uppercase;margin-bottom:8px;">🎟️ Buy an Extra Card</div>
-      <div id="buyCardPanelContent" style="font-size:13px;color:var(--muted);"></div>
-    </div>
+        <!-- Buy an Extra Card (spends SMB Tokens) -->
+        <div class="panel" id="buyCardPanel" style="display:none;">
+          <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;color:var(--gold);text-transform:uppercase;margin-bottom:8px;">🎟️ Buy an Extra Card</div>
+          <div id="buyCardPanelContent" style="font-size:13px;color:var(--muted);"></div>
+        </div>
 
-    <!-- Ask / Give SMB Tokens (lobby-only, before first ball is drawn) -->
-    <div class="panel" id="tokenTransferPanel" style="display:none;padding:14px;">
-      <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;color:var(--teal);text-transform:uppercase;margin-bottom:8px;">🙏 Ask / 🎁 Give SMB Tokens</div>
-      <div id="tokenTransferPanelContent" style="font-size:13px;color:var(--muted);"></div>
-    </div>
+        <!-- Ask / Give SMB Tokens (lobby-only, before first ball is drawn) -->
+        <div class="panel" id="tokenTransferPanel" style="display:none;">
+          <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;color:var(--teal);text-transform:uppercase;margin-bottom:8px;">🙏 Ask / 🎁 Give SMB Tokens</div>
+          <div id="tokenTransferPanelContent" style="font-size:13px;color:var(--muted);"></div>
+        </div>
 
-    <!-- SMB Token Shop: marker themes & card skins (cosmetic-only) -->
-    <div class="panel" id="tokenShopPanel" style="display:none;padding:14px;">
-      <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;color:var(--gold);text-transform:uppercase;margin-bottom:6px;">🛒 SMB Token Shop</div>
-      <div style="font-size:12px;color:var(--muted);margin-bottom:10px;">Spend your SMB Tokens on marker themes and card skins — all cosmetic, no gameplay edge. Tap an item to unlock it, then tap "Equip" to use it. Items marked 🔥 are on sale this week!</div>
-      <div id="tokenShopPanelContent" style="font-size:13px;color:var(--muted);"></div>
-    </div>
+        <!-- SMB Token Shop: marker themes & card skins (cosmetic-only) -->
+        <div class="panel" id="tokenShopPanel" style="display:none;">
+          <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;color:var(--gold);text-transform:uppercase;margin-bottom:6px;">🛒 SMB Token Shop</div>
+          <div style="font-size:12px;color:var(--muted);margin-bottom:10px;">Spend your SMB Tokens on marker themes and card skins — all cosmetic, no gameplay edge. Tap an item to unlock it, then tap "Equip" to use it. Items marked 🔥 are on sale this week!</div>
+          <div id="tokenShopPanelContent" style="font-size:13px;color:var(--muted);"></div>
+        </div>
 
-    <!-- Cosmetics Shop: badge frames, sound packs, lucky icons, emoji packs -->
-    <div class="panel" id="cosmeticsShopPanel" style="display:none;padding:14px;">
-      <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;color:var(--gold);text-transform:uppercase;margin-bottom:6px;">✨ Cosmetics Shop</div>
-      <div style="font-size:12px;color:var(--muted);margin-bottom:10px;">Badge frames, sound packs, lucky charm icons, and marker emoji packs — all cosmetic, permanent once bought.</div>
-      <div id="cosmeticsShopPanelContent" style="font-size:13px;color:var(--muted);"></div>
-    </div>
+        <!-- Cosmetics Shop: badge frames, sound packs, lucky icons, emoji packs -->
+        <div class="panel" id="cosmeticsShopPanel" style="display:none;">
+          <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;color:var(--gold);text-transform:uppercase;margin-bottom:6px;">✨ Cosmetics Shop</div>
+          <div style="font-size:12px;color:var(--muted);margin-bottom:10px;">Badge frames, sound packs, lucky charm icons, and marker emoji packs — all cosmetic, permanent once bought.</div>
+          <div id="cosmeticsShopPanelContent" style="font-size:13px;color:var(--muted);"></div>
+        </div>
 
-    <!-- Titles Shop: weekly, resets every Monday -->
-    <div class="panel" id="titlesShopPanel" style="display:none;padding:14px;">
-      <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;color:var(--gold);text-transform:uppercase;margin-bottom:6px;">🏷️ Weekly Titles</div>
-      <div style="font-size:12px;color:var(--muted);margin-bottom:10px;">5 🪙 SMB Tokens for a fun title next to your name on the leaderboards. Lasts until Monday reset!</div>
-      <div id="titlesShopPanelContent" style="font-size:13px;color:var(--muted);"></div>
-    </div>
+        <!-- Titles Shop: weekly, resets every Monday -->
+        <div class="panel" id="titlesShopPanel" style="display:none;">
+          <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;color:var(--gold);text-transform:uppercase;margin-bottom:6px;">🏷️ Weekly Titles</div>
+          <div style="font-size:12px;color:var(--muted);margin-bottom:10px;">5 🪙 SMB Tokens for a fun title next to your name on the leaderboards. Lasts until Monday reset!</div>
+          <div id="titlesShopPanelContent" style="font-size:13px;color:var(--muted);"></div>
+        </div>
+      </div>
+    </details>
 
-    <!-- Bingo Wins Leaderboard (all-time) -->
-    <div class="panel" id="playerWinsLeaderboardPanel" style="padding:14px;margin-bottom:14px;">
-      <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;color:var(--gold);text-transform:uppercase;margin-bottom:8px;">🏆 Bingo Wins Leaderboard</div>
-      <div id="playerWinsLeaderboardContent" style="font-size:13px;color:var(--muted);"></div>
-    </div>
+    <!-- Leaderboards (collapsible group — Wins, Richest, Big Spender) -->
+    <details class="panel-group" id="leaderboardsGroup">
+      <summary>🏆 Leaderboards</summary>
+      <div class="panel-group-body">
+        <!-- Bingo Wins Leaderboard (all-time) -->
+        <div class="panel" id="playerWinsLeaderboardPanel">
+          <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;color:var(--gold);text-transform:uppercase;margin-bottom:8px;">🏆 Bingo Wins Leaderboard</div>
+          <div id="playerWinsLeaderboardContent" style="font-size:13px;color:var(--muted);"></div>
+        </div>
 
-    <!-- Richest Bingo Player (SMB Token balances) -->
-    <div class="panel" id="playerRichestPanel" style="padding:14px;margin-bottom:14px;">
-      <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;color:var(--gold);text-transform:uppercase;margin-bottom:8px;">💰 Richest Bingo Player</div>
-      <div id="playerRichestContent" style="font-size:13px;color:var(--muted);"></div>
-    </div>
+        <!-- Richest Bingo Player (SMB Token balances) -->
+        <div class="panel" id="playerRichestPanel">
+          <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;color:var(--gold);text-transform:uppercase;margin-bottom:8px;">💰 Richest Bingo Player</div>
+          <div id="playerRichestContent" style="font-size:13px;color:var(--muted);"></div>
+        </div>
 
-    <!-- Big Spender (SMB Tokens spent all-time) -->
-    <div class="panel" id="playerBigSpenderPanel" style="padding:14px;margin-bottom:14px;">
-      <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;color:var(--gold);text-transform:uppercase;margin-bottom:8px;">🔥 Big Spender Board</div>
-      <div id="playerBigSpenderContent" style="font-size:13px;color:var(--muted);"></div>
-    </div>
+        <!-- Big Spender (SMB Tokens spent all-time) -->
+        <div class="panel" id="playerBigSpenderPanel">
+          <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;color:var(--gold);text-transform:uppercase;margin-bottom:8px;">🔥 Big Spender Board</div>
+          <div id="playerBigSpenderContent" style="font-size:13px;color:var(--muted);"></div>
+        </div>
+      </div>
+    </details>
 
     <!-- Pattern display for player -->
     <div id="playerPatternDisplay" style="display:none;background:var(--deep);border:1px solid rgba(245,200,66,.15);border-radius:var(--r);padding:14px;margin-bottom:14px;text-align:center;">
