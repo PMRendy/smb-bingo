@@ -691,6 +691,17 @@ textarea{resize:vertical;min-height:60px;}
       </div>
     </details>
 
+    <!-- Spin the Wheel: bet 1 token, once per shift. 6 segments: 0/1/0/2/0/3x. -->
+    <details class="panel-group" id="spinWheelGroup">
+      <summary>🎡 Spin the Wheel</summary>
+      <div class="panel-group-body">
+        <div class="panel" id="spinWheelPanel">
+          <div style="font-size:12px;color:var(--muted);margin-bottom:10px;">Bet 1 SMB Token, once per shift. Land on 0x and it's gone. Land on 1x/2x/3x and you win that many tokens back!</div>
+          <div id="spinWheelPanelContent" style="text-align:center;">Loading...</div>
+        </div>
+      </div>
+    </details>
+
     <!-- Leaderboards (collapsible group — Wins, Richest, Big Spender, Check-in Points) -->
     <details class="panel-group" id="leaderboardsGroup">
       <summary>🏆 Leaderboards</summary>
@@ -797,6 +808,14 @@ textarea{resize:vertical;min-height:60px;}
     <p id="winModalText">Nanalo! Congratulations! 🎉</p>
     <p style="color:var(--gold);font-weight:700;font-size:16px;margin-bottom:16px;" id="winPatternText"></p>
     <button class="btn btn-gold btn-full" onclick="document.getElementById('winOverlay').classList.remove('show');">Close</button>
+  </div>
+</div>
+
+<!-- ════════════════════ AVATAR MAGNIFY MODAL ════════════════════ -->
+<div class="overlay" id="avatarModalOverlay" onclick="if(event.target===this) closeAvatarModal();">
+  <div class="modal" style="text-align:center;">
+    <button class="modal-close" onclick="closeAvatarModal();">×</button>
+    <div id="avatarModalContent"></div>
   </div>
 </div>
 
@@ -2801,6 +2820,12 @@ const TITLES_CATALOG = [
   { id: 'ate', text: 'ATE', price: 5 },
   { id: 'kuya', text: 'KUYA', price: 5 },
   { id: 'suplada', text: 'SUPLADA', price: 5 },
+  { id: 'jejemon', text: 'JEJEMON', price: 5 },
+  { id: 'licious', text: 'LICIOUS', price: 5 },
+  { id: 'halimuyak', text: 'HALIMUYAK', price: 5 },
+  { id: 'sexy', text: 'SEXY', price: 5 },
+  { id: 'terminator', text: 'TERMINATOR', price: 5 },
+  { id: 'bayani', text: 'BAYANI', price: 5 },
 ];
 
 function activeTitleFor(playerId){
@@ -2832,8 +2857,9 @@ function nameWithFlair(playerId, name){
 function avatarGenderFor(playerId){
   return (DB.avatarGender && DB.avatarGender[playerId]) || 'boy';
 }
-function avatarHtml(playerId, size){
+function avatarHtml(playerId, size, clickable){
   size = size || 40;
+  clickable = clickable !== false; // default true — any avatar can be tapped to magnify
   const gender = avatarGenderFor(playerId);
   const bgId = equippedCosmetic(playerId, 'avatarBackground');
   const bg = bgId && AVATAR_BACKGROUNDS.find(i=>i.id===bgId);
@@ -2850,7 +2876,29 @@ function avatarHtml(playerId, size){
   const frameCss = frame ? frame.css : 'outline:1px solid rgba(255,255,255,.15);outline-offset:1px;';
   const badgeSize = Math.max(10, Math.round(size * 0.4));
   const showOutfitBadge = outfit && size >= 50; // too small to show a 3rd overlay on tiny leaderboard icons
-  return `<span style="position:relative;display:inline-flex;align-items:center;justify-content:center;width:${size}px;height:${size}px;border-radius:50%;${bgCss}${frameCss}font-size:${Math.round(size*0.55)}px;line-height:1;vertical-align:middle;">${baseEmoji}${hair&&hair.emoji?`<span style="position:absolute;top:-${Math.round(size*0.12)}px;left:50%;transform:translateX(-50%);font-size:${Math.round(size*0.4)}px;">${hair.emoji}</span>`:''}${acc?`<span style="position:absolute;bottom:-${Math.round(size*0.08)}px;right:-${Math.round(size*0.08)}px;font-size:${badgeSize}px;">${acc.emoji}</span>`:''}${showOutfitBadge?`<span style="position:absolute;bottom:-${Math.round(size*0.08)}px;left:-${Math.round(size*0.08)}px;font-size:${badgeSize}px;">${outfit.emoji}</span>`:''}</span>`;
+  const clickAttrs = clickable ? `onclick="openAvatarModal('${playerId}');event.stopPropagation();" style="cursor:pointer;` : `style="`;
+  return `<span ${clickAttrs}position:relative;display:inline-flex;align-items:center;justify-content:center;width:${size}px;height:${size}px;border-radius:50%;${bgCss}${frameCss}font-size:${Math.round(size*0.55)}px;line-height:1;vertical-align:middle;">${baseEmoji}${hair&&hair.emoji?`<span style="position:absolute;top:-${Math.round(size*0.12)}px;left:50%;transform:translateX(-50%);font-size:${Math.round(size*0.4)}px;">${hair.emoji}</span>`:''}${acc?`<span style="position:absolute;bottom:-${Math.round(size*0.08)}px;right:-${Math.round(size*0.08)}px;font-size:${badgeSize}px;">${acc.emoji}</span>`:''}${showOutfitBadge?`<span style="position:absolute;bottom:-${Math.round(size*0.08)}px;left:-${Math.round(size*0.08)}px;font-size:${badgeSize}px;">${outfit.emoji}</span>`:''}</span>`;
+}
+
+// Magnified avatar view — opens when any avatar circle is clicked, whether
+// it's the player's own (in the profile header) or another player's (on a
+// leaderboard row). Reuses avatarHtml() at a large size for the big preview.
+function openAvatarModal(playerId){
+  const overlay = document.getElementById('avatarModalOverlay');
+  const content = document.getElementById('avatarModalContent');
+  if(!overlay || !content) return;
+  const p = (DB.players||[]).find(x=>x.id===playerId);
+  const name = p ? p.name : (playerId === (currentPlayer&&currentPlayer.id) ? currentPlayer.name : 'Player');
+  content.innerHTML = `
+    <div style="text-align:center;">
+      <div style="margin-bottom:14px;">${avatarHtml(playerId, 160, false)}</div>
+      <div style="font-weight:700;font-size:16px;color:var(--gold);">${name}</div>
+    </div>`;
+  overlay.classList.add('show');
+}
+function closeAvatarModal(){
+  const overlay = document.getElementById('avatarModalOverlay');
+  if(overlay) overlay.classList.remove('show');
 }
 
 // Applies the player's own equipped badge frame / lucky icon / active title
@@ -3257,6 +3305,108 @@ async function equipSkin(skinId){
 // 5 unlockable categories (Background, Hair, Outfit, Accessory, Frame).
 // Purchases/equips reuse the same generic buyCosmetic()/equipCosmetic() calls
 // as the Cosmetics Shop — only the gender toggle needs its own endpoint.
+// ─── Spin the Wheel: bet 1 token, once per shift, 6 segments 0/1/0/2/0/3x.
+// Shift boundary mirrors Marcus-Ganzo's graveyard shift (9PM-5AM PHT) so
+// "once per shift" lines up with the rest of the check-in system.
+const SPIN_WHEEL_SEGMENTS = [
+  { mult: 0, color: '#3a1620', label: '0x' },
+  { mult: 1, color: '#16293f', label: '1x' },
+  { mult: 0, color: '#3a1620', label: '0x' },
+  { mult: 2, color: '#1d3a2a', label: '2x' },
+  { mult: 0, color: '#3a1620', label: '0x' },
+  { mult: 3, color: '#3a2f10', label: '3x' },
+];
+function shiftStartMsClient(){
+  const now = new Date();
+  const hourPHT = Number(now.toLocaleString('en-US', { hour: '2-digit', hour12: false, timeZone: 'Asia/Manila' }));
+  const d = new Date(now);
+  if(hourPHT < 12) d.setDate(d.getDate() - 1);
+  const y = Number(d.toLocaleString('en-US', { year: 'numeric', timeZone: 'Asia/Manila' }));
+  const mo = Number(d.toLocaleString('en-US', { month: '2-digit', timeZone: 'Asia/Manila' }));
+  const da = Number(d.toLocaleString('en-US', { day: '2-digit', timeZone: 'Asia/Manila' }));
+  return Date.UTC(y, mo - 1, da, 21 - 8, 0, 0);
+}
+let _spinWheelAnimating = false;
+let _spinWheelResultUntil = 0; // skip re-render while result message is still on screen (poll loop would wipe it)
+function renderSpinWheelPanel(){
+  const panel = document.getElementById('spinWheelPanel');
+  const content = document.getElementById('spinWheelPanelContent');
+  if(!panel || !content || !currentPlayer) return;
+  panel.style.display = 'block';
+  if(_spinWheelAnimating || Date.now() < _spinWheelResultUntil) return; // don't blow away the mid-spin/result DOM
+
+  const currentShift = shiftStartMsClient();
+  const lastSpunShift = (DB.spinWheelShift && DB.spinWheelShift[currentPlayer.id]) || null;
+  const alreadySpun = lastSpunShift === currentShift;
+
+  const gradientStops = SPIN_WHEEL_SEGMENTS.map((s,i) => `${s.color} ${i*60}deg ${(i+1)*60}deg`).join(',');
+  const labels = SPIN_WHEEL_SEGMENTS.map((s,i) => {
+    const angle = i*60 + 30;
+    return `<div style="position:absolute;top:50%;left:50%;width:0;height:0;transform:rotate(${angle}deg) translate(0,-72px) rotate(-${angle}deg);transform-origin:0 0;font-weight:700;font-size:13px;color:#fff;">${s.label}</div>`;
+  }).join('');
+
+  content.innerHTML = `
+    <div style="position:relative;width:200px;height:200px;margin:0 auto 14px;">
+      <div style="position:absolute;top:-6px;left:50%;transform:translateX(-50%);font-size:20px;z-index:2;">🔻</div>
+      <div id="spinWheelDial" style="width:200px;height:200px;border-radius:50%;background:conic-gradient(${gradientStops});border:4px solid var(--gold);position:relative;transition:transform 3.2s cubic-bezier(.17,.67,.16,.99);">${labels}</div>
+    </div>
+    <div id="spinWheelResult" style="min-height:20px;font-weight:700;margin-bottom:10px;"></div>
+    <button class="btn btn-gold btn-full" id="spinWheelBtn" ${alreadySpun ? 'disabled' : ''} onclick="spinTheWheel()">${alreadySpun ? 'Nakapag-spin ka na ngayong shift ✔️' : 'SPIN (1 🪙)'}</button>
+  `;
+}
+
+async function spinTheWheel(){
+  if(!currentPlayer || _spinWheelAnimating) return;
+  const btn = document.getElementById('spinWheelBtn');
+  const dial = document.getElementById('spinWheelDial');
+  const resultEl = document.getElementById('spinWheelResult');
+  if(!btn || !dial) return;
+
+  btn.disabled = true;
+  btn.textContent = 'Spinning...';
+  resultEl.textContent = '';
+
+  try {
+    const r = await fetch(`${COSMETICS_BACKEND_URL}/spin-wheel`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ playerId: currentPlayer.id, playerName: currentPlayer.name }),
+    });
+    const j = await r.json();
+    if(!r.ok || !j.ok){
+      btn.disabled = false;
+      btn.textContent = 'SPIN (1 🪙)';
+      alert(j.error || 'Hindi na-process ang spin.');
+      return;
+    }
+
+    _spinWheelAnimating = true;
+    const segAngle = j.segmentIndex * 60 + 30;
+    const extraSpins = 4 * 360;
+    const targetRotation = extraSpins + (360 - segAngle);
+    dial.style.transform = `rotate(${targetRotation}deg)`;
+
+    setTimeout(() => {
+      _spinWheelAnimating = false;
+      if(!DB.spinWheelShift) DB.spinWheelShift = {};
+      DB.spinWheelShift[currentPlayer.id] = shiftStartMsClient();
+      if(j.multiplier === 0){
+        resultEl.innerHTML = `<span style="color:#ff6b6b;">💥 0x — nawala ang token mo!</span>`;
+      } else if(j.multiplier === 1){
+        resultEl.innerHTML = `<span style="color:var(--muted);">😅 1x — walang nawala, walang nadagdag.</span>`;
+      } else {
+        resultEl.innerHTML = `<span style="color:var(--gold);">🎉 ${j.multiplier}x — nanalo ka ng ${j.payout} tokens!</span>`;
+      }
+      refreshTokenBalance();
+      _spinWheelResultUntil = Date.now() + 6000; // let the result message sit for 6s before the next poll refresh
+      setTimeout(renderSpinWheelPanel, 6000);
+    }, 3300);
+  } catch(e){
+    btn.disabled = false;
+    btn.textContent = 'SPIN (1 🪙)';
+    alert('Hindi na-process ang spin — try ulit.');
+  }
+}
+
 function renderAvatarStudioPanel(){
   const panel = document.getElementById('avatarStudioPanel');
   const content = document.getElementById('avatarStudioPanelContent');
@@ -3706,9 +3856,11 @@ async function tbDeclareWin(matchId, teamId){
 }
 
 // ─── Player-facing leaderboards (Bingo Wins + Richest Bingo Player) ────────
-// Player IDs excluded from the public "Richest Bingo Player" board — used for
-// admin/house accounts whose balance isn't really part of the player contest.
-const RICHEST_BOARD_HIDDEN_IDS = ['default_25']; // Rendy
+// Player IDs excluded from ALL public leaderboards (Wins, Richest, Big
+// Spender, Check-in Points) — Rendy asked to be left off since he's admin,
+// not a contestant (2026-07-25).
+const LEADERBOARD_HIDDEN_IDS = ['default_25']; // Rendy
+const RICHEST_BOARD_HIDDEN_IDS = LEADERBOARD_HIDDEN_IDS; // back-compat alias
 
 function renderPlayerWinsLeaderboard(){
   const el = document.getElementById('playerWinsLeaderboardContent');
@@ -3716,7 +3868,8 @@ function renderPlayerWinsLeaderboard(){
   const history = DB.gameHistory || [];
   const tally = {};
   history.forEach(h => { if(h.winner) tally[h.winner] = (tally[h.winner]||0) + 1; });
-  const sorted = Object.entries(tally).sort((a,b) => b[1]-a[1]).slice(0, 10);
+  const hiddenNames = (DB.players||[]).filter(p => LEADERBOARD_HIDDEN_IDS.includes(p.id)).map(p => p.name);
+  const sorted = Object.entries(tally).filter(([name]) => !hiddenNames.includes(name)).sort((a,b) => b[1]-a[1]).slice(0, 10);
   if(sorted.length === 0){
     el.innerHTML = '<div class="empty-state">No games completed yet — be the first BINGO winner! 🎯</div>';
     return;
@@ -3781,6 +3934,7 @@ function renderPlayerBigSpenderBoard(){
     }
   });
   const rows = Object.keys(totals)
+    .filter(id => !LEADERBOARD_HIDDEN_IDS.includes(id))
     .map(id => ({ id, name: playerNameById(id), spent: totals[id] }))
     .filter(r => r.spent > 0)
     .sort((a,b) => b.spent - a.spent)
@@ -3820,7 +3974,8 @@ async function renderPlayerCheckinPointsBoard(){
     const r = await fetch(`${COSMETICS_BACKEND_URL}/checkin-leaderboard`);
     const j = await r.json();
     if(!r.ok || !j.rows) throw new Error(j.error || 'Failed to load');
-    const rows = (j.rows || []).slice(0, 10);
+    const hiddenSlackIds = (DB.players||[]).filter(p => LEADERBOARD_HIDDEN_IDS.includes(p.id)).map(p => p.slackUserId).filter(Boolean);
+    const rows = (j.rows || []).filter(row => !hiddenSlackIds.includes(row.user_id)).slice(0, 10);
     if(rows.length === 0){
       el.innerHTML = '<div class="empty-state">No check-in points yet — answer tonight\'s hourly check-in! ⏰</div>';
       el.dataset.loaded = '1';
@@ -3865,6 +4020,7 @@ async function refreshPlayerScreen(){
   renderCosmeticsShopPanel();
   renderTitlesShopPanel();
   renderAvatarStudioPanel();
+  renderSpinWheelPanel();
   renderEmojiPalette();
   refreshPlayerNameBadge();
   playCosmeticSoundIfNewBall();
