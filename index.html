@@ -610,6 +610,20 @@ textarea{resize:vertical;min-height:60px;}
       <div id="tokenShopPanelContent" style="font-size:13px;color:var(--muted);"></div>
     </div>
 
+    <!-- Cosmetics Shop: badge frames, sound packs, lucky icons, emoji packs -->
+    <div class="panel" id="cosmeticsShopPanel" style="display:none;padding:14px;">
+      <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;color:var(--gold);text-transform:uppercase;margin-bottom:6px;">✨ Cosmetics Shop</div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:10px;">Badge frames, sound packs, lucky charm icons, and marker emoji packs — all cosmetic, permanent once bought.</div>
+      <div id="cosmeticsShopPanelContent" style="font-size:13px;color:var(--muted);"></div>
+    </div>
+
+    <!-- Titles Shop: weekly, resets every Monday -->
+    <div class="panel" id="titlesShopPanel" style="display:none;padding:14px;">
+      <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;color:var(--gold);text-transform:uppercase;margin-bottom:6px;">🏷️ Weekly Titles</div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:10px;">5 🪙 SMB Tokens for a fun title next to your name on the leaderboards. Lasts until Monday reset!</div>
+      <div id="titlesShopPanelContent" style="font-size:13px;color:var(--muted);"></div>
+    </div>
+
     <!-- Bingo Wins Leaderboard (all-time) -->
     <div class="panel" id="playerWinsLeaderboardPanel" style="padding:14px;margin-bottom:14px;">
       <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;color:var(--gold);text-transform:uppercase;margin-bottom:8px;">🏆 Bingo Wins Leaderboard</div>
@@ -620,6 +634,12 @@ textarea{resize:vertical;min-height:60px;}
     <div class="panel" id="playerRichestPanel" style="padding:14px;margin-bottom:14px;">
       <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;color:var(--gold);text-transform:uppercase;margin-bottom:8px;">💰 Richest Bingo Player</div>
       <div id="playerRichestContent" style="font-size:13px;color:var(--muted);"></div>
+    </div>
+
+    <!-- Big Spender (SMB Tokens spent all-time) -->
+    <div class="panel" id="playerBigSpenderPanel" style="padding:14px;margin-bottom:14px;">
+      <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;color:var(--gold);text-transform:uppercase;margin-bottom:8px;">🔥 Big Spender Board</div>
+      <div id="playerBigSpenderContent" style="font-size:13px;color:var(--muted);"></div>
     </div>
 
     <!-- Pattern display for player -->
@@ -920,6 +940,7 @@ let nextDrawAt = null;
 //  https://smb-bingo-proxy-v2.onrender.com
 // ════════════════════════════════════════════════════════════
 const BACKEND_URL = 'https://smb-bingo-backend.netlify.app';
+const COSMETICS_BACKEND_URL = 'https://smb-bingo-cosmetics.netlify.app';
 
 let _dbLoaded = false; // tracks whether the very first load has completed
 
@@ -2200,6 +2221,9 @@ function unlockedMarkerEmojis(){
   const owned = (currentPlayer && DB.unlocks && DB.unlocks[currentPlayer.id] && DB.unlocks[currentPlayer.id].markerThemes) || [];
   const emojis = [FREE_MARKER];
   MARKER_THEMES.filter(t => owned.includes(t.id)).forEach(t => emojis.push(...t.emojis));
+  // Cosmetics-shop emoji packs (separate purchase, separate unlocks2 store)
+  const ownedPacks = (currentPlayer && ownedCosmetics(currentPlayer.id, 'emojiPack')) || [];
+  EMOJI_PACKS2.filter(p => ownedPacks.includes(p.id)).forEach(p => emojis.push(...p.emojis));
   return emojis;
 }
 function getPlayerEmoji(){
@@ -2340,6 +2364,118 @@ const CARD_SKINS = [
   { id: 'animal', name: 'Animal Party 🐾', price: 2, css: 'background:linear-gradient(135deg,#d9a566,#8b5e34)!important;border-color:#d9a566;box-shadow:0 0 0 1px #d9a566 inset;' },
   { id: 'food', name: 'Food Party 🍕', price: 2, css: 'background:linear-gradient(135deg,#f9484a,#fbd72b)!important;border-color:#f9484a;box-shadow:0 0 0 1px #f9484a inset;' },
 ];
+
+// ─── Cosmetics Shop catalog (badge frames, sound packs, lucky icons, new
+// emoji packs) — served by the separate additive backend at
+// COSMETICS_BACKEND_URL. Keep these in sync with that backend's lib/catalog.js.
+const BADGE_FRAMES = [
+  { id: 'goldFrame', name: 'Gold Frame', price: 3, css: 'outline:3px solid #f5c842;outline-offset:3px;' },
+  { id: 'neonFrame', name: 'Neon Frame', price: 3, css: 'outline:3px solid #39ff14;outline-offset:3px;box-shadow:0 0 10px #39ff14;' },
+  { id: 'fireFrame', name: 'Fire Frame', price: 3, css: 'outline:3px solid #ff4500;outline-offset:3px;box-shadow:0 0 10px #ff4500;' },
+  { id: 'royalFrame', name: 'Royal Frame', price: 3, css: 'outline:3px solid #7b2ff7;outline-offset:3px;box-shadow:0 0 10px #7b2ff7;' },
+];
+const LUCKY_ICONS = [
+  { id: 'clover', name: 'Lucky Clover', price: 2, emoji: '🍀' },
+  { id: 'unicorn', name: 'Unicorn', price: 2, emoji: '🦄' },
+  { id: 'dice', name: 'Lucky Dice', price: 2, emoji: '🎲' },
+  { id: 'star', name: 'Shooting Star', price: 2, emoji: '🌟' },
+  { id: 'eye', name: 'Evil Eye Charm', price: 2, emoji: '🧿' },
+];
+const SOUND_PACKS = [
+  { id: 'classic', name: 'Classic Beep', price: 2, freq: 880, wave: 'sine' },
+  { id: 'arcade', name: 'Retro Arcade', price: 2, freq: 1200, wave: 'square' },
+  { id: 'chime', name: 'Bell Chime', price: 2, freq: 660, wave: 'triangle' },
+  { id: 'airhorn', name: 'Air Horn', price: 2, freq: 150, wave: 'sawtooth' },
+];
+const EMOJI_PACKS2 = [
+  { id: 'party', name: 'Party Pack', price: 2, emojis: ['🎉','🎊','🥳'] },
+  { id: 'sports', name: 'Sports Pack', price: 2, emojis: ['⚽','🏀','🏆'] },
+  { id: 'space', name: 'Space Pack', price: 2, emojis: ['🚀','🌙','👽'] },
+];
+const COSMETIC_CATEGORIES = [
+  { key: 'badgeFrame', label: '🖼️ Badge Frames', catalog: BADGE_FRAMES },
+  { key: 'luckyIcon', label: '🍀 Lucky Charm Icons', catalog: LUCKY_ICONS },
+  { key: 'soundPack', label: '🔊 Sound Packs', catalog: SOUND_PACKS },
+  { key: 'emojiPack', label: '😄 Emoji Packs (extra markers)', catalog: EMOJI_PACKS2 },
+];
+// Fun/witty weekly titles — 5 tokens, resets every Monday. Keep in sync with
+// the cosmetics backend's lib/catalog.js.
+const TITLES_CATALOG = [
+  { id: 'pogi', text: 'POGI', price: 5 },
+  { id: 'ganda', text: 'GANDA', price: 5 },
+  { id: 'nanay', text: 'NANAY', price: 5 },
+  { id: 'tatay', text: 'TATAY', price: 5 },
+  { id: 'sungit', text: 'SUNGIT', price: 5 },
+  { id: 'chismosa', text: 'CHISMOSA', price: 5 },
+  { id: 'boss', text: 'BOSS', price: 5 },
+  { id: 'ate', text: 'ATE', price: 5 },
+  { id: 'kuya', text: 'KUYA', price: 5 },
+  { id: 'suplada', text: 'SUPLADA', price: 5 },
+];
+
+function activeTitleFor(playerId){
+  const t = DB.titles2 && DB.titles2[playerId];
+  if(!t) return null;
+  if(t.expiresAt && Date.now() > t.expiresAt) return null;
+  return t.text;
+}
+function equippedCosmetic(playerId, category){
+  return (DB.equipped2 && DB.equipped2[playerId] && DB.equipped2[playerId][category]) || null;
+}
+function ownedCosmetics(playerId, category){
+  return (DB.unlocks2 && DB.unlocks2[playerId] && DB.unlocks2[playerId][category]) || [];
+}
+function nameWithFlair(playerId, name){
+  const icon = equippedCosmetic(playerId, 'luckyIcon');
+  const iconEmoji = icon && LUCKY_ICONS.find(i=>i.id===icon);
+  const title = activeTitleFor(playerId);
+  let out = name;
+  if(iconEmoji) out = `${iconEmoji.emoji} ${out}`;
+  if(title) out += ` <span style="font-size:10px;font-weight:700;color:var(--teal);background:rgba(96,213,196,.12);border:1px solid rgba(96,213,196,.3);border-radius:10px;padding:1px 7px;margin-left:4px;">${title}</span>`;
+  return out;
+}
+
+// Applies the player's own equipped badge frame / lucky icon / active title
+// to the name header on their own portal screen.
+function refreshPlayerNameBadge(){
+  if(!currentPlayer) return;
+  const el = document.getElementById('playerName');
+  if(!el) return;
+  el.innerHTML = nameWithFlair(currentPlayer.id, currentPlayer.name);
+  const frameId = equippedCosmetic(currentPlayer.id, 'badgeFrame');
+  const frame = frameId && BADGE_FRAMES.find(f=>f.id===frameId);
+  el.style.cssText = frame ? `${frame.css}border-radius:10px;padding:4px 14px;display:inline-block;` : '';
+}
+
+// Plays the player's equipped sound-pack tone whenever a new ball is drawn.
+// Uses Web Audio oscillator tones since no audio assets exist for this app.
+let _lastHeardBallCount = null;
+function playCosmeticSoundIfNewBall(){
+  if(!currentPlayer) return;
+  const called = (DB.game && DB.game.calledNumbers) || [];
+  if(_lastHeardBallCount === null){ _lastHeardBallCount = called.length; return; } // don't play on first load
+  if(called.length <= _lastHeardBallCount){ _lastHeardBallCount = called.length; return; }
+  _lastHeardBallCount = called.length;
+  const packId = equippedCosmetic(currentPlayer.id, 'soundPack');
+  if(!packId) return; // no sound pack equipped = silent (default)
+  const pack = SOUND_PACKS.find(p=>p.id===packId);
+  if(!pack) return;
+  try {
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    if(!Ctx) return;
+    if(!window._bingoAudioCtx) window._bingoAudioCtx = new Ctx();
+    const ctx = window._bingoAudioCtx;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = pack.wave;
+    osc.frequency.value = pack.freq;
+    gain.gain.setValueAtTime(0.15, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
+    osc.connect(gain).connect(ctx.destination);
+    osc.start();
+    osc.stop(ctx.currentTime + 0.35);
+  } catch(e){ /* ignore audio errors (autoplay policy etc.) */ }
+}
 
 function pickWitty(list, vars){
   let msg = list[Math.floor(Math.random()*list.length)];
@@ -2702,6 +2838,131 @@ async function equipSkin(skinId){
   }
 }
 
+// ─── Cosmetics Shop (badge frames, sound packs, lucky icons, emoji packs) ──
+function renderCosmeticsShopPanel(){
+  const panel = document.getElementById('cosmeticsShopPanel');
+  const content = document.getElementById('cosmeticsShopPanelContent');
+  if(!panel || !content || !currentPlayer) return;
+  panel.style.display = 'block';
+
+  const sections = COSMETIC_CATEGORIES.map(cat => {
+    const owned = ownedCosmetics(currentPlayer.id, cat.key);
+    const equipped = equippedCosmetic(currentPlayer.id, cat.key);
+    const rows = cat.catalog.map(item => {
+      const has = owned.includes(item.id);
+      const isEquipped = equipped === item.id;
+      const label = item.emoji ? `${item.emoji} ${item.name}` : item.name;
+      let action;
+      if(!has){
+        action = `<button class="btn btn-gold btn-sm" onclick="buyCosmetic('${cat.key}','${item.id}')">${item.price} 🪙</button>`;
+      } else if(isEquipped){
+        action = `<span style="color:var(--gold);font-size:12px;">✓ Equipped</span>`;
+      } else {
+        action = `<button class="btn btn-outline btn-sm" onclick="equipCosmetic('${cat.key}','${item.id}')">Equip</button>`;
+      }
+      return `<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:8px 10px;margin-bottom:6px;">
+        <div><strong>${label}</strong></div>
+        ${action}
+      </div>`;
+    }).join('');
+    return `<div style="font-weight:700;color:var(--gold);font-size:12px;margin:10px 0 4px;">${cat.label}</div>${rows}`;
+  }).join('');
+
+  content.innerHTML = sections;
+}
+
+async function buyCosmetic(category, itemId){
+  if(!currentPlayer) return;
+  try {
+    const r = await fetch(`${COSMETICS_BACKEND_URL}/buy-cosmetic`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ playerId: currentPlayer.id, category, itemId }),
+    });
+    const j = await r.json();
+    if(!r.ok || !j.ok){ alert(j.error || 'Hindi na-process ang pagbili.'); return; }
+    _myTokenBalance = j.tokens;
+    if(!DB.unlocks2) DB.unlocks2 = {};
+    DB.unlocks2[currentPlayer.id] = j.unlocks2;
+    const catalog = COSMETIC_CATEGORIES.find(c=>c.key===category)?.catalog || [];
+    const item = catalog.find(i=>i.id===itemId);
+    playerLog(`Na-unlock: ${item?item.name:itemId}! Bagong balance: ${j.tokens} 🪙`, 'ok');
+    await refreshTokenBalance();
+    renderCosmeticsShopPanel();
+    renderEmojiPalette();
+  } catch(e){
+    alert('Hindi na-process ang pagbili — try ulit.');
+  }
+}
+
+async function equipCosmetic(category, itemId){
+  if(!currentPlayer) return;
+  try {
+    const r = await fetch(`${COSMETICS_BACKEND_URL}/equip-cosmetic`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ playerId: currentPlayer.id, category, itemId }),
+    });
+    const j = await r.json();
+    if(!r.ok || !j.ok){ alert(j.error || 'Hindi na-equip.'); return; }
+    if(!DB.equipped2) DB.equipped2 = {};
+    DB.equipped2[currentPlayer.id] = j.equipped2;
+    renderCosmeticsShopPanel();
+    renderEmojiPalette();
+    refreshPlayerScreen();
+  } catch(e){
+    alert('Hindi na-equip — try ulit.');
+  }
+}
+
+// ─── Weekly Titles Shop (5 tokens, resets every Monday) ────────────────────
+function renderTitlesShopPanel(){
+  const panel = document.getElementById('titlesShopPanel');
+  const content = document.getElementById('titlesShopPanelContent');
+  if(!panel || !content || !currentPlayer) return;
+  panel.style.display = 'block';
+
+  const active = DB.titles2 && DB.titles2[currentPlayer.id];
+  const activeText = activeTitleFor(currentPlayer.id);
+  const statusHtml = activeText
+    ? `<div style="margin-bottom:10px;font-size:12px;">Active title: <strong style="color:var(--teal);">${activeText}</strong> — expires ${new Date(active.expiresAt).toLocaleDateString('en-PH',{weekday:'short',month:'short',day:'numeric'})} or at Monday reset.</div>`
+    : `<div style="margin-bottom:10px;font-size:12px;color:var(--muted);">No active title — pick one below!</div>`;
+
+  const rows = TITLES_CATALOG.map(t => {
+    const isActive = active && active.titleId === t.id;
+    const action = isActive
+      ? `<span style="color:var(--gold);font-size:12px;">✓ Active</span>`
+      : `<button class="btn btn-gold btn-sm" onclick="buyTitle('${t.id}')">${t.price} 🪙</button>`;
+    return `<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:8px 10px;margin-bottom:6px;">
+      <div><strong>${t.text}</strong></div>
+      ${action}
+    </div>`;
+  }).join('');
+
+  content.innerHTML = statusHtml + rows;
+}
+
+async function buyTitle(titleId){
+  if(!currentPlayer) return;
+  try {
+    const r = await fetch(`${COSMETICS_BACKEND_URL}/buy-title`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ playerId: currentPlayer.id, titleId }),
+    });
+    const j = await r.json();
+    if(!r.ok || !j.ok){ alert(j.error || 'Hindi na-process ang pagbili ng title.'); return; }
+    _myTokenBalance = j.tokens;
+    if(!DB.titles2) DB.titles2 = {};
+    DB.titles2[currentPlayer.id] = j.title;
+    playerLog(`Bagong title: "${j.title.text}"! Ipapakita sa leaderboards hanggang Monday. Balance: ${j.tokens} 🪙`, 'ok');
+    await refreshTokenBalance();
+    renderTitlesShopPanel();
+    renderPlayerRichestBoard();
+    renderPlayerBigSpenderBoard();
+    refreshPlayerScreen();
+  } catch(e){
+    alert('Hindi na-process ang pagbili — try ulit.');
+  }
+}
+
 // ─── Player-facing leaderboards (Bingo Wins + Richest Bingo Player) ────────
 // Player IDs excluded from the public "Richest Bingo Player" board — used for
 // admin/house accounts whose balance isn't really part of the player contest.
@@ -2719,12 +2980,16 @@ function renderPlayerWinsLeaderboard(){
     return;
   }
   const medals = ['🥇','🥈','🥉'];
-  const rows = sorted.map(([name, wins], i) => `
+  const rows = sorted.map(([name, wins], i) => {
+    const p = (DB.players||[]).find(pl => pl.name === name);
+    const flair = p ? nameWithFlair(p.id, name) : name;
+    return `
     <tr${name===currentPlayer.name ? ' style="background:rgba(245,200,66,.08);"' : ''}>
       <td style="font-size:16px;">${medals[i] || '🎖️'}</td>
-      <td style="font-weight:700;">${name}${name===currentPlayer.name ? ' (You)' : ''}</td>
+      <td style="font-weight:700;">${flair}${name===currentPlayer.name ? ' (You)' : ''}</td>
       <td style="color:var(--gold);font-weight:700;">${wins} win${wins!==1?'s':''}</td>
-    </tr>`).join('');
+    </tr>`;
+  }).join('');
   el.innerHTML = `<div style="overflow-x:auto;"><table class="roster-table">
     <thead><tr><th>#</th><th>Player</th><th>Wins</th></tr></thead>
     <tbody>${rows}</tbody>
@@ -2750,12 +3015,49 @@ function renderPlayerRichestBoard(){
   const rowsHtml = rows.map((r, i) => `
     <tr${isMe(r) ? ' style="background:rgba(245,200,66,.08);"' : ''}>
       <td style="font-size:16px;">${medals[i] || '🎖️'}</td>
-      <td style="font-weight:700;">${r.name}${isMe(r) ? ' (You)' : ''}</td>
+      <td style="font-weight:700;">${nameWithFlair(r.id, r.name)}${isMe(r) ? ' (You)' : ''}</td>
       <td style="color:var(--gold);font-weight:700;">🪙 ${r.balance}</td>
     </tr>`).join('');
   el.innerHTML = `<div style="overflow-x:auto;"><table class="roster-table">
     <thead><tr><th>#</th><th>Player</th><th>Balance</th></tr></thead>
     <tbody>${rowsHtml}</tbody>
+  </table></div>`;
+}
+
+// Big Spender board — total SMB Tokens spent all-time (buy_card, shop_purchase,
+// cosmetic_purchase, title_purchase). Computed client-side from DB.tokenLog,
+// which already carries every spend event from both backends.
+const SPEND_TYPES = ['buy_card', 'shop_purchase', 'cosmetic_purchase', 'title_purchase'];
+function renderPlayerBigSpenderBoard(){
+  const el = document.getElementById('playerBigSpenderContent');
+  if(!el) return;
+  const log = DB.tokenLog || [];
+  const totals = {};
+  log.forEach(e => {
+    if(SPEND_TYPES.includes(e.type) && e.playerId){
+      totals[e.playerId] = (totals[e.playerId]||0) + (e.amount||0);
+    }
+  });
+  const rows = Object.keys(totals)
+    .map(id => ({ id, name: playerNameById(id), spent: totals[id] }))
+    .filter(r => r.spent > 0)
+    .sort((a,b) => b.spent - a.spent)
+    .slice(0, 10);
+  if(rows.length === 0){
+    el.innerHTML = '<div class="empty-state">No SMB Tokens spent yet — hit the Shop to be the first Big Spender! 🔥</div>';
+    return;
+  }
+  const medals = ['🥇','🥈','🥉'];
+  const isMe = r => currentPlayer && r.id === currentPlayer.id;
+  const rowsHtml2 = rows.map((r, i) => `
+    <tr${isMe(r) ? ' style="background:rgba(245,200,66,.08);"' : ''}>
+      <td style="font-size:16px;">${medals[i] || '🎖️'}</td>
+      <td style="font-weight:700;">${nameWithFlair(r.id, r.name)}${isMe(r) ? ' (You)' : ''}</td>
+      <td style="color:var(--gold);font-weight:700;">🪙 ${r.spent} spent</td>
+    </tr>`).join('');
+  el.innerHTML = `<div style="overflow-x:auto;"><table class="roster-table">
+    <thead><tr><th>#</th><th>Player</th><th>Total Spent</th></tr></thead>
+    <tbody>${rowsHtml2}</tbody>
   </table></div>`;
 }
 
@@ -2773,9 +3075,14 @@ async function refreshPlayerScreen(){
   refreshTokenBalance();
   refreshCashInPanel();
   refreshTokenShopPanel();
+  renderCosmeticsShopPanel();
+  renderTitlesShopPanel();
   renderEmojiPalette();
+  refreshPlayerNameBadge();
+  playCosmeticSoundIfNewBall();
   renderPlayerWinsLeaderboard();
   renderPlayerRichestBoard();
+  renderPlayerBigSpenderBoard();
 
   const g=DB.game;
   const bingoBtn=document.getElementById('playerBingoBtn');
