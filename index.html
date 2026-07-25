@@ -596,6 +596,7 @@ textarea{resize:vertical;min-height:60px;}
         <div class="panel-title">⚔️ Team Battles — 3v3 Token Wager</div>
         <div style="font-size:12px;color:var(--muted);margin-bottom:14px;">Players form 3-player teams themselves (leader pays 1 token, invites 2 more, locks in at 3/3). Once at least 2 teams are locked, pick which ones to pit against each other and set the winning pattern below.</div>
         <div id="adminTeamBattlesContent"><div class="empty-state">Loading...</div></div>
+        <div id="adminTeamBattleCardsWrap" class="cards-wrap view-3" style="margin-top:16px;"></div>
       </div>
     </div>
   </div>
@@ -1296,7 +1297,10 @@ async function submitAdminPin() {
     const sel=document.getElementById('settingsInterval'); if(sel) sel.value = DB.drawIntervalMin||10;
 
     if(_adminPoll) clearInterval(_adminPoll);
-    _adminPoll = setInterval(()=>{ refreshAdminGame(); refreshRosterUI(); }, 5000);
+    _adminPoll = setInterval(()=>{
+      refreshAdminGame(); refreshRosterUI();
+      if(_currentAdminTab==='teambattles') refreshAdminTeamBattlesTab();
+    }, 5000);
   } else {
     document.getElementById('adminPinError').textContent='Maling PIN! Try ulit.';
     setTimeout(()=>document.getElementById('adminPinError').textContent='',2000);
@@ -1355,7 +1359,10 @@ function playerLogout() {
 // ════════════════════════════════════════════════════════════
 //  ADMIN TAB SWITCHING
 // ════════════════════════════════════════════════════════════
+let _currentAdminTab = 'roster';
+
 function switchAdminTab(name) {
+  _currentAdminTab = name;
   document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
   document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
   const tabEl = document.getElementById('tab-'+name);
@@ -1423,10 +1430,18 @@ async function saveWeeklyTopics(){
 async function refreshAdminTeamBattlesTab(){
   const el = document.getElementById('adminTeamBattlesContent');
   if(!el) return;
-  el.innerHTML = '<div class="empty-state">Loading...</div>';
+  // Preserve whatever the admin has already picked (checked teams, chosen pattern)
+  // across the 5s poll refresh so mid-selection state doesn't get wiped, same
+  // class of bug as the player-side team-name input.
+  const prevChecked = new Set(Array.from(el.querySelectorAll('.tbAdminTeamCheck:checked')).map(c=>c.value));
+  const prevPatternSel = el.querySelector('#tbAdminPatternSelect');
+  const prevPatternIdx = prevPatternSel ? prevPatternSel.value : null;
+  const firstLoad = !el.dataset.loadedOnce;
+  if(firstLoad) el.innerHTML = '<div class="empty-state">Loading...</div>';
   await fetchTeamBattleState();
   const state = _teamBattlesState;
-  if(!state){ el.innerHTML = '<div class="empty-state">Could not load Team Battles.</div>'; return; }
+  if(!state){ if(firstLoad) el.innerHTML = '<div class="empty-state">Could not load Team Battles.</div>'; return; }
+  el.dataset.loadedOnce = '1';
 
   const locked = (state.teams||[]).filter(t=>t.status==='locked');
   const forming = (state.teams||[]).filter(t=>t.status==='forming');
@@ -1448,23 +1463,54 @@ async function refreshAdminTeamBattlesTab(){
 
   html += `<div style="font-size:11px;font-weight:700;color:var(--teal);text-transform:uppercase;margin:10px 0 6px;">Locked Teams — Ready to Battle</div>`;
   if(!locked.length){
-    html += `<div class="empty-state">No locked teams yet (need 2+).</div>`;
+    html += `<div class="empty-state">No locked teams yet (need 2+ to start a match).</div>`;
   } else {
     html += locked.map(t=>`
       <label style="display:flex;align-items:center;gap:8px;background:var(--deep);border-radius:8px;padding:8px 12px;margin-bottom:6px;font-size:13px;cursor:pointer;">
         <input type="checkbox" class="tbAdminTeamCheck" value="${t.id}">
         ${escapeHtml(t.name)} — ${t.members.map(m=>escapeHtml(m.name)).join(', ')}
       </label>`).join('');
-    html += `<div style="margin-top:10px;">
-      <label style="font-size:11px;color:var(--muted);">Winning Pattern</label>
-      <select id="tbAdminPatternSelect" style="width:100%;background:var(--panel,#16293f);border:1px solid rgba(255,255,255,.15);border-radius:6px;padding:8px;color:#fff;font-size:13px;margin:4px 0 10px;">
-        ${PATTERNS.map((p,i)=>`<option value="${i}">${p.name}</option>`).join('')}
-      </select>
-      <button class="btn btn-gold" style="width:100%;" onclick="tbAdminStartMatch()">Start Match with Selected Teams</button>
-    </div>`;
   }
+  // Winning Pattern selector is always visible (not gated behind having 2+ locked teams already)
+  // so the admin can set/preview it ahead of time — Start button stays disabled until enough teams are locked.
+  html += `<div style="margin-top:10px;">
+    <label style="font-size:11px;color:var(--muted);">Winning Pattern (for the next match)</label>
+    <select id="tbAdminPatternSelect" style="width:100%;background:var(--panel,#16293f);border:1px solid rgba(255,255,255,.15);border-radius:6px;padding:8px;color:#fff;font-size:13px;margin:4px 0 10px;">
+      ${PATTERNS.map((p,i)=>`<option value="${i}">${p.name}</option>`).join('')}
+    </select>
+    <button class="btn btn-gold" style="width:100%;" onclick="tbAdminStartMatch()" ${locked.length<2?'disabled title="Need at least 2 locked teams first"':''}>Start Match with Selected Teams</button>
+  </div>`;
 
   el.innerHTML = html;
+  // Reapply the admin's in-progress selections after the re-render.
+  if(prevChecked.size){
+    el.querySelectorAll('.tbAdminTeamCheck').forEach(c=>{ if(prevChecked.has(c.value)) c.checked = true; });
+  }
+  if(prevPatternIdx !== null){
+    const sel = el.querySelector('#tbAdminPatternSelect');
+    if(sel) sel.value = prevPatternIdx;
+  }
+
+  // Show each live match's registered cards, marked up exactly like the main
+  // Game Control card wall (called numbers highlighted, winning cells flagged) —
+  // but checked against that match's own pattern, not the main game's pattern.
+  const cardsWrap = document.getElementById('adminTeamBattleCardsWrap');
+  if(cardsWrap){
+    cardsWrap.innerHTML = '';
+    const calledSet = new Set((DB.game && DB.game.calledSet) || []);
+    live.forEach(t=>{
+      const match = (state.matches||[]).find(m=>m.id===t.matchId);
+      if(!match) return;
+      t.members.filter(m=>m.inviteStatus==='accepted').forEach(m=>{
+        const cards = (DB.game && DB.game.playerCards && DB.game.playerCards[m.playerId]) || [];
+        const cardIdx = m.cardId ?? (cards.length===1 ? 0 : null);
+        const card = cardIdx!=null ? cards[cardIdx] : null;
+        if(!card || !card.grid) return;
+        const winner = checkWin(card.grid, match.pattern, calledSet);
+        cardsWrap.appendChild(makeBingoCardEl(`${m.name} (${t.name})`, match.pattern.name||'Custom', card.grid, calledSet, match.pattern, m.won || winner));
+      });
+    });
+  }
 }
 
 async function tbAdminStartMatch(){
@@ -3183,6 +3229,10 @@ function tbActiveTeamFor(state, playerId){
 async function renderTeamBattlesPanel(){
   const el = document.getElementById('teamBattlesPanelContent');
   if(!el || !currentPlayer) return;
+  // Don't blow away the create-team input while the player is actively typing in it —
+  // the 5s poll loop calls this function and was wiping in-progress text (reported by Rendy).
+  const nameInput = document.getElementById('tbNewTeamName');
+  if(nameInput && document.activeElement === nameInput) return;
   await fetchTeamBattleState();
   const state = _teamBattlesState;
   if(!state){ el.innerHTML = '<div class="empty-state">Could not load Team Battles right now.</div>'; return; }
@@ -3287,9 +3337,20 @@ function tbRenderMyTeam(t, state, myId){
       const cardId = myMember && (myMember.cardId ?? (((DB.game&&DB.game.playerCards&&DB.game.playerCards[myId]||[]).length===1)?0:null));
       const myCards = (DB.game && DB.game.playerCards && DB.game.playerCards[myId]) || [];
       const myGrid = cardId!=null ? (myCards[cardId] && myCards[cardId].grid) : null;
-      const calledSet = new Set((DB.game && DB.game.calledSet) || []);
-      const iWon = myGrid && typeof checkWin==='function' && checkWin(myGrid, match.pattern, calledSet);
-      body += `<div style="margin-top:8px;font-size:12px;color:var(--muted);">Pattern: <strong style="color:var(--gold);">${escapeHtml(match.pattern.name||'Custom')}</strong></div>`;
+      // Same honesty-check flow as the main game: player must have manually marked
+      // their own numbers (via the "My Cards" screen — the tap-to-mark is shared,
+      // same card/grid) before the claim button enables. Server still holds the
+      // real calledSet as the source of truth for the payout.
+      const cardMarks = (DB.game && DB.game.playerMarks && DB.game.playerMarks[myId] && DB.game.playerMarks[myId][cardId]) || {};
+      const iWon = myGrid && typeof checkWinManual==='function' && checkWinManual(myGrid, match.pattern, cardMarks);
+      // Mini pattern banner, same visual treatment as "Tonight's Winning Pattern" (pattern-grid/pcell),
+      // but clearly labeled as the battle's own pattern so it's never confused with the main game's.
+      body += `<div style="background:var(--panel,#16293f);border:1px solid rgba(245,200,66,.15);border-radius:8px;padding:10px;margin-top:8px;text-align:center;">
+        <div style="font-size:9px;font-weight:700;letter-spacing:1.2px;color:var(--teal);text-transform:uppercase;margin-bottom:4px;">Your Team Battle Pattern</div>
+        <div style="font-size:12px;font-weight:700;color:var(--gold);margin-bottom:6px;">${escapeHtml(match.pattern.name||'Custom')}</div>
+        <div class="pattern-grid" style="width:80px;gap:3px;margin:0 auto;">${(match.pattern.cells||[]).map(on=>`<div class="pcell${on?' on':''}"></div>`).join('')}</div>
+        <div style="font-size:10px;color:var(--muted);margin-top:6px;">${cardId!=null?'Mark your card above, then come back here to claim.':''}</div>
+      </div>`;
       body += `<div style="margin-top:6px;">${t.members.map(m=>`<div style="display:flex;justify-content:space-between;font-size:12px;padding:3px 0;"><span>${escapeHtml(m.name)}</span><span>${m.won?'✅ Won':'—'}</span></div>`).join('')}</div>`;
       if(myMember && !myMember.won){
         body += `<button class="btn btn-gold btn-sm" style="width:100%;margin-top:8px;" ${iWon?'':'disabled'} onclick="tbDeclareWin('${match.id}','${t.id}')">${iWon?'🏆 I Hit The Pattern!':'Keep playing...'}</button>`;
