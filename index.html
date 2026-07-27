@@ -1694,6 +1694,7 @@ function refreshRosterUI() {
           <button class="btn btn-outline btn-sm" onclick="openEditPlayer('${p.id}')">✏️ Edit</button>
           <button class="btn btn-sm" style="background:rgba(224,92,92,.15);color:var(--danger);border:1px solid rgba(224,92,92,.3);" onclick="togglePlayer('${p.id}')">${p.active!==false?'Deactivate':'Activate'}</button>
           <button class="btn btn-sm" style="background:rgba(245,200,66,.1);color:var(--gold);border:1px solid rgba(245,200,66,.3);" onclick="adminResetPlayerPin('${p.id}')">Reset PIN</button>
+          <button class="btn btn-gold btn-sm" onclick="adminAwardTokens('${p.id}')">🎁 Award</button>
           <button class="btn btn-danger btn-sm" onclick="deletePlayer('${p.id}')">🗑️</button>
         </div>
       </td>
@@ -4646,6 +4647,7 @@ const TOKEN_EVENT_LABELS = {
   cash_in: '💰 Cash In', buy_card: '🎟️ Buy Card', give: '🎁 Give', ask: '🙏 Ask', shop_purchase: '🛒 Shop Purchase',
   spin_wheel: '🎡 Spin the Wheel', cosmetic_purchase: '✨ Cosmetic Purchase', title_purchase: '🏷️ Title Purchase',
   team_battle_entry: '⚔️ Team Battle Entry', team_battle_payout: '🏆 Team Battle Payout', team_battle_refund: '↩️ Team Battle Refund',
+  avatar_gender_switch: '👤 Avatar Gender Switch',
 };
 function playerNameById(id){ const p=DB.players.find(x=>x.id===id); return p?p.name:(id||'—'); }
 
@@ -4696,6 +4698,7 @@ function renderTokenLog(){
       else if(e.type === 'team_battle_entry') detail = `${playerNameById(e.playerId)} paid 1 🪙 to join a Team Battle`;
       else if(e.type === 'team_battle_payout') detail = `${playerNameById(e.playerId)} won ${e.amount} 🪙 from a Team Battle`;
       else if(e.type === 'team_battle_refund') detail = `${playerNameById(e.playerId)} refunded 1 🪙 (${e.reason||'team disbanded'})`;
+      else if(e.type === 'avatar_gender_switch') detail = `${playerNameById(e.playerId)} switched avatar gender for ${e.amount} 🪙`;
       return `<tr><td>${when}</td><td>${label}</td><td>${detail}</td></tr>`;
     }).join('') +
     `</tbody></table></div>`;
@@ -5055,6 +5058,34 @@ async function adminResetPlayerPin(id){
   const p=DB.players.find(x=>x.id===id);
   if(p){p.pin='1234';p.pinChanged=false;}
   await saveDB();refreshRosterUI();
+}
+
+// Admin-only: award SMB Tokens to any player, anytime (game win prize, etc.) —
+// unlike the player Ask/Give panel, this is NOT restricted to the lobby, and
+// works whether or not a game is currently in progress. Draws from Rendy's
+// admin token pool (unlimited-safety-net player id), so it never depletes
+// anyone's balance — it just credits the winner.
+const ADMIN_AWARD_FROM_ID = 'default_25';
+async function adminAwardTokens(id){
+  const p = DB.players.find(x=>x.id===id);
+  if(!p) return;
+  const raw = prompt(`Award how many SMB Tokens to ${p.name}?`, '1');
+  if(raw===null) return;
+  const amount = parseInt(raw, 10);
+  if(!Number.isInteger(amount) || amount < 1){ alert('Enter a valid whole number of tokens (1 or more).'); return; }
+  try {
+    const r = await fetch(`${BACKEND_URL}/give-tokens`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ fromPlayerId: ADMIN_AWARD_FROM_ID, toPlayerId: id, amount }),
+    });
+    const j = await r.json();
+    if(!r.ok || !j.ok){ alert(j.error || 'Award failed — try again.'); return; }
+    alert(`Awarded ${amount} SMB Token${amount===1?'':'s'} to ${p.name}! 🎉`);
+    postToSlack(`🎁 ${p.name} was awarded ${amount} SMB Token${amount===1?'':'s'} by the admin!`);
+  } catch(e){
+    alert('Award failed — check connection and try again.');
+  }
 }
 
 async function resetToDefaultRoster(){
