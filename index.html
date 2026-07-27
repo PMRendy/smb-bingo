@@ -4644,6 +4644,8 @@ async function clearLeaderboard(){
 // ════════════════════════════════════════════════════════════
 const TOKEN_EVENT_LABELS = {
   cash_in: '💰 Cash In', buy_card: '🎟️ Buy Card', give: '🎁 Give', ask: '🙏 Ask', shop_purchase: '🛒 Shop Purchase',
+  spin_wheel: '🎡 Spin the Wheel', cosmetic_purchase: '✨ Cosmetic Purchase', title_purchase: '🏷️ Title Purchase',
+  team_battle_entry: '⚔️ Team Battle Entry', team_battle_payout: '🏆 Team Battle Payout', team_battle_refund: '↩️ Team Battle Refund',
 };
 function playerNameById(id){ const p=DB.players.find(x=>x.id===id); return p?p.name:(id||'—'); }
 
@@ -4683,6 +4685,17 @@ function renderTokenLog(){
       else if(e.type === 'give') detail = `${playerNameById(e.fromPlayerId)} → ${playerNameById(e.toPlayerId)}: ${e.amount} 🪙`;
       else if(e.type === 'ask') detail = `${playerNameById(e.playerId)} asked the group for ${e.amount} 🪙`;
       else if(e.type === 'shop_purchase') detail = `${playerNameById(e.playerId)} unlocked "${e.itemName}" for ${e.amount} 🪙`;
+      else if(e.type === 'spin_wheel'){
+        const name = playerNameById(e.playerId);
+        if(e.multiplier === 0) detail = `${name} spun the wheel, landed on 0x — lost 1 🪙`;
+        else if(e.multiplier === 1) detail = `${name} spun the wheel, landed on 1x — broke even`;
+        else detail = `${name} spun the wheel, landed on ${e.multiplier}x — won ${e.amount} 🪙 net`;
+      }
+      else if(e.type === 'cosmetic_purchase') detail = `${playerNameById(e.playerId)} bought "${e.itemName}" (${e.category||''}) for ${e.amount} 🪙`;
+      else if(e.type === 'title_purchase') detail = `${playerNameById(e.playerId)} bought the "${e.itemName}" title for ${e.amount} 🪙`;
+      else if(e.type === 'team_battle_entry') detail = `${playerNameById(e.playerId)} paid 1 🪙 to join a Team Battle`;
+      else if(e.type === 'team_battle_payout') detail = `${playerNameById(e.playerId)} won ${e.amount} 🪙 from a Team Battle`;
+      else if(e.type === 'team_battle_refund') detail = `${playerNameById(e.playerId)} refunded 1 🪙 (${e.reason||'team disbanded'})`;
       return `<tr><td>${when}</td><td>${label}</td><td>${detail}</td></tr>`;
     }).join('') +
     `</tbody></table></div>`;
