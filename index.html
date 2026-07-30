@@ -365,6 +365,11 @@ textarea{resize:vertical;min-height:60px;}
 
     <!-- TAB: GAME -->
     <div class="tab-content" id="tab-game">
+      <!-- Draw History & Activity Log — pinned to top so timestamps + BINGO claims are visible at a glance -->
+      <div class="panel" style="margin-bottom:14px;">
+        <div class="panel-title">📜 Draw History &amp; Activity Log</div>
+        <div class="log-box" id="adminLog" style="max-height:260px;margin-top:6px;"></div>
+      </div>
       <div class="main-game-grid">
         <!-- LEFT -->
         <div>
@@ -461,7 +466,6 @@ textarea{resize:vertical;min-height:60px;}
             <div class="cards-wrap view-3" id="adminCardsWrap">
               <div class="empty-state">Start a game to see player cards.</div>
             </div>
-            <div class="log-box" id="adminLog"></div>
           </div>
         </div>
       </div>
@@ -1934,17 +1938,8 @@ async function adminStartGame(){
   refreshAdminGame();
   adminLog('🎉 New game started! Lobby open — waiting for first manual draw to start auto-draw timer.','ok');
   document.getElementById('adminGameBadge').style.display='inline-block';
+  _lastLoggedClaimAt = null; // fresh game — reset claim-log dedupe tracker
 
-  // Show BINGO claim alert in admin UI
-  const claimAlert = document.getElementById('adminClaimAlert');
-  if(claimAlert){
-    if(DB.game && DB.game.pendingBingoClaim){
-      claimAlert.style.display='block';
-      claimAlert.textContent=`🚨 BINGO CLAIM from ${DB.game.pendingBingoClaim.playerName} (Card ${DB.game.pendingBingoClaim.cardIndex}) — Auto-draw paused! Verify then click BINGO Claimed or Draw Next Number to dismiss.`;
-    } else {
-      claimAlert.style.display='none';
-    }
-  }
   // Show waiting state in timer display
   const timerEl = document.getElementById('adminTimerDisplay');
   if(timerEl) timerEl.textContent = '--:--';
@@ -2004,6 +1999,7 @@ async function lockGameLobby(){
 }
 
 let _drawLock = false;
+let _lastLoggedClaimAt = null; // dedupes the "BINGO CLAIM" adminLog entry across 5s polls
 let _playerWriteLock = false; // blocks poll from overwriting freshly-marked cells
 
 async function adminDrawNumber(fromTimer=false){
@@ -2219,6 +2215,24 @@ async function refreshAdminGame(){
   const bingoBtn=document.getElementById('adminBingoBtn');
 
   syncPatternSetupAvailability();
+
+  // Surface a BINGO claim the moment we see it (every 5s poll) instead of waiting
+  // for the auto-draw timer to hit — and stop auto-draw immediately so it can't
+  // fire another number while the admin is still verifying the claim.
+  const claimAlertEl = document.getElementById('adminClaimAlert');
+  if(g && g.pendingBingoClaim){
+    if(claimAlertEl){
+      claimAlertEl.style.display='block';
+      claimAlertEl.textContent=`🚨 BINGO CLAIM from ${g.pendingBingoClaim.playerName} (Card ${g.pendingBingoClaim.cardIndex}) — Auto-draw stopped! Verify then click BINGO Claimed to end the game, or Draw Next Number to dismiss and continue.`;
+    }
+    if(g.pendingBingoClaim.claimedAt !== _lastLoggedClaimAt){
+      _lastLoggedClaimAt = g.pendingBingoClaim.claimedAt;
+      adminLog(`🚨 BINGO CLAIM from ${g.pendingBingoClaim.playerName} (Card ${g.pendingBingoClaim.cardIndex}) — auto-draw stopped, verify now!`,'err');
+      stopAutoDrawTimer();
+    }
+  } else if(claimAlertEl){
+    claimAlertEl.style.display='none';
+  }
 
   if(!g){
     startBtn.disabled=false;drawBtn.disabled=true;patBtn.disabled=true;bingoBtn.disabled=true;
