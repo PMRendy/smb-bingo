@@ -1934,9 +1934,13 @@ async function adminStartGame(){
     lastDrawAt:null,
     claimedBy:null,
   };
-  await saveDBFull(); // full replace — ensures clean new game state
+  const confirmed = await saveDBFullVerified(g => g && g.id === gameId); // full replace — ensures clean new game state, retried until confirmed live
   refreshAdminGame();
-  adminLog('🎉 New game started! Lobby open — waiting for first manual draw to start auto-draw timer.','ok');
+  if (confirmed) {
+    adminLog('🎉 New game started! Lobby open — waiting for first manual draw to start auto-draw timer.','ok');
+  } else {
+    adminLog('⚠️ New game may not have fully saved server-side after retries — reload and check before players RSVP.','err');
+  }
   document.getElementById('adminGameBadge').style.display='inline-block';
   _lastLoggedClaimAt = null; // fresh game — reset claim-log dedupe tracker
 
@@ -2174,6 +2178,28 @@ async function adminEndGame(claimant){
   refreshAdminGame();
 }
 
+// The old backend's /state endpoint is a plain full-replace with no version
+// check (unlike the cosmetics backend's updateData()) — a concurrent write
+// from another open tab/player (autosave, poll merge, etc.) landing right
+// after our save can silently clobber it, so a single saveDBFull()+loadDB()
+// isn't proof the change actually stuck server-side. This retries the write
+// a few times, re-checking the server's own copy each time, until the
+// intended game value (null for reset, or a specific game id for start)
+// is confirmed present — instead of trusting the first attempt blindly.
+async function saveDBFullVerified(expectedGameCheck, { attempts = 4, delayMs = 700 } = {}) {
+  for (let i = 0; i < attempts; i++) {
+    await saveDBFull();
+    await loadDB();
+    if (expectedGameCheck(DB.game)) return true;
+    console.warn(`[saveDBFullVerified] attempt ${i + 1}/${attempts}: server state didn't match expected — retrying`);
+    await new Promise(res => setTimeout(res, delayMs));
+    // Re-assert our intended value before retrying — loadDB() may have
+    // merged in whatever stale/racy value the server handed back.
+    DB.updatedAt = Date.now();
+  }
+  return expectedGameCheck(DB.game);
+}
+
 async function adminResetGame(){
   if(!confirm('I-reset ang laro? Mabubura ang kasalukuyang game.')) return;
   stopAutoDrawTimer();
@@ -2192,12 +2218,15 @@ async function adminResetGame(){
   DB.game = null;
   DB.updatedAt = resetTs;
   _lastLoadedAt = resetTs;
-  await saveDBFull(); // full replace — game:null goes through to server
-  await loadDB();     // immediately confirm server accepted the reset
+  const confirmed = await saveDBFullVerified(g => g === null || g === undefined);
   refreshAdminGame();
   refreshRosterUI();
   document.getElementById('adminGameBadge').style.display='none';
-  adminLog('Game reset. Ready to start a new game.','ok');
+  if (confirmed) {
+    adminLog('Game reset. Ready to start a new game.','ok');
+  } else {
+    adminLog('⚠️ Reset may not have fully saved server-side after retries — check again before starting a new game.','err');
+  }
 }
 
 // ════════════════════════════════════════════════════════════
