@@ -3348,7 +3348,7 @@ async function refreshTokenShopPanel(){
 async function buyShopItem(type, itemId){
   if(!currentPlayer) return;
   try {
-    const r = await fetch(`${BACKEND_URL}/buy-shop-item`, {
+    const r = await fetch(`${COSMETICS_BACKEND_URL}/buy-shop-item`, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ playerId: currentPlayer.id, type, itemId }),
     });
@@ -3374,7 +3374,7 @@ async function buyShopItem(type, itemId){
 async function equipSkin(skinId){
   if(!currentPlayer) return;
   try {
-    const r = await fetch(`${BACKEND_URL}/equip-skin`, {
+    const r = await fetch(`${COSMETICS_BACKEND_URL}/equip-skin`, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ playerId: currentPlayer.id, skinId }),
     });
