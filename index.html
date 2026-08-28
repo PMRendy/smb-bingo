@@ -3206,7 +3206,7 @@ function petCard(pet){
       <button class="btn btn-gold" ${_petBusy?'disabled':''} onclick="petAction('care','${pet.id}','feed')">🍖 Feed<br>1 🪙</button>
       <button class="btn btn-gold" ${_petBusy?'disabled':''} onclick="petAction('care','${pet.id}','play')">🎾 Play<br>1 🪙</button>
       <button class="btn btn-gold" ${_petBusy?'disabled':''} onclick="petAction('care','${pet.id}','bath')">🫧 Bath<br>1 🪙</button>
-    </div><button class="btn btn-outline btn-sm" style="width:100%;justify-content:center;margin-top:6px;" onclick="renamePet('${pet.id}')">✏️ Rename</button>`;
+    </div><button class="btn btn-outline btn-sm" style="width:100%;justify-content:center;margin-top:6px;" onclick="renamePet('${pet.id}')">✏️ Rename${Number(pet.renameCount||0)===0?' — First Free':' — 3 🪙'}</button>`;
   const hatch=isEgg ? `<div class="pet-hatch">🥚 ${Math.min(3,pet.hatchCareCount||0)}/3 care actions to hatch</div>` : '';
   return `<div class="pet-card ${stateClass}">
     <div class="pet-portrait ${portraitClass}">${isDead?'💤':isEgg?`<img class="pet-egg-img" src="${COSMETICS_BACKEND_URL}/pets/egg.gif" alt="Twitching pet egg" onerror="this.replaceWith(document.createTextNode('🥚'))">`:`<img src="${COSMETICS_BACKEND_URL}/pets/${pet.species}.gif" alt="Animated ${petSpecies(pet.species)[1]}" onerror="this.replaceWith(document.createTextNode('${emoji}'))">`}</div>
@@ -3242,7 +3242,8 @@ async function buyPetEgg(){
 }
 async function renamePet(petId){
   const pet=((DB.pets&&DB.pets[currentPlayer.id])||[]).find(p=>p.id===petId);
-  const name=prompt('Name your pet (up to 20 characters):',pet?.name||'');
+  const cost=Number(pet?.renameCount||0)===0?'Your first rename is FREE.':'This rename costs 3 SMB Tokens.';
+  const name=prompt(`${cost}\n\nName your pet (up to 20 characters):`,pet?.name||'');
   if(name===null) return;
   await petAction('rename',petId,'','',name);
 }
@@ -3263,7 +3264,9 @@ async function petAction(action,petId='',careType='',species='',name=''){
     const petDisplayName=j.pet?.name||'Pet';
     const msg=j.event==='egg_bought'?`🐣 ${petDisplayName}'s egg is ready — care for it 3 times!`:
       j.event==='hatched'?`✨ ${petDisplayName} hatched! Keep your new pet healthy.`:
-      j.event==='level_up'?`🌟 ${petDisplayName} reached Level ${j.pet.level}!`:`🐾 You cared for ${petDisplayName}.`;
+      j.event==='level_up'?`🌟 ${petDisplayName} reached Level ${j.pet.level}!`:
+      j.event==='renamed'?`✏️ Your pet is now ${petDisplayName}${j.renameCost===0?' — first rename free!':' — 3 tokens used.'}`:
+      `🐾 You cared for ${petDisplayName}.`;
     playerLog(msg,'ok');
     await refreshTokenBalance();
     _petResultUntil=Date.now()+2500;
@@ -4935,7 +4938,7 @@ const TOKEN_EVENT_LABELS = {
   cash_in: '💰 Cash In', buy_card: '🎟️ Buy Card', give: '🎁 Give', ask: '🙏 Ask', shop_purchase: '🛒 Shop Purchase',
   spin_wheel: '🎡 Spin the Wheel', cosmetic_purchase: '✨ Cosmetic Purchase', title_purchase: '🏷️ Title Purchase',
   team_battle_entry: '⚔️ Team Battle Entry', team_battle_payout: '🏆 Team Battle Payout', team_battle_refund: '↩️ Team Battle Refund',
-  avatar_gender_switch: '👤 Avatar Gender Switch', pet_egg: '🐣 Pet Egg', pet_care: '🐾 Pet Care',
+  avatar_gender_switch: '👤 Avatar Gender Switch', pet_egg: '🐣 Pet Egg', pet_care: '🐾 Pet Care', pet_rename: '✏️ Pet Rename',
 };
 function playerNameById(id){ const p=DB.players.find(x=>x.id===id); return p?p.name:(id||'—'); }
 
