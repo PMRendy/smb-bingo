@@ -706,6 +706,17 @@ textarea{resize:vertical;min-height:60px;}
       </div>
     </details>
 
+    <!-- Higher or Lower: bet 1-5 tokens, up to 3 plays per shift. Draw 1-50, guess higher/lower vs current value. -->
+    <details class="panel-group" id="highLowGroup">
+      <summary>📈 Higher or Lower</summary>
+      <div class="panel-group-body">
+        <div class="panel" id="highLowPanel">
+          <div style="font-size:12px;color:var(--muted);margin-bottom:10px;">Bet 1-5 SMB Tokens per play — up to 3 plays per shift. Guess if the next number (1-50) is Higher or Lower than the current one. Win = double your bet back. Tie = free redraw.</div>
+          <div id="highLowPanelContent" style="text-align:center;">Loading...</div>
+        </div>
+      </div>
+    </details>
+
     <!-- Leaderboards (collapsible group — Wins, Richest, Big Spender, Check-in Points) -->
     <details class="panel-group" id="leaderboardsGroup">
       <summary>🏆 Leaderboards</summary>
@@ -3548,6 +3559,92 @@ async function spinTheWheel(){
   }
 }
 
+// ─── Higher or Lower: bet 1-5 tokens, up to 3 plays per shift, draw 1-50.
+const HIGH_LOW_MAX_PER_SHIFT = 3;
+const HIGH_LOW_MAX_BET = 5;
+const HIGH_LOW_MIN_VAL = 1;
+const HIGH_LOW_MAX_VAL = 50;
+let _highLowBet = 1;
+let _highLowBusy = false;
+let _highLowResultUntil = 0; // skip re-render while result message is still on screen (poll loop would wipe it)
+
+function renderHighLowPanel(){
+  const panel = document.getElementById('highLowPanel');
+  const content = document.getElementById('highLowPanelContent');
+  if(!panel || !content || !currentPlayer) return;
+  panel.style.display = 'block';
+  if(_highLowBusy || Date.now() < _highLowResultUntil) return; // don't blow away mid-play/result DOM
+
+  const currentShift = shiftStartMsClient();
+  const rec = (DB.highLowRounds && DB.highLowRounds[currentPlayer.id]) || null;
+  const playsUsed = (rec && rec.shift === currentShift) ? rec.count : 0;
+  const playsLeft = Math.max(0, HIGH_LOW_MAX_PER_SHIFT - playsUsed);
+  const outOfPlays = playsLeft === 0;
+  const currentValue = (rec && rec.shift === currentShift && typeof rec.currentValue === 'number') ? rec.currentValue : null;
+
+  const betOptions = [1,2,3,4,5].map(b => `<option value="${b}" ${b === _highLowBet ? 'selected' : ''}>${b} 🪙</option>`).join('');
+
+  content.innerHTML = `
+    <div style="font-size:48px;font-weight:800;color:var(--gold);margin-bottom:10px;">${currentValue !== null ? currentValue : '?'}</div>
+    <div id="highLowResult" style="min-height:20px;font-weight:700;margin-bottom:10px;"></div>
+    <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:12px;">
+      <label style="font-size:12px;color:var(--muted);">Bet:</label>
+      <select id="highLowBetSelect" ${outOfPlays ? 'disabled' : ''} onchange="_highLowBet = Number(this.value)" style="padding:4px 8px;border-radius:6px;">${betOptions}</select>
+    </div>
+    <div style="display:flex;gap:10px;justify-content:center;">
+      <button class="btn btn-gold" id="highLowLowerBtn" ${outOfPlays ? 'disabled' : ''} onclick="playHighLow('lower')">Lower ↓</button>
+      <button class="btn btn-gold" id="highLowHigherBtn" ${outOfPlays ? 'disabled' : ''} onclick="playHighLow('higher')">Higher ↑</button>
+    </div>
+    <div style="font-size:12px;color:var(--muted);margin-top:10px;">${outOfPlays ? `Ubos na ang ${HIGH_LOW_MAX_PER_SHIFT} plays mo ngayong shift ✔️` : `${playsLeft}/${HIGH_LOW_MAX_PER_SHIFT} plays left ngayong shift`}</div>
+  `;
+}
+
+async function playHighLow(guess){
+  if(!currentPlayer || _highLowBusy) return;
+  const higherBtn = document.getElementById('highLowHigherBtn');
+  const lowerBtn = document.getElementById('highLowLowerBtn');
+  const resultEl = document.getElementById('highLowResult');
+  if(!higherBtn || !lowerBtn) return;
+
+  _highLowBusy = true;
+  higherBtn.disabled = true;
+  lowerBtn.disabled = true;
+  resultEl.textContent = 'Drawing...';
+
+  try {
+    const r = await fetch(`${COSMETICS_BACKEND_URL}/high-low`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ playerId: currentPlayer.id, playerName: currentPlayer.name, bet: _highLowBet, guess }),
+    });
+    const j = await r.json();
+    _highLowBusy = false;
+    if(!r.ok || !j.ok){
+      alert(j.error || 'Hindi na-process ang play.');
+      renderHighLowPanel();
+      return;
+    }
+
+    if(!DB.highLowRounds) DB.highLowRounds = {};
+    DB.highLowRounds[currentPlayer.id] = { shift: shiftStartMsClient(), count: j.playsUsed, currentValue: j.nextValue };
+
+    const leftNote = j.playsLeft > 0 ? ` <span style="color:var(--muted);font-weight:400;">(${j.playsLeft} play${j.playsLeft > 1 ? 's' : ''} pa ngayong shift)</span>` : ` <span style="color:var(--muted);font-weight:400;">(ubos na ang plays mo ngayong shift)</span>`;
+    if(j.outcome === 'push'){
+      resultEl.innerHTML = `<span style="color:var(--muted);">🔀 ${j.currentValue} → ${j.nextValue} — same number, push! Redraw, walang nawala.</span>`;
+    } else if(j.outcome === 'win'){
+      resultEl.innerHTML = `<span style="color:var(--gold);">🎉 ${j.currentValue} → ${j.nextValue} — tama! Nanalo ng ${j.payout} tokens.</span>${leftNote}`;
+    } else {
+      resultEl.innerHTML = `<span style="color:#ff6b6b;">💥 ${j.currentValue} → ${j.nextValue} — mali. Nawala ang ${j.bet} tokens.</span>${leftNote}`;
+    }
+    refreshTokenBalance();
+    _highLowResultUntil = Date.now() + 4000; // let the result message sit before poll refresh redraws
+    setTimeout(renderHighLowPanel, 4000);
+  } catch(e){
+    _highLowBusy = false;
+    alert('Hindi na-process ang play — try ulit.');
+    renderHighLowPanel();
+  }
+}
+
 function renderAvatarStudioPanel(){
   const panel = document.getElementById('avatarStudioPanel');
   const content = document.getElementById('avatarStudioPanelContent');
@@ -4163,6 +4260,7 @@ async function refreshPlayerScreen(){
   renderTitlesShopPanel();
   renderAvatarStudioPanel();
   renderSpinWheelPanel();
+  renderHighLowPanel();
   renderEmojiPalette();
   refreshPlayerNameBadge();
   playCosmeticSoundIfNewBall();
