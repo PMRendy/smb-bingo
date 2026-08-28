@@ -3260,10 +3260,10 @@ async function petAction(action,petId='',careType='',species='',name=''){
     if(!DB.pets) DB.pets={};
     DB.pets[currentPlayer.id]=j.pets||[];
     if(j.tokens!==null&&j.tokens!==undefined) _myTokenBalance=j.tokens;
-    const name=j.pet?.name||'Pet';
-    const msg=j.event==='egg_bought'?`🐣 ${name}'s egg is ready — care for it 3 times!`:
-      j.event==='hatched'?`✨ ${name} hatched! Keep your new pet healthy.`:
-      j.event==='level_up'?`🌟 ${name} reached Level ${j.pet.level}!`:`🐾 You cared for ${name}.`;
+    const petDisplayName=j.pet?.name||'Pet';
+    const msg=j.event==='egg_bought'?`🐣 ${petDisplayName}'s egg is ready — care for it 3 times!`:
+      j.event==='hatched'?`✨ ${petDisplayName} hatched! Keep your new pet healthy.`:
+      j.event==='level_up'?`🌟 ${petDisplayName} reached Level ${j.pet.level}!`:`🐾 You cared for ${petDisplayName}.`;
     playerLog(msg,'ok');
     await refreshTokenBalance();
     _petResultUntil=Date.now()+2500;
