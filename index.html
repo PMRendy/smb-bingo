@@ -229,6 +229,7 @@ textarea{resize:vertical;min-height:60px;}
 .pet-card.pet-dead{opacity:.72;filter:grayscale(.8);}
 .pet-portrait{width:76px;height:76px;border-radius:50%;margin:0 auto 7px;display:flex;align-items:center;justify-content:center;font-size:43px;background:radial-gradient(circle at 32% 26%,#fff9 0 8%,transparent 9%),linear-gradient(135deg,#fbcf70,#ec7fa5 52%,#8069cc);border:3px solid rgba(255,255,255,.68);box-shadow:0 5px 14px rgba(0,0,0,.3);overflow:hidden;}
 .pet-portrait img{width:100%;height:100%;object-fit:cover;transform:scale(1.2);}
+.pet-portrait img.pet-egg-img{transform:none;object-fit:contain;padding:4px;}
 .pet-portrait.pet-egg{font-size:48px;background:radial-gradient(circle at 32% 26%,#fff9 0 8%,transparent 9%),linear-gradient(135deg,#89d8ff,#a28ceb 55%,#f3a4c4);}
 .pet-portrait.pet-dead{background:#34475c;}
 .pet-name{text-align:center;color:var(--gold);font-weight:800;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
@@ -3178,6 +3179,7 @@ const PET_SPECIES = [
 const PET_MAX = 3;
 let _petBusy = false;
 let _petResultUntil = 0;
+let _petSelectedSpecies = 'dog';
 function petSpecies(id){ return PET_SPECIES.find(x=>x[0]===id) || ['pet','Pet','🐾']; }
 function petHealth(pet){
   if(pet.status==='dead') return 'Gone';
@@ -3207,7 +3209,7 @@ function petCard(pet){
     </div><button class="btn btn-outline btn-sm" style="width:100%;justify-content:center;margin-top:6px;" onclick="renamePet('${pet.id}')">✏️ Rename</button>`;
   const hatch=isEgg ? `<div class="pet-hatch">🥚 ${Math.min(3,pet.hatchCareCount||0)}/3 care actions to hatch</div>` : '';
   return `<div class="pet-card ${stateClass}">
-    <div class="pet-portrait ${portraitClass}">${isDead?'💤':isEgg?'🥚':`<img src="${COSMETICS_BACKEND_URL}/pets/${pet.species}.webp" alt="${petSpecies(pet.species)[1]}" onerror="this.replaceWith(document.createTextNode('${emoji}'))">`}</div>
+    <div class="pet-portrait ${portraitClass}">${isDead?'💤':isEgg?`<img class="pet-egg-img" src="${COSMETICS_BACKEND_URL}/pets/egg.gif" alt="Twitching pet egg" onerror="this.replaceWith(document.createTextNode('🥚'))">`:`<img src="${COSMETICS_BACKEND_URL}/pets/${pet.species}.gif" alt="Animated ${petSpecies(pet.species)[1]}" onerror="this.replaceWith(document.createTextNode('${emoji}'))">`}</div>
     <div class="pet-name">${safeName}</div>
     <div class="pet-meta">${stage} · ${health}${!isEgg&&!isDead?` · Lv ${pet.level||1}`:''}</div>
     ${meters}${hatch}${actions}
@@ -3218,11 +3220,15 @@ function renderBingoPetsPanel(){
   if(!panel||!content||!currentPlayer) return;
   panel.style.display='block';
   if(_petBusy || Date.now()<_petResultUntil) return;
+  // Polling rebuilds this panel every 5 seconds. Capture the live choice first
+  // so the refresh cannot jump the dropdown back to Dog while someone decides.
+  const existingSpeciesPicker=document.getElementById('petEggSpecies');
+  if(existingSpeciesPicker) _petSelectedSpecies=existingSpeciesPicker.value;
   const all=(DB.pets&&Array.isArray(DB.pets[currentPlayer.id]))?DB.pets[currentPlayer.id]:[];
   const active=all.filter(p=>p.status!=='dead'), dead=all.filter(p=>p.status==='dead');
-  const speciesOptions=PET_SPECIES.map(([id,name,emoji])=>`<option value="${id}">${emoji} ${name}</option>`).join('');
+  const speciesOptions=PET_SPECIES.map(([id,name,emoji])=>`<option value="${id}" ${id===_petSelectedSpecies?'selected':''}>${emoji} ${name}</option>`).join('');
   const buy=active.length<PET_MAX ? `<div style="margin-top:12px;padding-top:11px;border-top:1px solid rgba(255,255,255,.08);display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-      <select id="petEggSpecies" style="margin:0;flex:1;min-width:155px;">${speciesOptions}</select>
+      <select id="petEggSpecies" onchange="_petSelectedSpecies=this.value" style="margin:0;flex:1;min-width:155px;">${speciesOptions}</select>
       <button class="btn btn-teal btn-sm" onclick="buyPetEgg()">🐣 Buy Egg — 5 🪙</button>
     </div>` : `<div style="margin-top:12px;color:var(--muted);font-size:11px;">You are caring for the maximum ${PET_MAX}/${PET_MAX} pets.</div>`;
   content.innerHTML = (active.length?`<div class="pet-grid">${active.map(petCard).join('')}</div>`:`<div class="pet-empty">No pet yet. Choose an egg below and care for it 3 times to hatch your new companion. 🐣</div>`) + buy +
@@ -3231,6 +3237,7 @@ function renderBingoPetsPanel(){
 async function buyPetEgg(){
   const select=document.getElementById('petEggSpecies');
   if(!select) return;
+  _petSelectedSpecies=select.value;
   await petAction('buy_egg','', '', select.value);
 }
 async function renamePet(petId){
