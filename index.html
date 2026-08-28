@@ -695,12 +695,12 @@ textarea{resize:vertical;min-height:60px;}
       </div>
     </details>
 
-    <!-- Spin the Wheel: bet 1 token, once per shift. 6 segments: 0/1/0/2/0/3x. -->
+    <!-- Spin the Wheel: bet 1 token, up to 3 spins per shift. 6 segments: 0/1/0/2/0/3x. -->
     <details class="panel-group" id="spinWheelGroup">
       <summary>🎡 Spin the Wheel</summary>
       <div class="panel-group-body">
         <div class="panel" id="spinWheelPanel">
-          <div style="font-size:12px;color:var(--muted);margin-bottom:10px;">Bet 1 SMB Token, once per shift. Land on 0x and it's gone. Land on 1x/2x/3x and you win that many tokens back!</div>
+          <div style="font-size:12px;color:var(--muted);margin-bottom:10px;">Bet 1 SMB Token per spin — up to 3 spins per shift. Land on 0x and it's gone. Land on 1x/2x/3x and you win that many tokens back!</div>
           <div id="spinWheelPanelContent" style="text-align:center;">Loading...</div>
         </div>
       </div>
@@ -3437,7 +3437,7 @@ async function equipSkin(skinId){
 // 5 unlockable categories (Background, Hair, Outfit, Accessory, Frame).
 // Purchases/equips reuse the same generic buyCosmetic()/equipCosmetic() calls
 // as the Cosmetics Shop — only the gender toggle needs its own endpoint.
-// ─── Spin the Wheel: bet 1 token, once per shift, 6 segments 0/1/0/2/0/3x.
+// ─── Spin the Wheel: bet 1 token, up to 3 spins per shift, 6 segments 0/1/0/2/0/3x.
 // Shift boundary mirrors Marcus-Ganzo's graveyard shift (9PM-5AM PHT) so
 // "once per shift" lines up with the rest of the check-in system.
 const SPIN_WHEEL_SEGMENTS = [
@@ -3448,6 +3448,7 @@ const SPIN_WHEEL_SEGMENTS = [
   { mult: 0, color: '#3a1620', label: '0x' },
   { mult: 3, color: '#3a2f10', label: '3x' },
 ];
+const SPIN_WHEEL_MAX_PER_SHIFT = 3;
 function shiftStartMsClient(){
   const now = new Date();
   const hourPHT = Number(now.toLocaleString('en-US', { hour: '2-digit', hour12: false, timeZone: 'Asia/Manila' }));
@@ -3468,8 +3469,13 @@ function renderSpinWheelPanel(){
   if(_spinWheelAnimating || Date.now() < _spinWheelResultUntil) return; // don't blow away the mid-spin/result DOM
 
   const currentShift = shiftStartMsClient();
+  const spinsRec = (DB.spinWheelSpins && DB.spinWheelSpins[currentPlayer.id]) || null;
   const lastSpunShift = (DB.spinWheelShift && DB.spinWheelShift[currentPlayer.id]) || null;
-  const alreadySpun = lastSpunShift === currentShift;
+  let spinsUsed = 0;
+  if(spinsRec && spinsRec.shift === currentShift) spinsUsed = spinsRec.count;
+  else if(lastSpunShift === currentShift) spinsUsed = 1; // spun under the old once-per-shift rule this shift
+  const spinsLeft = Math.max(0, SPIN_WHEEL_MAX_PER_SHIFT - spinsUsed);
+  const alreadySpun = spinsLeft === 0;
 
   const gradientStops = SPIN_WHEEL_SEGMENTS.map((s,i) => `${s.color} ${i*60}deg ${(i+1)*60}deg`).join(',');
   const labels = SPIN_WHEEL_SEGMENTS.map((s,i) => {
@@ -3483,7 +3489,7 @@ function renderSpinWheelPanel(){
       <div id="spinWheelDial" style="width:200px;height:200px;border-radius:50%;background:conic-gradient(${gradientStops});border:4px solid var(--gold);position:relative;transition:transform 3.2s cubic-bezier(.17,.67,.16,.99);">${labels}</div>
     </div>
     <div id="spinWheelResult" style="min-height:20px;font-weight:700;margin-bottom:10px;"></div>
-    <button class="btn btn-gold btn-full" id="spinWheelBtn" ${alreadySpun ? 'disabled' : ''} onclick="spinTheWheel()">${alreadySpun ? 'Nakapag-spin ka na ngayong shift ✔️' : 'SPIN (1 🪙)'}</button>
+    <button class="btn btn-gold btn-full" id="spinWheelBtn" ${alreadySpun ? 'disabled' : ''} onclick="spinTheWheel()">${alreadySpun ? `Ubos na ang ${SPIN_WHEEL_MAX_PER_SHIFT} spins mo ngayong shift ✔️` : `SPIN (1 🪙) — ${spinsLeft}/${SPIN_WHEEL_MAX_PER_SHIFT} left`}</button>
   `;
 }
 
@@ -3505,9 +3511,8 @@ async function spinTheWheel(){
     });
     const j = await r.json();
     if(!r.ok || !j.ok){
-      btn.disabled = false;
-      btn.textContent = 'SPIN (1 🪙)';
       alert(j.error || 'Hindi na-process ang spin.');
+      renderSpinWheelPanel();
       return;
     }
 
@@ -3519,23 +3524,27 @@ async function spinTheWheel(){
 
     setTimeout(() => {
       _spinWheelAnimating = false;
-      if(!DB.spinWheelShift) DB.spinWheelShift = {};
-      DB.spinWheelShift[currentPlayer.id] = shiftStartMsClient();
+      if(!DB.spinWheelSpins) DB.spinWheelSpins = {};
+      DB.spinWheelSpins[currentPlayer.id] = { shift: shiftStartMsClient(), count: j.spinsUsed || SPIN_WHEEL_MAX_PER_SHIFT };
+      if(j.spinsLeft === 0){
+        if(!DB.spinWheelShift) DB.spinWheelShift = {};
+        DB.spinWheelShift[currentPlayer.id] = shiftStartMsClient();
+      }
+      const leftNote = j.spinsLeft > 0 ? ` <span style="color:var(--muted);font-weight:400;">(${j.spinsLeft} spin${j.spinsLeft > 1 ? 's' : ''} pa ngayong shift)</span>` : ` <span style="color:var(--muted);font-weight:400;">(ubos na ang spins mo ngayong shift)</span>`;
       if(j.multiplier === 0){
-        resultEl.innerHTML = `<span style="color:#ff6b6b;">💥 0x — nawala ang token mo!</span>`;
+        resultEl.innerHTML = `<span style="color:#ff6b6b;">💥 0x — nawala ang token mo!</span>${leftNote}`;
       } else if(j.multiplier === 1){
-        resultEl.innerHTML = `<span style="color:var(--muted);">😅 1x — walang nawala, walang nadagdag.</span>`;
+        resultEl.innerHTML = `<span style="color:var(--muted);">😅 1x — walang nawala, walang nadagdag.</span>${leftNote}`;
       } else {
-        resultEl.innerHTML = `<span style="color:var(--gold);">🎉 ${j.multiplier}x — nanalo ka ng ${j.payout} tokens!</span>`;
+        resultEl.innerHTML = `<span style="color:var(--gold);">🎉 ${j.multiplier}x — nanalo ka ng ${j.payout} tokens!</span>${leftNote}`;
       }
       refreshTokenBalance();
       _spinWheelResultUntil = Date.now() + 6000; // let the result message sit for 6s before the next poll refresh
       setTimeout(renderSpinWheelPanel, 6000);
     }, 3300);
   } catch(e){
-    btn.disabled = false;
-    btn.textContent = 'SPIN (1 🪙)';
     alert('Hindi na-process ang spin — try ulit.');
+    renderSpinWheelPanel();
   }
 }
 
