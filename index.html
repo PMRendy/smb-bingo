@@ -127,7 +127,7 @@ textarea{resize:vertical;min-height:60px;}
 .pcell.editable.center:hover{transform:none;}
 
 /* ── BINGO CARDS ── */
-.cards-wrap{display:grid;grid-template-columns:repeat(auto-fill,minmax(195px,1fr));gap:14px;}
+.cards-wrap{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(195px,100%),1fr));gap:14px;}
 .cards-wrap.view-3{grid-template-columns:repeat(3,1fr);gap:10px;}
 .cards-wrap.view-4{grid-template-columns:repeat(4,1fr);gap:8px;}
 .cards-wrap.view-3 .bingo-card,.cards-wrap.view-4 .bingo-card{padding:8px;}
@@ -3395,7 +3395,7 @@ async function choosePurchasedCard(candidateIndex){
     const r = await fetch(`${BACKEND_URL}/buy-card`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ playerId: currentPlayer.id }),
+      body: JSON.stringify({ playerId: currentPlayer.id, grid }),
     });
     const j = await r.json();
     if(!r.ok || !j.ok){
@@ -3404,14 +3404,16 @@ async function choosePurchasedCard(candidateIndex){
       refreshBuyCardPanel();
       return;
     }
-    // Success — add the chosen card to the player's hand and record the purchase locally too
+    // Success — the backend already appended this exact card to
+    // DB.game.playerCards atomically with the token debit (2026-08-28 fix:
+    // it used to be pushed locally here and saved separately, which could
+    // race the server's own atomic write). Mirror the server's own card
+    // object into local state for instant display.
     const g = DB.game;
     if(!g.playerCards[currentPlayer.id]) g.playerCards[currentPlayer.id] = [];
-    const nextIndex = g.playerCards[currentPlayer.id].length;
-    g.playerCards[currentPlayer.id].push({ cardIndex: nextIndex, grid, purchased: true });
+    g.playerCards[currentPlayer.id].push(j.card);
     if(!g.cardPurchases) g.cardPurchases = {};
     g.cardPurchases[currentPlayer.id] = j.purchasesThisShift;
-    await saveDB();
     _buyCardCandidates = null;
     _myTokenBalance = j.newTokenBalance;
     playerLog(`Nabili ang extra card! Natitirang SMB Tokens: ${j.newTokenBalance}`, 'ok');
