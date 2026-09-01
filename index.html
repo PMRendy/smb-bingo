@@ -450,7 +450,8 @@ textarea{resize:vertical;min-height:60px;}
             <!-- Prize for this game -->
             <div class="panel" style="padding:12px;margin-bottom:12px;background:var(--card-bg);" id="prizeSetupPanel">
               <div class="panel-title" style="margin-bottom:8px;">🏆 Prize This Game</div>
-              <input type="text" id="prizeInput" placeholder="Default: PHP 500 — type to override (e.g. Extra VL, Jollibee treat...)" style="margin-bottom:0;"/>
+              <input type="text" id="prizeInput" placeholder="Default: PHP 500 — type to override (e.g. Extra VL, Jollibee treat...)" style="margin-bottom:8px;"/>
+              <input type="number" id="tokenPrizeInput" min="0" step="1" placeholder="Optional: SMB Token pot to auto-split among winners (e.g. 50)" style="margin-bottom:0;"/>
             </div>
 
             <div id="adminLobbyStatus" style="font-size:12px;color:var(--muted);margin-bottom:8px;display:none;"></div>
@@ -856,6 +857,20 @@ textarea{resize:vertical;min-height:60px;}
     <p id="winModalText">Nanalo! Congratulations! 🎉</p>
     <p style="color:var(--gold);font-weight:700;font-size:16px;margin-bottom:16px;" id="winPatternText"></p>
     <button class="btn btn-gold btn-full" onclick="document.getElementById('winOverlay').classList.remove('show');">Close</button>
+  </div>
+</div>
+
+<!-- ════════════════════ WINNER PICKER MODAL ════════════════════ -->
+<div class="overlay" id="winnerPickerOverlay">
+  <div class="modal">
+    <h2>🏆 Confirm Winner(s)</h2>
+    <p style="font-size:12px;color:var(--muted);margin-bottom:10px;">Names already checked matched the winning pattern automatically. Check/uncheck to confirm who actually claimed BINGO — you can select more than one.</p>
+    <div id="winnerPickerList" style="text-align:left;max-height:260px;overflow-y:auto;margin-bottom:12px;"></div>
+    <div style="margin-bottom:12px;">
+      <input type="text" id="winnerPickerExtra" placeholder="Add a name not in the list (optional)" style="margin-bottom:0;"/>
+    </div>
+    <button class="btn btn-gold btn-full" onclick="confirmWinnerPicker()">Confirm & End Game</button>
+    <button class="btn btn-outline btn-full btn-sm" style="margin-top:6px;" onclick="document.getElementById('winnerPickerOverlay').classList.remove('show');">Cancel</button>
   </div>
 </div>
 
@@ -1963,6 +1978,9 @@ async function adminStartGame(){
 
   const prizeEl = document.getElementById('prizeInput');
   const prize = prizeEl ? prizeEl.value.trim() : '';
+  const tokenPrizeEl = document.getElementById('tokenPrizeInput');
+  const tokenPrizeRaw = tokenPrizeEl ? parseInt(tokenPrizeEl.value, 10) : 0;
+  const tokenPrize = Number.isInteger(tokenPrizeRaw) && tokenPrizeRaw > 0 ? tokenPrizeRaw : 0;
 
   DB.game={
     id:gameId,active:true,ended:false,
@@ -1972,6 +1990,7 @@ async function adminStartGame(){
     drawnNumbers:[],calledSet:[],
     pattern,
     prize: prize || 'PHP 500',
+    tokenPrize, // optional SMB Token pot, auto-split evenly among confirmed winners at game end
     playerCards:{},   // populated lazily as players RSVP (or all at once when lobby locks)
     playerMarks:{}, // {playerId: {cardIndex: {cellIndex: emoji}}}
     startedAt:Date.now(),
@@ -2177,27 +2196,70 @@ function checkAllWinners(){
   }
 }
 
+// Returns the active players whose card currently matches the pattern — same
+// detection checkAllWinners() logs, reused here to pre-check the winner picker.
+function detectMatchingPlayers(){
+  if(!DB.game) return [];
+  const calledSet=new Set(DB.game.calledSet);
+  const winners=[];
+  DB.players.filter(p=>p.active!==false).forEach(p=>{
+    if(!DB.game||!DB.game.playerCards) return;
+    const cards=DB.game.playerCards[p.id]||[];
+    const hasMatch=cards.some(card=>card&&card.grid&&checkWin(card.grid,DB.game.pattern,calledSet));
+    if(hasMatch) winners.push(p);
+  });
+  return winners;
+}
+
 function adminBingoClaim(){
-  const claimant=prompt('Sino ang nag-BINGO? (Enter name or leave blank):')||'Isang Bayani';
-  adminEndGame(claimant);
+  if(!DB.game) return;
+  const detected=detectMatchingPlayers();
+  const detectedIds=new Set(detected.map(p=>p.id));
+  const listEl=document.getElementById('winnerPickerList');
+  const activePlayers=DB.players.filter(p=>p.active!==false);
+  listEl.innerHTML = activePlayers.map(p=>`
+    <label style="display:flex;align-items:center;gap:8px;padding:6px 4px;font-size:13px;cursor:pointer;">
+      <input type="checkbox" value="${escapeHtml(p.name)}" ${detectedIds.has(p.id)?'checked':''}/>
+      ${escapeHtml(p.name)}${detectedIds.has(p.id)?' <span style="color:var(--success);font-size:11px;">(matched pattern)</span>':''}
+    </label>`).join('') || '<div style="color:var(--muted);font-size:12px;">No active players — add a name below.</div>';
+  document.getElementById('winnerPickerExtra').value='';
+  document.getElementById('winnerPickerOverlay').classList.add('show');
+}
+
+function confirmWinnerPicker(){
+  const checked=[...document.querySelectorAll('#winnerPickerList input[type=checkbox]:checked')].map(el=>el.value);
+  const extraRaw=(document.getElementById('winnerPickerExtra')?.value||'').trim();
+  const extras=extraRaw ? extraRaw.split(',').map(s=>s.trim()).filter(Boolean) : [];
+  const winners=[...new Set([...checked, ...extras])];
+  if(winners.length===0){
+    if(!confirm('Walang na-check na winner. Ituloy ba ng "Isang Bayani" bilang winner?')) return;
+    winners.push('Isang Bayani');
+  }
+  document.getElementById('winnerPickerOverlay').classList.remove('show');
+  adminEndGame(winners);
 }
 
 let _endingGame = false;
-async function adminEndGame(claimant){
+async function adminEndGame(winnersInput){
   // Guard against double-firing (double-click, or a second admin tab/device racing
   // to end the same game) which used to post the win announcement to Slack twice.
   if(!DB.game || DB.game.ended || _endingGame) return;
   _endingGame = true;
+  // Accept either the new array form or a legacy single-string claimant.
+  const winners = Array.isArray(winnersInput) ? winnersInput.filter(Boolean) : [winnersInput||'Isang Bayani'];
+  const claimant = winners.join(' & ');
   document.getElementById('adminBingoBtn').disabled=true;
-  DB.game.active=false;DB.game.ended=true;DB.game.claimedBy=claimant;
+  DB.game.active=false;DB.game.ended=true;DB.game.claimedBy=claimant;DB.game.winners=winners;
   DB.game.endedAt=Date.now();
 
-  // Log to game history
+  // Log to game history — winners kept as an array so the leaderboard can
+  // credit each name its own +1 win instead of tallying the joined string.
   if(!DB.gameHistory) DB.gameHistory=[];
   DB.gameHistory.unshift({
     id: DB.game.id,
     date: new Date().toLocaleDateString('en-PH',{year:'numeric',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit',hour12:true}),
-    winner: claimant,
+    winners: winners,
+    winner: claimant, // display-only joined string, kept for any old code path
     prize: DB.game.prize||'—',
     pattern: DB.game.pattern?.name||'—',
     draws: DB.game.drawnNumbers?.length||0,
@@ -2219,7 +2281,47 @@ async function adminEndGame(claimant){
   document.getElementById('winOverlay').classList.add('show');
   adminLog(`🏆 Game ended — BINGO: ${claimant}`,'ok');
   postToSlack(buildWinMessage(claimant));
+  await payoutTokenPrize(winners);
   refreshAdminGame();
+}
+
+// Splits the optional Token Prize pot evenly across confirmed winners and
+// awards it via the same /give-tokens endpoint the manual "Award Tokens"
+// button uses, drawing from Rendy's admin token pool. Any remainder from an
+// uneven split goes to the first winner and is called out in the Slack log.
+async function payoutTokenPrize(winners){
+  const pot = DB.game?.tokenPrize || 0;
+  if(!pot || winners.length===0) return;
+  const share = Math.floor(pot / winners.length);
+  const remainder = pot - (share * winners.length);
+  if(share < 1){
+    adminLog(`⚠️ Token pot of ${pot} is too small to split across ${winners.length} winner(s) — award manually instead.`,'err');
+    return;
+  }
+  const results=[];
+  for(let i=0;i<winners.length;i++){
+    const name = winners[i];
+    const player = DB.players.find(p=>p.name===name);
+    if(!player){
+      results.push(`${name}: skipped (not a roster player — award manually)`);
+      continue;
+    }
+    const amount = share + (i===0 ? remainder : 0);
+    try {
+      const r = await fetch(`${BACKEND_URL}/give-tokens`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fromPlayerId: ADMIN_AWARD_FROM_ID, toPlayerId: player.id, amount }),
+      });
+      const j = await r.json();
+      if(!r.ok || !j.ok){ results.push(`${name}: FAILED (${j.error||'unknown error'})`); continue; }
+      results.push(`${name}: +${amount} 🪙`);
+    } catch(e){
+      results.push(`${name}: FAILED (network error)`);
+    }
+  }
+  adminLog(`🎁 Token prize pot (${pot}) split: ${results.join(', ')}`, 'ok');
+  postToSlack(`🎁 Token prize pot of ${pot} split among tonight's winners: ${results.join(', ')}`);
 }
 
 // The old backend's /state endpoint is a plain full-replace with no version
@@ -2494,11 +2596,13 @@ function refreshDashboard(){
     if(history.length===0){
       lbEl.innerHTML='<div class="empty-state">No games completed yet.</div>';
     } else {
-      // Tally wins per player
+      // Tally wins per player — new entries store `winners` as an array so
+      // each name gets its own +1; old entries only have the joined `winner`
+      // string and fall back to counting as one entry (as before).
       const tally={};
       history.forEach(h=>{
-        if(!h.winner) return;
-        tally[h.winner]=(tally[h.winner]||0)+1;
+        const names = Array.isArray(h.winners) && h.winners.length>0 ? h.winners : (h.winner ? [h.winner] : []);
+        names.forEach(name=>{ tally[name]=(tally[name]||0)+1; });
       });
       const sorted=Object.entries(tally).sort((a,b)=>b[1]-a[1]);
       const medals=['🥇','🥈','🥉'];
@@ -4248,7 +4352,10 @@ function renderPlayerWinsLeaderboard(){
   if(!el) return;
   const history = DB.gameHistory || [];
   const tally = {};
-  history.forEach(h => { if(h.winner) tally[h.winner] = (tally[h.winner]||0) + 1; });
+  history.forEach(h => {
+    const names = Array.isArray(h.winners) && h.winners.length>0 ? h.winners : (h.winner ? [h.winner] : []);
+    names.forEach(name => { tally[name] = (tally[name]||0) + 1; });
+  });
   const hiddenNames = (DB.players||[]).filter(p => LEADERBOARD_HIDDEN_IDS.includes(p.id)).map(p => p.name);
   const sorted = Object.entries(tally).filter(([name]) => !hiddenNames.includes(name)).sort((a,b) => b[1]-a[1]).slice(0, 10);
   if(sorted.length === 0){
