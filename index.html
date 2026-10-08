@@ -1115,6 +1115,9 @@ let nextDrawAt = null;
 // ════════════════════════════════════════════════════════════
 const BACKEND_URL = 'https://smb-bingo-backend.netlify.app';
 const COSMETICS_BACKEND_URL = 'https://smb-bingo-cosmetics.netlify.app';
+const CARDS_BACKEND_URL = 'https://smb-bingo-cards.netlify.app'; // buy-card: 8 tokens, max 10 cards/game
+const CARD_PRICE = 8;
+const MAX_CARDS_PER_GAME = 10;
 
 let _dbLoaded = false; // tracks whether the very first load has completed
 
@@ -3239,7 +3242,7 @@ const CASHIN_MESSAGES = [
 ];
 const BUYCARD_MESSAGES = [
   'Namili si {name} ng 1 Bingo Card. May lamang ka na. 🙂',
-  '🎟️ Si {name} ay nag-invest ng 1 SMB Token para sa extra card. Bet na bet!',
+  '🎟️ Si {name} ay nag-invest ng 8 SMB Tokens para sa extra card. Bet na bet!',
   'Isa pang card para kay {name}! Swerte na lang ang kailangan ngayon. 🍀',
   '{name} said "one more chance" — bought an extra card! 🎫',
 ];
@@ -3454,16 +3457,16 @@ async function refreshBuyCardPanel(){
   if((g.skipPlayerIds||[]).includes(currentPlayer.id)){ panel.style.display='none'; return; }
 
   panel.style.display='block';
-  const purchasesThisShift = (g.cardPurchases && g.cardPurchases[currentPlayer.id]) || 0;
-  if(purchasesThisShift >= 3){
-    content.innerHTML = `<div>Nakabili ka na ng max 3 extra cards ngayong shift. Good luck sa laro! 🍀</div>`;
+  const cardsHeld = ((g.playerCards && g.playerCards[currentPlayer.id]) || []).length;
+  if(cardsHeld >= MAX_CARDS_PER_GAME){
+    content.innerHTML = `<div>Hawak mo na ang max ${MAX_CARDS_PER_GAME} cards ngayong game. Good luck sa laro! 🍀</div>`;
     return;
   }
 
   const balance = _myTokenBalance ?? 0;
   if(_buyCardCandidates){
     // Player already hit "Buy" — show the 7 candidates to pick from
-    content.innerHTML = `<div style="margin-bottom:8px;">Piliin ang isa sa 7 cards na ito (1 🪙 SMB Token):</div>` +
+    content.innerHTML = `<div style="margin-bottom:8px;">Piliin ang isa sa 7 cards na ito (${CARD_PRICE} 🪙 SMB Tokens):</div>` +
       `<div style="display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;">` +
       _buyCardCandidates.map((grid,i) => `
         <div style="min-width:110px;border:1px solid rgba(245,200,66,.25);border-radius:8px;padding:6px;">
@@ -3471,11 +3474,11 @@ async function refreshBuyCardPanel(){
           <button class="btn btn-gold btn-sm" style="width:100%;" onclick="choosePurchasedCard(${i})">Pick this</button>
         </div>`).join('') +
       `</div>`;
-  } else if(balance >= 1){
-    content.innerHTML = `<div style="margin-bottom:8px;">Balance: <strong>${balance} 🪙</strong> — 1 SMB Token = 1 extra card (${purchasesThisShift}/3 nabili ngayong shift).</div>` +
-      `<button class="btn btn-gold btn-sm" style="width:100%;" onclick="startBuyCard()">🎟️ Buy an Extra Card (1 🪙)</button>`;
+  } else if(balance >= CARD_PRICE){
+    content.innerHTML = `<div style="margin-bottom:8px;">Balance: <strong>${balance} 🪙</strong> — ${CARD_PRICE} SMB Tokens = 1 extra card (${cardsHeld}/${MAX_CARDS_PER_GAME} cards hawak mo ngayong game).</div>` +
+      `<button class="btn btn-gold btn-sm" style="width:100%;" onclick="startBuyCard()">🎟️ Buy an Extra Card (${CARD_PRICE} 🪙)</button>`;
   } else {
-    content.innerHTML = `<div>Balance: <strong>${balance} 🪙</strong> — kailangan ng 1 SMB Token para makabili ng extra card. Cash in muna sa panel sa taas! 💪</div>`;
+    content.innerHTML = `<div>Balance: <strong>${balance} 🪙</strong> — kailangan ng ${CARD_PRICE} SMB Tokens para makabili ng extra card. Cash in muna sa panel sa taas! 💪</div>`;
   }
 }
 
@@ -3496,7 +3499,7 @@ async function choosePurchasedCard(candidateIndex){
   if(!currentPlayer || !DB.game || !_buyCardCandidates) return;
   const grid = _buyCardCandidates[candidateIndex];
   try {
-    const r = await fetch(`${BACKEND_URL}/buy-card`, {
+    const r = await fetch(`${CARDS_BACKEND_URL}/buy-card`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ playerId: currentPlayer.id, grid }),
