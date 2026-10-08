@@ -1115,8 +1115,8 @@ let nextDrawAt = null;
 // ════════════════════════════════════════════════════════════
 const BACKEND_URL = 'https://smb-bingo-backend.netlify.app';
 const COSMETICS_BACKEND_URL = 'https://smb-bingo-cosmetics.netlify.app';
-const CARDS_BACKEND_URL = 'https://smb-bingo-cards.netlify.app'; // buy-card: 8 tokens, max 10 cards/game
-const CARD_PRICE = 8;
+const CARDS_BACKEND_URL = 'https://smb-bingo-cards.netlify.app'; // buy-card: 5 tokens, max 10 cards/game
+const CARD_PRICE = 5;
 const MAX_CARDS_PER_GAME = 10;
 
 let _dbLoaded = false; // tracks whether the very first load has completed
@@ -3242,7 +3242,7 @@ const CASHIN_MESSAGES = [
 ];
 const BUYCARD_MESSAGES = [
   'Namili si {name} ng 1 Bingo Card. May lamang ka na. 🙂',
-  '🎟️ Si {name} ay nag-invest ng 8 SMB Tokens para sa extra card. Bet na bet!',
+  '🎟️ Si {name} ay nag-invest ng 5 SMB Tokens para sa extra card. Bet na bet!',
   'Isa pang card para kay {name}! Swerte na lang ang kailangan ngayon. 🍀',
   '{name} said "one more chance" — bought an extra card! 🎫',
 ];
