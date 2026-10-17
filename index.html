@@ -536,8 +536,8 @@ textarea{resize:vertical;min-height:60px;}
         <div class="panel-title">⚙️ Game Settings</div>
         <div class="grid-2">
           <div>
-            <label>Admin PIN (4 digits)</label>
-            <input type="text" id="settingsAdminPin" maxlength="4" placeholder="Current: 0000"/>
+            <label>New Admin PIN (4 digits)</label>
+            <input type="text" id="settingsAdminPin" maxlength="4" inputmode="numeric" autocomplete="off" placeholder="Leave blank to keep current"/>
           </div>
           <div>
             <label>Draw Interval</label>
@@ -554,19 +554,14 @@ textarea{resize:vertical;min-height:60px;}
           </div>
         </div>
         <div>
-          <label>Slack Webhook URL</label>
-          <input type="text" id="settingsWebhook" value="https://hooks.slack.com/services/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"/>
-        </div>
-        <div>
-          <label>Slack Proxy URL <span style="color:var(--muted);font-weight:400;text-transform:none;">(Render.com — recommended)</span></label>
-          <input type="text" id="settingsProxyUrl" placeholder="e.g. https://smb-slack-proxy.onrender.com/slack"/>
+          <label>Slack Webhook URL <span id="settingsWebhookTail" style="color:var(--muted);font-weight:400;text-transform:none;"></span></label>
+          <input type="text" id="settingsWebhook" autocomplete="off" placeholder="Paste a NEW webhook here only if you want to change it"/>
         </div>
         <div class="flex-row" style="margin-bottom:12px;">
           <button class="btn btn-teal btn-sm" onclick="testSlackConnection()">📡 Send Test Message</button>
           <span id="testSlackStatus" style="font-size:12px;color:var(--muted);"></span>
         </div>
-        <div class="info-box">✅ <strong>Recommended:</strong> Set the Proxy URL above (deploy the included <code>smb-slack-proxy</code> Node.js server to Render.com — see README). When a Proxy URL is set, all Slack posts route through it and avoid CORS issues entirely.</div>
-        <div class="warn-box">⚠️ Without a Proxy URL, the game falls back to posting directly to the webhook from the browser, which Slack's CORS policy may silently block. The game still works 100% without Slack either way.</div>
+        <div class="info-box">🔒 The admin PIN and Slack webhook are stored on the server only — they are no longer visible to players' browsers. All Slack posts go through the secure server endpoint.</div>
         <button class="btn btn-gold btn-sm" onclick="saveSettings()">Save Settings</button>
         <div id="settingsSaved" style="color:var(--success);font-size:12px;margin-top:6px;"></div>
       </div>
@@ -1092,9 +1087,6 @@ function buildDefaultPlayers() {
 }
 
 let DB = {
-  adminPin: '0000',
-  webhookUrl: 'https://hooks.slack.com/services/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',
-  proxyUrl: '',
   drawIntervalMin: 10,
   players: [],
   game: null,
@@ -1117,6 +1109,16 @@ const BACKEND_URL = 'https://smb-bingo-backend.netlify.app';
 const COSMETICS_BACKEND_URL = 'https://smb-bingo-cosmetics.netlify.app';
 const CARDS_BACKEND_URL = 'https://smb-bingo-cards.netlify.app'; // buy-card: 5 tokens, max 10 cards/game
 const CARD_PRICE = 5;
+// Admin PIN check, admin settings and Slack posting (secrets live server-side only)
+const BINGO_ADMIN_URL = 'https://ebeggngsggwnxufovkco.supabase.co/functions/v1/bingo-admin';
+let _adminPinSession = '';   // PIN typed at admin login, kept in memory only (never saved)
+const SECRET_KEYS = ['adminPin','webhookUrl','proxyUrl'];
+function stripSecrets(obj){ const o={...obj}; SECRET_KEYS.forEach(k=>delete o[k]); return o; }
+async function bingoAdminCall(body){
+  const r = await fetch(BINGO_ADMIN_URL, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
+  let j={}; try{ j=await r.json(); }catch(e){}
+  return j;
+}
 const MAX_CARDS_PER_GAME = 10;
 
 let _dbLoaded = false; // tracks whether the very first load has completed
@@ -1148,7 +1150,7 @@ async function saveDBFull() {
     const resp = await fetch(`${BACKEND_URL}/state`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(DB),
+      body: JSON.stringify(stripSecrets(DB)),
     });
     if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
   } catch (e) {
@@ -1177,7 +1179,7 @@ async function saveDB(markUpdate) {
     // explicit patch for a single mark/unmark action. Sent alongside the full game
     // snapshot so the server can apply it AFTER its safe union merge, guaranteeing
     // this specific action (including deletions/unmarks) always takes effect.
-    const payload = markUpdate ? { ...DB, markUpdate } : DB;
+    const payload = markUpdate ? { ...stripSecrets(DB), markUpdate } : stripSecrets(DB);
 
     // Use /state/merge — server merges drawnNumbers, calledSet, playerMarks safely
     const resp = await fetch(`${BACKEND_URL}/state/merge`, {
@@ -1285,7 +1287,7 @@ async function loadDB() {
         await fetch(`${BACKEND_URL}/state/merge`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ ...remote, updatedAt: Date.now() }),
+          body: JSON.stringify({ ...stripSecrets(remote), updatedAt: Date.now() }),
         });
       } catch(e) { /* best effort */ }
     }
@@ -1385,12 +1387,19 @@ function getPinValue(containerId) {
 async function submitAdminPin() {
   await _initialLoadPromise; // ensure first backend load has completed
   const pin = getPinValue('adminPinInputs');
-  if(pin === DB.adminPin) {
+  const errEl = document.getElementById('adminPinError');
+  if(!/^\d{4}$/.test(pin)) { errEl.textContent='Enter all 4 digits.'; setTimeout(()=>{ errEl.textContent=''; },2000); return; }
+  let chk = {};
+  try { chk = await bingoAdminCall({ action:'login', pin }); }
+  catch(e) { chk = { ok:false, error:'network' }; }
+  if(chk.ok) {
+    _adminPinSession = pin;
     showScreen('screen-admin');
     refreshRosterUI();
     refreshAdminGame();
-    document.getElementById('settingsWebhook').value = DB.webhookUrl;
-    document.getElementById('settingsProxyUrl').value = DB.proxyUrl || '';
+    document.getElementById('settingsWebhook').value = '';
+    const tailEl = document.getElementById('settingsWebhookTail');
+    if(tailEl) tailEl.textContent = chk.webhookTail ? `(current: ••••${chk.webhookTail})` : '(not set yet)';
     const sel=document.getElementById('settingsInterval'); if(sel) sel.value = DB.drawIntervalMin||10;
 
     if(_adminPoll) clearInterval(_adminPoll);
@@ -1399,8 +1408,12 @@ async function submitAdminPin() {
       if(_currentAdminTab==='teambattles') refreshAdminTeamBattlesTab();
     }, 5000);
   } else {
-    document.getElementById('adminPinError').textContent='Maling PIN! Try ulit.';
-    setTimeout(()=>document.getElementById('adminPinError').textContent='',2000);
+    errEl.textContent = chk.locked
+      ? `Too many wrong tries. Locked — try ulit in ${Math.ceil((chk.retryInSec||600)/60)} min.`
+      : chk.error==='network' ? 'Connection error — try ulit.'
+      : `Maling PIN! Try ulit.${typeof chk.triesLeft==='number' ? ` (${chk.triesLeft} tries left)` : ''}`;
+    buildPinInputs('adminPinInputs','adminPinError');
+    setTimeout(()=>{ errEl.textContent=''; },4000);
   }
 }
 
@@ -2160,11 +2173,9 @@ All ${DB.game.drawnNumbers?.length||75} numbers were called with no BINGO claime
       ];
       // Capture the message immediately — don't rely on DB state inside setTimeout
       const tenMsg = tenDrawMsgs[Math.floor((drawCount/10 - 1) % tenDrawMsgs.length)];
-      const webhookSnap = DB.webhookUrl;
-      const proxySnap = DB.proxyUrl;
       adminLog(`📊 10-draw check-in #${drawCount/10} — posting to Slack...`,'info');
       // Post immediately (no delay) to avoid any stale-state issues
-      postToSlack(tenMsg, webhookSnap, proxySnap);
+      postToSlack(tenMsg);
     }
 
     // Clear any pending BINGO claim when admin manually draws — means admin
@@ -4793,60 +4804,50 @@ function adminLog(msg,type='info'){
 //  SETTINGS
 // ════════════════════════════════════════════════════════════
 async function saveSettings(){
+  const savedEl=document.getElementById('settingsSaved');
   const pin=document.getElementById('settingsAdminPin').value.trim();
   const interval=parseInt(document.getElementById('settingsInterval').value);
   const webhook=document.getElementById('settingsWebhook').value.trim();
-  const proxy=document.getElementById('settingsProxyUrl').value.trim();
   if(pin&&!/^\d{4}$/.test(pin)){alert('PIN ay dapat 4 digits!');return;}
-  if(pin) DB.adminPin=pin;
+  if(webhook&&!/^https:\/\/hooks\.slack\.com\/services\//.test(webhook)){alert('Webhook must start with https://hooks.slack.com/services/');return;}
   if([1,3,5,10,15,20,25,30].includes(interval)) DB.drawIntervalMin=interval;
-  if(webhook) DB.webhookUrl=webhook;
-  DB.proxyUrl=proxy;
+
+  if(pin||webhook){
+    let r={};
+    try{ r=await bingoAdminCall({ action:'settings', pin:_adminPinSession, newPin:pin||null, webhookUrl:webhook||null }); }
+    catch(e){ r={ok:false,error:'Connection error — try ulit.'}; }
+    if(!r.ok){
+      savedEl.style.color='var(--danger)';
+      savedEl.textContent = r.locked ? '⚠️ Locked after too many wrong PINs — log in again later.' : `⚠️ ${r.error||'Not saved — log out and log in again.'}`;
+      return;
+    }
+    if(pin) _adminPinSession=pin;
+    document.getElementById('settingsAdminPin').value='';
+    document.getElementById('settingsWebhook').value='';
+    const tailEl=document.getElementById('settingsWebhookTail');
+    if(tailEl&&r.webhookTail) tailEl.textContent=`(current: ••••${r.webhookTail})`;
+  }
 
   await saveDB();
   updateTimerIntervalLabel();
-  document.getElementById('settingsSaved').textContent='✅ Settings saved!';
-  setTimeout(()=>document.getElementById('settingsSaved').textContent='',3000);
+  savedEl.style.color='var(--success)';
+  savedEl.textContent='✅ Settings saved!';
+  setTimeout(()=>savedEl.textContent='',3000);
 }
 
 async function testSlackConnection(){
   const statusEl = document.getElementById('testSlackStatus');
   statusEl.textContent = 'Sending...';
   statusEl.style.color = 'var(--muted)';
-
-  // Always read directly from the Settings fields — never trust in-memory DB
-  // in case loadDB() hasn't completed yet or settings weren't synced
-  const webhookFromField = document.getElementById('settingsWebhook')?.value?.trim();
-  const proxyFromField   = document.getElementById('settingsProxyUrl')?.value?.trim();
-
-  if(!proxyFromField){
-    statusEl.textContent = '⚠️ Proxy URL field is empty — paste your Render URL ending in /slack first, then Save Settings.';
-    statusEl.style.color = 'var(--danger)';
-    return;
-  }
-  if(!webhookFromField){
-    statusEl.textContent = '⚠️ Slack Webhook URL field is empty — paste your webhook URL first.';
-    statusEl.style.color = 'var(--danger)';
-    return;
-  }
-
-  await postToSlack(
-    '🧪 *Test message from SMB BINGO Admin Settings.* Kung nakikita mo ito, gumagana ang connection! ✅',
-    webhookFromField,
-    proxyFromField
-  );
-
-  const adminStatus = document.getElementById('adminSlackStatus');
-  if(adminStatus){
-    statusEl.textContent = adminStatus.textContent;
-    statusEl.style.color = adminStatus.className.includes('ok') ? 'var(--success)' : 'var(--danger)';
-  }
+  const ok = await postToSlack('🧪 *Test message from SMB BINGO Admin Settings.* Kung nakikita mo ito, gumagana ang connection! ✅');
+  statusEl.textContent = ok ? '✅ Test message sent to Slack!' : '⚠️ Slack post failed — check that the webhook is set and still active.';
+  statusEl.style.color = ok ? 'var(--success)' : 'var(--danger)';
 }
 
 function clearAllData(){
   if(!confirm('I-clear lahat ng data? Hindi ito mababawi!')) return;
   localStorage.removeItem('smbBingoDB');
-  DB={adminPin:'0000',webhookUrl:'https://hooks.slack.com/services/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',proxyUrl:'',drawIntervalMin:30,players:[],game:null};
+  DB={drawIntervalMin:30,players:[],game:null};
   refreshRosterUI();refreshAdminGame();
   alert('Data cleared! Back to zero.');
 }
@@ -4977,46 +4978,17 @@ function buildGameShowWin(claimant, drawCount, calledList, patternName, prize){
 //  SLACK DELIVERY — routes through Render proxy if configured,
 //  falls back to direct webhook fetch otherwise
 // ════════════════════════════════════════════════════════════
-async function postToSlack(text, webhookOverride, proxyOverride){
+async function postToSlack(text /* legacy extra args ignored */){
   const status=document.getElementById('adminSlackStatus');
-  // Priority: explicit override → DB memory → Settings field values (fallback)
-  const webhookUrl = webhookOverride
-    || DB.webhookUrl
-    || document.getElementById('settingsWebhook')?.value?.trim();
-  const proxyUrl = proxyOverride
-    || DB.proxyUrl
-    || document.getElementById('settingsProxyUrl')?.value?.trim();
-  const useProxy = !!(proxyUrl && proxyUrl.trim());
-
   try{
-    let resp;
-    if(useProxy){
-      resp = await fetch(proxyUrl.trim(), {
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({ webhookUrl, payload: { text } })
-      });
-    } else {
-      resp = await fetch(webhookUrl,{
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({text})
-      });
-    }
-
-    if(resp.ok||resp.status===0){
-      if(status){status.textContent=`✅ Slack post sent! ${useProxy?'(via proxy)':'(direct)'}`;status.className='slack-status ok';}
-    } else {
-      throw new Error(`HTTP ${resp.status}`);
-    }
+    const r = await bingoAdminCall({ action:'slack', text });
+    if(!r.ok) throw new Error(r.error || `Slack HTTP ${r.slackStatus||'?'}`);
+    if(status){status.textContent='✅ Slack post sent!';status.className='slack-status ok';}
+    return true;
   }catch(e){
-    if(status){
-      status.textContent = useProxy
-        ? `⚠️ Proxy error: ${e.message}. Check the proxy URL/deployment.`
-        : `⚠️ Slack: CORS issue — set a Proxy URL in Settings for reliable delivery.`;
-      status.className='slack-status err';
-    }
-    adminLog&&adminLog(`Slack failed: ${e.message}`,'err');
+    if(status){status.textContent=`⚠️ Slack error: ${e.message}`;status.className='slack-status err';}
+    try{ adminLog&&adminLog(`Slack failed: ${e.message}`,'err'); }catch(_){}
+    return false;
   }
 }
 
