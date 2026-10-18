@@ -746,6 +746,17 @@ textarea{resize:vertical;min-height:60px;}
       </div>
     </details>
 
+    <!-- RPS Duel: 1v1 async Rock-Paper-Scissors (best of 3). Stake 10-50, 3 duels/shift, 2/day per pair, 2-hr expiry, 10% house cut (none on ties). Server: Supabase edge fn bingo-rps. -->
+    <details class="panel-group" id="rpsGroup" ontoggle="if(this.open) rpsFetch(true)">
+      <summary>✊ RPS Duel (1v1) <span id="rpsBadge" style="display:none;background:var(--danger);color:#fff;border-radius:10px;padding:1px 8px;margin-left:6px;font-size:11px;letter-spacing:0;"></span></summary>
+      <div class="panel-group-body">
+        <div class="panel" id="rpsPanel">
+          <div style="font-size:12px;color:var(--muted);margin-bottom:10px;">Challenge a teammate to Rock-Paper-Scissors, best of 3! Pick all 3 rounds in secret, stake 10–50 SMB Tokens each. Your opponent has 2 hours to accept, or you get your tokens back. Winner takes the pot minus a 10% house cut. Tie = both refunded. Max 3 duels per shift and 2 per day with the same person.</div>
+          <div id="rpsPanelContent" style="font-size:13px;">Loading...</div>
+        </div>
+      </div>
+    </details>
+
     <!-- Leaderboards (collapsible group — Wins, Richest, Big Spender, Check-in Points) -->
     <details class="panel-group" id="leaderboardsGroup">
       <summary>🏆 Leaderboards</summary>
@@ -3915,6 +3926,214 @@ async function playHighLow(guess){
   }
 }
 
+// ─── RPS Duel: 1v1 async Rock-Paper-Scissors (best of 3) ─────────────────────
+// All picks, token escrow, caps and payouts live server-side (Supabase edge fn bingo-rps).
+const RPS_URL = 'https://ebeggngsggwnxufovkco.supabase.co/functions/v1/bingo-rps';
+const RPS_EMO = { R:'✊', P:'✋', S:'✌️' };
+const RPS_NAME = { R:'Rock', P:'Paper', S:'Scissors' };
+const RPS_STAKES = [10,15,20,25,30,35,40,45,50];
+let _rpsData = null, _rpsLastFetch = 0, _rpsFetching = false, _rpsBusy = false, _rpsSig = '', _rpsFor = null;
+let _rpsNew = { opponentId:'', stake:10, picks:[] };
+let _rpsAcceptPicks = {};      // duelId -> picks
+let _rpsReveal = null;         // { duel, shown } — round-by-round reveal after accepting
+let _rpsMsg = '';
+
+async function rpsCall(body){
+  const r = await fetch(RPS_URL, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
+  let j = {}; try { j = await r.json(); } catch(e){}
+  if(!r.ok && !j.error) j.error = 'Server error — try ulit.';
+  return j;
+}
+
+async function rpsFetch(force){
+  if(!currentPlayer || _rpsFetching) return;
+  if(_rpsFor !== currentPlayer.id){ _rpsData = null; _rpsSig = ''; _rpsFor = currentPlayer.id; _rpsNew = { opponentId:'', stake:10, picks:[] }; _rpsAcceptPicks = {}; force = true; }
+  const open = document.getElementById('rpsGroup')?.open;
+  const every = open ? 20000 : 120000;
+  if(!force && (document.hidden || Date.now() - _rpsLastFetch < every)) return;
+  _rpsFetching = true; _rpsLastFetch = Date.now();
+  try {
+    const j = await rpsCall({ action:'list', playerId: currentPlayer.id });
+    if(j.ok){ _rpsData = j; }
+  } catch(e){ /* transient */ }
+  _rpsFetching = false;
+  renderRpsPanel(true);
+}
+
+function rpsLeft(ms){
+  const m = Math.max(0, Math.round(ms/60000));
+  return m >= 60 ? `${Math.floor(m/60)}h ${m%60}m` : `${m}m`;
+}
+
+function rpsPickerHtml(picks, onPick, onClear){
+  const slots = [0,1,2].map(i => `<button type="button" class="btn" style="width:48px;height:48px;font-size:22px;padding:0;border:2px ${picks[i]?'solid var(--gold)':'dashed var(--muted)'};background:var(--panel);color:var(--white);" onclick="${onClear}(${i})" title="Round ${i+1}">${picks[i]?RPS_EMO[picks[i]]:'?'}</button>`).join('');
+  const choices = ['R','P','S'].map(k => `<button type="button" class="btn" style="width:56px;height:56px;font-size:28px;padding:0;background:var(--card-bg);" ${picks.length>=3?'disabled':''} onclick="${onPick}('${k}')" title="${RPS_NAME[k]}">${RPS_EMO[k]}</button>`).join('');
+  return `<div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin:6px 0 4px;">Your 3 rounds (tap a slot to clear)</div>
+    <div style="display:flex;gap:6px;justify-content:center;margin-bottom:8px;">${slots}</div>
+    <div style="display:flex;gap:8px;justify-content:center;">${choices}</div>`;
+}
+
+function rpsNewPick(k){ if(_rpsNew.picks.length < 3){ _rpsNew.picks.push(k); renderRpsPanel(true); } }
+function rpsNewClear(i){ _rpsNew.picks.splice(i,1); renderRpsPanel(true); }
+function rpsAccPick(id, k){ const p = _rpsAcceptPicks[id] || (_rpsAcceptPicks[id] = []); if(p.length < 3){ p.push(k); renderRpsPanel(true); } }
+function rpsAccClear(id, i){ (_rpsAcceptPicks[id] || []).splice(i,1); renderRpsPanel(true); }
+
+function rpsResultLine(d){
+  const me = currentPlayer.id;
+  const iAmC = d.challengerId === me;
+  const oppName = escapeHtml(iAmC ? d.opponentName : d.challengerName);
+  if(d.status === 'declined') return iAmC ? `🙅 ${oppName} declined — ${d.stake} 🪙 refunded` : `🙅 You declined ${oppName}'s challenge`;
+  if(d.status === 'expired') return iAmC ? `⌛ ${oppName} didn't answer — ${d.stake} 🪙 refunded` : `⌛ ${oppName}'s challenge expired`;
+  if(d.status === 'cancelled') return iAmC ? `↩️ You cancelled vs ${oppName} — ${d.stake} 🪙 refunded` : `↩️ ${oppName} cancelled their challenge`;
+  const myW = iAmC ? d.challengerWins : d.opponentWins, thW = iAmC ? d.opponentWins : d.challengerWins;
+  const myP = iAmC ? d.challengerPicks : d.opponentPicks, thP = iAmC ? d.opponentPicks : d.challengerPicks;
+  const rounds = (myP && thP) ? [0,1,2].map(i => `${RPS_EMO[myP[i]]}${RPS_EMO[thP[i]]}`).join(' · ') : '';
+  let res;
+  if(!d.winnerId) res = `<span style="color:var(--muted);">🤝 Tie ${myW}–${thW} vs ${oppName} — refunded</span>`;
+  else if(d.winnerId === me) res = `<span style="color:var(--success);">🏆 Won ${myW}–${thW} vs ${oppName} · +${d.payout} 🪙</span>`;
+  else res = `<span style="color:var(--danger);">💥 Lost ${myW}–${thW} vs ${oppName} · −${d.stake} 🪙</span>`;
+  return `${res}<div style="font-size:11px;color:var(--muted);">You vs them: ${rounds}</div>`;
+}
+
+function rpsRevealHtml(){
+  const d = _rpsReveal.duel, n = _rpsReveal.shown;
+  const me = currentPlayer.id, iAmC = d.challengerId === me;
+  const myP = iAmC ? d.challengerPicks : d.opponentPicks, thP = iAmC ? d.opponentPicks : d.challengerPicks;
+  const them = escapeHtml(iAmC ? d.opponentName : d.challengerName);
+  const rows = [0,1,2].map(i => {
+    if(i >= n) return `<tr><td>${i+1}</td><td>❔</td><td>❔</td><td style="color:var(--muted);">…</td></tr>`;
+    const a = myP[i], b = thP[i];
+    const w = a === b ? '<span style="color:var(--muted);">Draw</span>' : (({R:'S',P:'R',S:'P'})[a] === b ? '<span style="color:var(--success);font-weight:700;">You</span>' : `<span style="color:var(--danger);font-weight:700;">${them}</span>`);
+    return `<tr><td>${i+1}</td><td style="font-size:22px;">${RPS_EMO[a]}</td><td style="font-size:22px;">${RPS_EMO[b]}</td><td>${w}</td></tr>`;
+  }).join('');
+  let final = '';
+  if(n >= 3){
+    const myW = iAmC ? d.challengerWins : d.opponentWins, thW = iAmC ? d.opponentWins : d.challengerWins;
+    if(!d.winnerId) final = `<div style="font-size:20px;font-weight:800;color:var(--muted);margin-top:8px;">🤝 TIE ${myW}–${thW} — both refunded</div>`;
+    else if(d.winnerId === me) final = `<div style="font-size:20px;font-weight:800;color:var(--success);margin-top:8px;">🏆 YOU WIN ${myW}–${thW}! +${d.payout} 🪙</div><div style="font-size:11px;color:var(--muted);">Pot ${d.pot} − 10% house cut (${d.houseCut})</div>`;
+    else final = `<div style="font-size:20px;font-weight:800;color:var(--danger);margin-top:8px;">💥 ${them} wins ${thW}–${myW}. −${d.stake} 🪙</div>`;
+    final += `<button class="btn btn-gold" style="margin-top:10px;" onclick="_rpsReveal=null;renderRpsPanel(true)">OK</button>`;
+  }
+  return `<div style="text-align:center;padding:10px;border:1px solid rgba(245,200,66,.35);border-radius:10px;margin-bottom:12px;">
+    <div style="font-weight:800;color:var(--gold);margin-bottom:6px;">🥁 REVEAL</div>
+    <table class="roster-table" style="margin:0 auto;"><thead><tr><th>Rd</th><th>You</th><th>${them}</th><th>Win</th></tr></thead><tbody>${rows}</tbody></table>${final}</div>`;
+}
+
+function renderRpsPanel(force){
+  const content = document.getElementById('rpsPanelContent');
+  if(!content || !currentPlayer) return;
+  if(!force){ rpsFetch(false); }
+  const d = _rpsData;
+  const badge = document.getElementById('rpsBadge');
+  if(badge){ const n = d && d.incoming ? d.incoming.length : 0; badge.style.display = n ? 'inline-block' : 'none'; badge.textContent = n ? `${n} new` : ''; }
+  if(!d) return;
+  if(_rpsBusy) return;
+  const ae = document.activeElement;
+  if(!force && ae && ae.tagName === 'SELECT' && content.contains(ae)) return; // don't close an open dropdown
+  const now = Date.now(), skew = d.now ? (d.now - _rpsLastFetch) : 0;
+  const me = currentPlayer.id;
+  const used = d.usedThisShift || 0, max = d.maxPerShift || 3, left = Math.max(0, max - used);
+  const pair = d.pairToday || {};
+  let html = '';
+  if(_rpsMsg) html += `<div style="margin-bottom:10px;font-weight:700;">${_rpsMsg}</div>`;
+  if(_rpsReveal) html += rpsRevealHtml();
+  html += `<div style="font-size:12px;color:var(--muted);margin-bottom:10px;text-align:center;">Duels left this shift: <b style="color:var(--gold);">${left}/${max}</b></div>`;
+
+  // Incoming challenges
+  if(d.incoming.length){
+    html += `<div style="font-size:11px;font-weight:700;letter-spacing:1.5px;color:var(--gold);text-transform:uppercase;margin:6px 0;">🔔 Challenges for you</div>`;
+    d.incoming.forEach(c => {
+      const p = _rpsAcceptPicks[c.id] || [];
+      html += `<div style="background:var(--panel);border-radius:10px;padding:10px;margin-bottom:10px;text-align:center;">
+        <div><b>${escapeHtml(c.challengerName)}</b> challenged you · <b style="color:var(--gold);">${c.stake} 🪙</b> each (pot ${c.stake*2})</div>
+        <div style="font-size:11px;color:var(--muted);">Their picks: ❓❓❓ · expires in ${rpsLeft(c.expiresAt - now - skew)}</div>
+        ${rpsPickerHtml(p, `((k)=>rpsAccPick(${c.id},k))`, `((i)=>rpsAccClear(${c.id},i))`)}
+        <div style="display:flex;gap:8px;justify-content:center;margin-top:10px;">
+          <button class="btn btn-gold" ${p.length<3||left===0?'disabled':''} onclick="rpsRespond(${c.id},'accept')">Accept & Reveal (−${c.stake} 🪙)</button>
+          <button class="btn" onclick="rpsRespond(${c.id},'decline')">Decline</button>
+        </div>
+        ${left===0?'<div style="font-size:11px;color:var(--danger);margin-top:4px;">Ubos na ang duels mo ngayong shift — decline or wait.</div>':''}
+      </div>`;
+    });
+  }
+
+  // New challenge
+  const opps = (DB.players||[]).filter(p => p.id !== me && p.active !== false).sort((a,b)=>a.name.localeCompare(b.name));
+  if(_rpsNew.opponentId && !opps.some(p=>p.id===_rpsNew.opponentId)) _rpsNew.opponentId = '';
+  const oppOpts = `<option value="">— pick a player —</option>` + opps.map(p => {
+    const n = pair[p.id] || 0, full = n >= 2;
+    return `<option value="${escapeHtml(p.id)}" ${full?'disabled':''} ${p.id===_rpsNew.opponentId?'selected':''}>${escapeHtml(p.name)}${full?' (2/2 today)':''}</option>`;
+  }).join('');
+  const stakeOpts = RPS_STAKES.map(s => `<option value="${s}" ${s===_rpsNew.stake?'selected':''}>${s} 🪙</option>`).join('');
+  const canSend = left > 0 && _rpsNew.opponentId && _rpsNew.picks.length === 3;
+  html += `<div style="font-size:11px;font-weight:700;letter-spacing:1.5px;color:var(--gold);text-transform:uppercase;margin:12px 0 6px;">⚔️ New challenge</div>
+    <div style="text-align:center;">
+      <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-bottom:6px;">
+        <select ${left===0?'disabled':''} onchange="_rpsNew.opponentId=this.value;renderRpsPanel(true)" style="padding:4px 8px;border-radius:6px;">${oppOpts}</select>
+        <select ${left===0?'disabled':''} onchange="_rpsNew.stake=Number(this.value)" style="padding:4px 8px;border-radius:6px;">${stakeOpts}</select>
+      </div>
+      ${left===0 ? `<div style="color:var(--muted);">Ubos na ang ${max} duels mo ngayong shift ✔️</div>` : rpsPickerHtml(_rpsNew.picks, 'rpsNewPick', 'rpsNewClear') + `
+      <button class="btn btn-gold" style="margin-top:10px;" ${canSend?'':'disabled'} onclick="rpsCreate()">Lock In & Send Challenge</button>
+      <div style="font-size:11px;color:var(--muted);margin-top:4px;">Your stake is held right away. Refunded if they decline or don't answer in 2 hours.</div>`}
+    </div>`;
+
+  // Outgoing pending
+  if(d.outgoing.length){
+    html += `<div style="font-size:11px;font-weight:700;letter-spacing:1.5px;color:var(--gold);text-transform:uppercase;margin:14px 0 6px;">⏳ Waiting for answer</div>`;
+    d.outgoing.forEach(c => {
+      html += `<div style="display:flex;justify-content:space-between;align-items:center;background:var(--panel);border-radius:10px;padding:8px 10px;margin-bottom:6px;">
+        <div>vs <b>${escapeHtml(c.opponentName)}</b> · ${c.stake} 🪙 · ${(c.myPicks||[]).map(k=>RPS_EMO[k]).join('')}<div style="font-size:11px;color:var(--muted);">expires in ${rpsLeft(c.expiresAt - now - skew)}</div></div>
+        <button class="btn" style="font-size:11px;padding:4px 10px;" onclick="rpsRespond(${c.id},'cancel')">Cancel</button></div>`;
+    });
+  }
+
+  // Recent results
+  if(d.recent.length){
+    html += `<div style="font-size:11px;font-weight:700;letter-spacing:1.5px;color:var(--gold);text-transform:uppercase;margin:14px 0 6px;">📜 Recent duels</div>` +
+      d.recent.slice(0,5).map(r => `<div style="padding:6px 0;border-bottom:1px solid rgba(255,255,255,.06);">${rpsResultLine(r)}</div>`).join('');
+  }
+
+  const sig = html;
+  if(!force && sig === _rpsSig) return;
+  _rpsSig = sig;
+  content.innerHTML = html;
+}
+
+async function rpsCreate(){
+  if(_rpsBusy || !currentPlayer) return;
+  const opp = (DB.players||[]).find(p => p.id === _rpsNew.opponentId);
+  if(!opp || _rpsNew.picks.length !== 3) return;
+  if(!confirm(`Challenge ${opp.name} for ${_rpsNew.stake} tokens?\nYour picks: ${_rpsNew.picks.map(k=>RPS_NAME[k]).join(', ')}`)) return;
+  _rpsBusy = true;
+  const j = await rpsCall({ action:'create', playerId: currentPlayer.id, opponentId: opp.id, stake: _rpsNew.stake, picks: _rpsNew.picks });
+  _rpsBusy = false;
+  if(!j.ok){ alert(j.error || 'Hindi na-send ang challenge.'); return rpsFetch(true); }
+  _rpsMsg = `<span style="color:var(--success);">✅ Challenge sent to ${escapeHtml(opp.name)}! ${_rpsNew.stake} 🪙 held. Na-notify na siya sa Slack.</span>`;
+  _rpsNew = { opponentId:'', stake:_rpsNew.stake, picks:[] };
+  setTimeout(()=>{ _rpsMsg=''; renderRpsPanel(true); }, 6000);
+  refreshTokenBalance();
+  rpsFetch(true);
+}
+
+async function rpsRespond(id, action){
+  if(_rpsBusy || !currentPlayer) return;
+  const picks = _rpsAcceptPicks[id] || [];
+  if(action === 'accept' && picks.length !== 3) return;
+  if(action === 'decline' && !confirm('Decline this challenge? They get their tokens back.')) return;
+  if(action === 'cancel' && !confirm('Cancel your challenge? You get your tokens back.')) return;
+  _rpsBusy = true;
+  const j = await rpsCall({ action, playerId: currentPlayer.id, duelId: id, picks: action === 'accept' ? picks : undefined });
+  _rpsBusy = false;
+  if(!j.ok){ alert(j.error || 'Hindi na-process — try ulit.'); return rpsFetch(true); }
+  delete _rpsAcceptPicks[id];
+  if(action === 'accept' && j.duel){
+    _rpsReveal = { duel: j.duel, shown: 0 };
+    [1,2,3].forEach(n => setTimeout(()=>{ if(_rpsReveal && _rpsReveal.duel.id === j.duel.id){ _rpsReveal.shown = n; renderRpsPanel(true); } }, n*1000));
+  }
+  refreshTokenBalance();
+  rpsFetch(true);
+}
+
 function renderAvatarStudioPanel(){
   const panel = document.getElementById('avatarStudioPanel');
   const content = document.getElementById('avatarStudioPanelContent');
@@ -4535,6 +4754,7 @@ async function refreshPlayerScreen(){
   renderAvatarStudioPanel();
   renderSpinWheelPanel();
   renderHighLowPanel();
+  renderRpsPanel();
   renderEmojiPalette();
   refreshPlayerNameBadge();
   playCosmeticSoundIfNewBall();
@@ -5033,6 +5253,7 @@ const TOKEN_EVENT_LABELS = {
   spin_wheel: '🎡 Spin the Wheel', cosmetic_purchase: '✨ Cosmetic Purchase', title_purchase: '🏷️ Title Purchase',
   team_battle_entry: '⚔️ Team Battle Entry', team_battle_payout: '🏆 Team Battle Payout', team_battle_refund: '↩️ Team Battle Refund',
   avatar_gender_switch: '👤 Avatar Gender Switch', pet_egg: '🐣 Pet Egg', pet_care: '🐾 Pet Care', pet_rename: '✏️ Pet Rename',
+  rps_stake: '✊ RPS Stake', rps_payout: '🏆 RPS Win', rps_refund: '↩️ RPS Refund',
 };
 function playerNameById(id){ const p=DB.players.find(x=>x.id===id); return p?p.name:(id||'—'); }
 
@@ -5083,6 +5304,9 @@ function renderTokenLog(){
       else if(e.type === 'team_battle_entry') detail = `${playerNameById(e.playerId)} paid 1 🪙 to join a Team Battle`;
       else if(e.type === 'team_battle_payout') detail = `${playerNameById(e.playerId)} won ${e.amount} 🪙 from a Team Battle`;
       else if(e.type === 'team_battle_refund') detail = `${playerNameById(e.playerId)} refunded 1 🪙 (${e.reason||'team disbanded'})`;
+      else if(e.type === 'rps_stake') detail = `${playerNameById(e.playerId)} staked ${e.amount} 🪙 on an RPS Duel vs ${playerNameById(e.opponentId)}`;
+      else if(e.type === 'rps_payout') detail = `${playerNameById(e.playerId)} beat ${playerNameById(e.opponentId)} in RPS — won ${e.amount} 🪙 (pot ${e.pot}, house cut ${e.houseCut})`;
+      else if(e.type === 'rps_refund') detail = `${playerNameById(e.playerId)} refunded ${e.amount} 🪙 (RPS ${e.reason||'refund'})`;
       else if(e.type === 'avatar_gender_switch') detail = `${playerNameById(e.playerId)} switched avatar gender for ${e.amount} 🪙`;
       return `<tr><td>${when}</td><td>${label}</td><td>${detail}</td></tr>`;
     }).join('') +
