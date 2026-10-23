@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>SMB Bayaning Puyat BINGO v2 🌙</title>
+<title>SMB Game Portal 🎮</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700;800&display=swap');
 :root {
@@ -31,7 +31,7 @@ body::before{content:'';position:fixed;inset:0;background-image:
 
 /* ── LANDING ── */
 #screen-landing{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:20px;text-align:center;}
-#screen-landing h1{font-family:'Bebas Neue',sans-serif;font-size:clamp(52px,10vw,96px);letter-spacing:6px;color:var(--gold);text-shadow:0 0 40px rgba(245,200,66,.5);line-height:1;}
+#screen-landing h1{font-family:'Bebas Neue',sans-serif;font-size:clamp(52px,10vw,96px);letter-spacing:6px;color:var(--gold);text-shadow:0 0 40px rgba(227,166,62,.5);line-height:1;}
 #screen-landing .eyebrow{font-size:11px;font-weight:700;letter-spacing:3px;color:var(--teal);text-transform:uppercase;margin-bottom:8px;}
 #screen-landing .sub{font-size:14px;color:var(--muted);margin-top:8px;margin-bottom:36px;}
 .landing-buttons{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;}
@@ -54,7 +54,7 @@ body::before{content:'';position:fixed;inset:0;background-image:
 
 /* ── LOGIN BOX ── */
 .login-wrap{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px;}
-.login-box{background:var(--deep);border:1px solid rgba(245,200,66,.2);border-radius:16px;padding:36px;width:100%;max-width:380px;text-align:center;}
+.login-box{background:var(--deep);border:1px solid rgba(227,166,62,.2);border-radius:16px;padding:36px;width:100%;max-width:380px;text-align:center;}
 .login-box h2{font-family:'Bebas Neue',sans-serif;font-size:32px;color:var(--gold);letter-spacing:3px;margin-bottom:4px;}
 .login-box .login-sub{font-size:12px;color:var(--muted);margin-bottom:24px;}
 .pin-inputs{display:flex;gap:10px;justify-content:center;margin-bottom:20px;}
@@ -66,12 +66,12 @@ body::before{content:'';position:fixed;inset:0;background-image:
 
 /* ── APP SHELL ── */
 .app-shell{max-width:1440px;margin:0 auto;padding:16px;}
-.top-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;padding-bottom:14px;border-bottom:1px solid rgba(245,200,66,.15);flex-wrap:wrap;gap:10px;}
+.top-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;padding-bottom:14px;border-bottom:1px solid rgba(227,166,62,.15);flex-wrap:wrap;gap:10px;}
 .top-bar-left{display:flex;align-items:center;gap:14px;}
 .top-bar h1{font-family:'Bebas Neue',sans-serif;font-size:28px;color:var(--gold);letter-spacing:3px;}
 .badge{display:inline-block;padding:3px 10px;border-radius:10px;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;}
-.badge-admin{background:rgba(245,200,66,.15);color:var(--gold);}
-.badge-player{background:rgba(46,202,213,.15);color:var(--teal);}
+.badge-admin{background:rgba(227,166,62,.15);color:var(--gold);}
+.badge-player{background:rgba(63,191,174,.15);color:var(--teal);}
 .badge-live{background:rgba(78,203,132,.2);color:var(--success);}
 
 /* ── TABS ── */
@@ -82,7 +82,7 @@ body::before{content:'';position:fixed;inset:0;background-image:
 .tab-content.active{display:block;}
 
 /* ── PANEL ── */
-.panel{background:var(--deep);border:1px solid rgba(245,200,66,.12);border-radius:var(--r);padding:20px;margin-bottom:16px;}
+.panel{background:var(--deep);border:1px solid rgba(227,166,62,.12);border-radius:var(--r);padding:20px;margin-bottom:16px;}
 .panel-title{font-size:11px;font-weight:700;letter-spacing:2px;color:var(--teal);text-transform:uppercase;margin-bottom:14px;}
 .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
 .grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;}
@@ -104,7 +104,7 @@ textarea{resize:vertical;min-height:60px;}
 /* ── GAME CONTROLS ── */
 .main-game-grid{display:grid;grid-template-columns:320px 1fr;gap:18px;align-items:start;}
 @media(max-width:900px){.main-game-grid{grid-template-columns:1fr;}}
-.big-ball{width:100px;height:100px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#fff8,var(--gold),var(--gold2));display:flex;flex-direction:column;align-items:center;justify-content:center;margin:0 auto 10px;font-family:'Bebas Neue',sans-serif;box-shadow:0 0 40px rgba(245,200,66,.5),inset 0 -4px 8px rgba(0,0,0,.3);transition:transform .3s;}
+.big-ball{width:100px;height:100px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#fff8,var(--gold),var(--gold2));display:flex;flex-direction:column;align-items:center;justify-content:center;margin:0 auto 10px;font-family:'Bebas Neue',sans-serif;box-shadow:0 0 40px rgba(227,166,62,.5),inset 0 -4px 8px rgba(0,0,0,.3);transition:transform .3s;}
 .big-ball.empty{background:radial-gradient(circle at 35% 35%,rgba(255,255,255,.08),var(--card-bg));box-shadow:0 0 20px rgba(0,0,0,.3);}
 .big-ball.pop{animation:ballPop .5s cubic-bezier(.36,.07,.19,.97);}
 @keyframes ballPop{0%{transform:scale(.3) rotate(-10deg);opacity:0}60%{transform:scale(1.15) rotate(3deg);opacity:1}100%{transform:scale(1) rotate(0)}}
@@ -115,7 +115,7 @@ textarea{resize:vertical;min-height:60px;}
 .timer-row{display:flex;align-items:center;justify-content:space-between;background:var(--card-bg);border-radius:8px;padding:10px 14px;margin-bottom:12px;}
 .timer-val{font-family:'Bebas Neue',sans-serif;font-size:28px;color:var(--teal);letter-spacing:2px;}
 .called-chips{display:flex;flex-wrap:wrap;gap:4px;max-height:100px;overflow-y:auto;}
-.chip{background:var(--card-bg);border:1px solid rgba(245,200,66,.3);color:var(--gold);border-radius:4px;padding:2px 7px;font-size:11px;font-weight:700;font-family:'Bebas Neue',sans-serif;letter-spacing:1px;}
+.chip{background:var(--card-bg);border:1px solid rgba(227,166,62,.3);color:var(--gold);border-radius:4px;padding:2px 7px;font-size:11px;font-weight:700;font-family:'Bebas Neue',sans-serif;letter-spacing:1px;}
 
 /* ── PATTERN GRID ── */
 .pattern-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:3px;width:90px;margin:6px auto 0;}
@@ -140,8 +140,8 @@ textarea{resize:vertical;min-height:60px;}
 .cards-wrap.view-3 .card-grid,.cards-wrap.view-4 .card-grid{gap:1px;}
 .view-toggle-btn{padding:5px 12px;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;border:1px solid rgba(255,255,255,.15);color:var(--muted);background:transparent;transition:all .2s;}
 .view-toggle-btn.active{background:var(--gold);color:var(--navy);border-color:var(--gold);}
-.bingo-card{background:var(--deep);border:1px solid rgba(245,200,66,.15);border-radius:var(--r);padding:12px;position:relative;transition:border-color .3s;}
-.bingo-card.winner{border-color:var(--gold);box-shadow:0 0 24px rgba(245,200,66,.4);}
+.bingo-card{background:var(--deep);border:1px solid rgba(227,166,62,.15);border-radius:var(--r);padding:12px;position:relative;transition:border-color .3s;}
+.bingo-card.winner{border-color:var(--gold);box-shadow:0 0 24px rgba(227,166,62,.4);}
 .bingo-card.winner::before{content:'🏆 BINGO!';position:absolute;top:0;left:0;right:0;background:var(--gold);color:var(--navy);text-align:center;font-weight:800;font-size:11px;padding:4px;border-radius:var(--r) var(--r) 0 0;letter-spacing:2px;}
 .card-agent{font-size:10px;font-weight:700;color:var(--teal);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .card-num{font-size:11px;color:var(--muted);margin-bottom:6px;}
@@ -150,9 +150,9 @@ textarea{resize:vertical;min-height:60px;}
 .card-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:2px;}
 .ccell{aspect-ratio:1;display:flex;align-items:center;justify-content:center;background:var(--card-bg);border-radius:3px;font-size:12px;font-weight:700;color:var(--white);transition:all .3s;}
 .ccell.free{background:var(--teal);color:var(--navy);font-size:8px;font-weight:800;text-align:center;line-height:1.1;}
-.ccell.called{background:rgba(245,200,66,.2);color:var(--gold);border:1px solid rgba(245,200,66,.4);}
+.ccell.called{background:rgba(227,166,62,.2);color:var(--gold);border:1px solid rgba(227,166,62,.4);}
 .ccell.pwin{background:var(--gold)!important;color:var(--navy)!important;border-color:transparent!important;}
-.ccell.marked{background:rgba(46,202,213,.18);border:1px solid rgba(46,202,213,.5);cursor:pointer;}
+.ccell.marked{background:rgba(63,191,174,.18);border:1px solid rgba(63,191,174,.5);cursor:pointer;}
 .ccell[data-cell]{cursor:pointer;transition:transform .15s,background .2s;}
 .ccell[data-cell]:hover{transform:scale(1.06);background:rgba(255,255,255,.08);}
 .ccell[data-cell]:active{transform:scale(.94);}
@@ -161,17 +161,17 @@ textarea{resize:vertical;min-height:60px;}
 .emoji-palette{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;background:var(--card-bg);border-radius:8px;padding:10px;margin-bottom:14px;}
 .emoji-opt{width:34px;height:34px;border-radius:8px;background:var(--deep);border:2px solid transparent;font-size:18px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s;}
 .emoji-opt:hover{background:rgba(255,255,255,.06);}
-.emoji-opt.selected{border-color:var(--teal);background:rgba(46,202,213,.15);}
+.emoji-opt.selected{border-color:var(--teal);background:rgba(63,191,174,.15);}
 .marking-hint{font-size:11px;color:var(--muted);text-align:center;margin-bottom:10px;}
 
 /* ── PLAYER SCREEN ── */
-.player-header{text-align:center;padding:20px 0 14px;margin-bottom:18px;border-bottom:1px solid rgba(245,200,66,.15);}
+.player-header{text-align:center;padding:20px 0 14px;margin-bottom:18px;border-bottom:1px solid rgba(227,166,62,.15);}
 .player-header h2{font-family:'Bebas Neue',sans-serif;font-size:36px;color:var(--gold);letter-spacing:4px;}
 .player-header .welcome{font-size:13px;color:var(--muted);margin-top:4px;}
-.live-ball-player{display:flex;align-items:center;justify-content:center;gap:16px;background:var(--deep);border-radius:var(--r);padding:16px;margin-bottom:16px;border:1px solid rgba(245,200,66,.15);}
+.live-ball-player{display:flex;align-items:center;justify-content:center;gap:16px;background:var(--deep);border-radius:var(--r);padding:16px;margin-bottom:16px;border:1px solid rgba(227,166,62,.15);}
 .live-numbers{font-size:11px;color:var(--muted);margin-top:8px;}
 .bingo-claim-btn{width:100%;padding:16px;font-size:18px;letter-spacing:2px;border-radius:10px;background:linear-gradient(135deg,var(--gold),var(--gold2));color:var(--navy);font-family:'Bebas Neue',sans-serif;border:none;cursor:pointer;transition:all .2s;margin-top:16px;}
-.bingo-claim-btn:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 8px 24px rgba(245,200,66,.4);}
+.bingo-claim-btn:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 8px 24px rgba(227,166,62,.4);}
 .bingo-claim-btn:disabled{opacity:.3;cursor:not-allowed;}
 
 /* ── LOG ── */
@@ -205,8 +205,8 @@ textarea{resize:vertical;min-height:60px;}
 .stat-val{font-family:'Bebas Neue',sans-serif;font-size:28px;color:var(--gold);}
 .stat-lbl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;}
 .empty-state{text-align:center;padding:40px 20px;color:var(--muted);font-size:13px;}
-.info-box{background:rgba(46,202,213,.08);border:1px solid rgba(46,202,213,.2);border-radius:8px;padding:12px;font-size:12px;color:var(--teal);margin-bottom:12px;line-height:1.5;}
-.warn-box{background:rgba(245,200,66,.08);border:1px solid rgba(245,200,66,.2);border-radius:8px;padding:12px;font-size:12px;color:var(--gold);margin-bottom:12px;line-height:1.5;}
+.info-box{background:rgba(63,191,174,.08);border:1px solid rgba(63,191,174,.2);border-radius:8px;padding:12px;font-size:12px;color:var(--teal);margin-bottom:12px;line-height:1.5;}
+.warn-box{background:rgba(227,166,62,.08);border:1px solid rgba(227,166,62,.2);border-radius:8px;padding:12px;font-size:12px;color:var(--gold);margin-bottom:12px;line-height:1.5;}
 .flex-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
 .winner-badge{display:inline-block;background:rgba(78,203,132,.2);color:var(--success);border-radius:4px;padding:2px 8px;font-size:11px;font-weight:700;letter-spacing:1px;}
 
@@ -223,7 +223,7 @@ textarea{resize:vertical;min-height:60px;}
 /* ── VIRTUAL PETS ── */
 .pet-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;}
 @media(max-width:700px){.pet-grid{grid-template-columns:1fr;}}
-.pet-card{background:linear-gradient(145deg,#182d47,#102238);border:1px solid rgba(245,200,66,.22);border-radius:14px;padding:12px;overflow:hidden;position:relative;}
+.pet-card{background:linear-gradient(145deg,#182d47,#102238);border:1px solid rgba(227,166,62,.22);border-radius:14px;padding:12px;overflow:hidden;position:relative;}
 .pet-card.pet-warning{border-color:rgba(255,186,73,.8);}
 .pet-card.pet-sick,.pet-card.pet-critical{border-color:rgba(255,107,107,.9);box-shadow:0 0 16px rgba(255,107,107,.13);}
 .pet-card.pet-dead{opacity:.72;filter:grayscale(.8);}
@@ -239,8 +239,8 @@ textarea{resize:vertical;min-height:60px;}
 .pet-meter-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,#e25f75,#f5c842,#4ecb84);}
 .pet-actions{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;margin-top:10px;}
 .pet-actions .btn{padding:6px 2px;font-size:10px;justify-content:center;}
-.pet-hatch{background:rgba(46,202,213,.1);border:1px dashed rgba(46,202,213,.55);border-radius:10px;padding:8px;text-align:center;color:var(--teal);font-size:11px;margin-top:8px;}
-.pet-empty{border:1px dashed rgba(245,200,66,.34);border-radius:12px;padding:20px 14px;text-align:center;background:rgba(245,200,66,.04);color:var(--muted);}
+.pet-hatch{background:rgba(63,191,174,.1);border:1px dashed rgba(63,191,174,.55);border-radius:10px;padding:8px;text-align:center;color:var(--teal);font-size:11px;margin-top:8px;}
+.pet-empty{border:1px dashed rgba(227,166,62,.34);border-radius:12px;padding:20px 14px;text-align:center;background:rgba(227,166,62,.04);color:var(--muted);}
 
 /* ── LEADERBOARD GRID (side-by-side board cards; full tables don't fit 4-across) ── */
 .board-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;}
@@ -249,22 +249,168 @@ textarea{resize:vertical;min-height:60px;}
 
 /* ── COLLAPSIBLE PANEL GROUPS (accordion) ── */
 .panel-group{margin-bottom:14px;border-radius:var(--r);overflow:hidden;}
-.panel-group summary{cursor:pointer;padding:14px;background:var(--card-bg);border:1px solid rgba(245,200,66,.2);border-radius:var(--r);font-size:12px;font-weight:700;letter-spacing:1.5px;color:var(--gold);text-transform:uppercase;list-style:none;user-select:none;}
+.panel-group summary{cursor:pointer;padding:14px;background:var(--card-bg);border:1px solid rgba(227,166,62,.2);border-radius:var(--r);font-size:12px;font-weight:700;letter-spacing:1.5px;color:var(--gold);text-transform:uppercase;list-style:none;user-select:none;}
 .panel-group summary::-webkit-details-marker{display:none;}
 .panel-group summary::after{content:'▾';float:right;color:var(--muted);transition:transform .15s;}
 .panel-group[open] summary::after{transform:rotate(180deg);}
 .panel-group[open] summary{border-bottom-left-radius:0;border-bottom-right-radius:0;}
-.panel-group-body{border:1px solid rgba(245,200,66,.2);border-top:none;border-bottom-left-radius:var(--r);border-bottom-right-radius:var(--r);padding:12px 0 2px;}
+.panel-group-body{border:1px solid rgba(227,166,62,.2);border-top:none;border-bottom-left-radius:var(--r);border-bottom-right-radius:var(--r);padding:12px 0 2px;}
 .panel-group .panel{border:none;background:transparent;padding:0 14px 14px;margin-bottom:0;}
+/* ===== Spin the Wheel v2 (SMB Game Portal look) ===== */
+.sw2{position:relative;padding:14px 10px 12px;border-radius:16px;overflow:hidden;background:radial-gradient(420px 260px at 50% 38%,rgba(227,166,62,.16),transparent 70%),linear-gradient(180deg,#171B29,#11141E);border:1px solid rgba(227,166,62,.25);font-family:Inter,system-ui,sans-serif;color:#F3F1E9;text-align:center}
+.sw2-top{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:11.5px;color:#8B90A0}
+.sw2-pips{display:flex;gap:5px}.sw2-pips span{width:22px;height:5px;border-radius:9px;background:#E3A63E}.sw2-pips span.used{background:rgba(255,255,255,.12)}
+.sw2-wrap{position:relative;width:100%;max-width:290px;aspect-ratio:1;margin:8px auto 0}
+.sw2-ring{position:absolute;inset:0;width:100%;height:100%}
+.sw2-ring .b{fill:#5b4a24}
+.sw2-ring .b.o{animation:sw2a 1.4s steps(1) infinite}.sw2-ring .b.e{animation:sw2b 1.4s steps(1) infinite}
+.sw2.spinning .sw2-ring .b.o,.sw2.spinning .sw2-ring .b.e{animation-duration:.25s}
+@keyframes sw2a{0%{fill:#FFE4A3;filter:drop-shadow(0 0 3px #ffc85a)}50%{fill:#5b4a24;filter:none}}
+@keyframes sw2b{0%{fill:#5b4a24;filter:none}50%{fill:#FFE4A3;filter:drop-shadow(0 0 3px #ffc85a)}}
+#spinWheelDial{position:absolute;left:7%;top:7%;width:86%;height:86%;transition:transform 3.2s cubic-bezier(.12,.72,.12,1);filter:drop-shadow(0 8px 18px rgba(0,0,0,.55))}
+.sw2-ptr{position:absolute;top:-1%;left:50%;transform:translateX(-50%);width:11%;z-index:3;filter:drop-shadow(0 3px 3px rgba(0,0,0,.6))}
+.sw2-hub{position:absolute;left:50%;top:50%;width:27%;height:27%;transform:translate(-50%,-50%);border-radius:50%;z-index:4;display:grid;place-items:center;align-content:center;background:radial-gradient(circle at 35% 30%,#FFE9B8,#E3A63E 55%,#9c6a1c);color:#1a1205;font-weight:800;font-size:15px;letter-spacing:.05em;box-shadow:0 0 0 4px #1a1e2c,0 0 0 6px rgba(227,166,62,.6),0 6px 16px rgba(0,0,0,.6);cursor:pointer;user-select:none}
+.sw2-hub small{font-size:10px;font-weight:700;opacity:.75;letter-spacing:0}
+.sw2-hub.off{filter:grayscale(.7);cursor:not-allowed}
+.sw2-lbl{font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:#8B90A0;margin:12px 0 7px}
+.sw2-chips{display:flex;gap:5px;justify-content:center;flex-wrap:wrap}
+.sw2-chip{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:12px;color:#F3F1E9;cursor:pointer;border:0;padding:0;font-family:inherit;background:radial-gradient(circle,#1D2130 55%,transparent 56%),repeating-conic-gradient(#6B7183 0 20deg,#2a2f40 0 40deg)}
+.sw2-chip.on{color:#1a1205;background:radial-gradient(circle,#E3A63E 55%,transparent 56%),repeating-conic-gradient(#FFE4A3 0 20deg,#b5791f 0 40deg);box-shadow:0 0 10px rgba(227,166,62,.55)}
+.sw2-chip:disabled{opacity:.4;cursor:not-allowed}
+#spinWheelResult.sw2-res{min-height:44px;margin:12px 0 10px;border-radius:12px;display:grid;place-items:center;font-weight:600;font-size:13.5px;padding:8px 10px;border:1px dashed rgba(255,255,255,.1);color:#8B90A0}
+#spinWheelResult.win{border:1px solid rgba(227,166,62,.5);background:rgba(227,166,62,.12);color:#E3A63E;animation:sw2pop .5s}
+#spinWheelResult.even{border:1px solid rgba(107,113,131,.5);background:rgba(107,113,131,.14);color:#c7cbd6}
+#spinWheelResult.lose{border:1px solid rgba(226,104,95,.45);background:rgba(226,104,95,.12);color:#E2685F;animation:sw2shake .4s}
+@keyframes sw2pop{0%{transform:scale(.85)}60%{transform:scale(1.05)}100%{transform:scale(1)}}
+@keyframes sw2shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.sw2-pay{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-top:10px}
+.sw2-pay div{border-radius:9px;padding:6px 2px;border:1px solid rgba(255,255,255,.07);font-size:10px;color:#8B90A0}
+.sw2-pay b{display:block;font-size:15px}
+.sw2-conf{position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:6}
+.sw2-conf i{position:absolute;top:-12px;width:7px;height:11px;border-radius:2px;animation:sw2fall 1.6s ease-in forwards}
+@keyframes sw2fall{to{transform:translateY(520px) rotate(540deg);opacity:.15}}
+
+/* ═════ SMB GAME PORTAL (R2) — VS Portal look ═════ */
+:root{--navy:#0B0D12;--deep:#151824;--card-bg:#1D2130;--panel:#151824;--gold:#E3A63E;--gold2:#b5791f;--teal:#3FBFAE;--teal2:#2f9a8c;
+  --white:#F3F1E9;--muted:#8B90A0;--danger:#E2685F;--slate:#6B7183;--line:rgba(255,255,255,.07);--r:14px}
+body::before{display:none}
+#screen-landing:not(.active){display:none}
+#screen-landing{background:radial-gradient(1000px 520px at 50% -10%,rgba(227,166,62,.12),transparent 60%)}
+#screen-landing h1,.login-box h2,.top-bar h1{font-family:'Space Grotesk',sans-serif;font-weight:700}
+#screen-landing h1{text-shadow:0 0 34px rgba(227,166,62,.35);letter-spacing:2px}
+.gp-landing-games{display:inline-block;margin-top:10px;font-size:12px;color:var(--muted)}
+.login-wrap{background:radial-gradient(1000px 520px at 50% -10%,rgba(227,166,62,.12),transparent 60%)}
+.login-box{background:var(--deep);border:1px solid var(--line);border-radius:20px}
+.login-box h2{font-size:22px;letter-spacing:.5px}
+.pin-dot{font-family:'IBM Plex Mono',monospace;border-radius:12px;border:1px solid var(--line)}
+.gp-login-logo{display:flex;align-items:center;gap:10px;justify-content:center;margin-bottom:12px;text-align:left}
+.gp-login-logo b{font-family:'Space Grotesk';font-size:16px;display:block}.gp-login-logo small{color:var(--muted);font-size:11px}
+.btn{border-radius:11px}
+.btn-gold{color:#151515}.btn-gold:hover:not(:disabled){background:#efb552}
+.btn-teal{color:#0b1a18}.btn-teal:hover:not(:disabled){background:#52d3c1}
+.btn-outline{border-color:var(--line);background:var(--card-bg)}
+.panel{border-color:var(--line)}
+.tab-btn{border-color:var(--line);border-radius:999px}
+.tab-btn.active{color:#151515}
+.top-bar{border-bottom-color:var(--line)}
+/* layout */
+#screen-player.active{display:block}
+.gp-app{display:flex;min-height:100vh}
+.gp-side{width:240px;flex:0 0 240px;background:#0E111A;border-right:1px solid var(--line);padding:20px 16px;position:sticky;top:0;height:100vh;display:flex;flex-direction:column;overflow-y:auto}
+.gp-logo{display:flex;align-items:center;gap:10px;margin-bottom:22px}
+.gp-mark{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--gold),#b5791f);display:grid;place-items:center;font-size:17px;flex:none}
+.gp-logo b{font-family:'Space Grotesk';font-size:16px;display:block}.gp-logo small{display:block;color:var(--muted);font-size:11px}
+.gp-nav{display:flex;flex-direction:column;gap:4px}
+.gp-nav button{all:unset;box-sizing:border-box;cursor:pointer;padding:9px 12px;border-radius:10px;color:var(--muted);font-size:13.5px;display:flex;align-items:center;gap:8px;box-shadow:inset 0 0 0 1px var(--line)}
+.gp-nav button:hover{background:var(--deep);color:var(--white)}
+.gp-nav button.on{background:var(--card-bg);color:var(--white)}
+.gp-nav .sub{margin-left:14px;padding:7px 12px;font-size:13px;box-shadow:none;border-left:1px solid var(--line);border-radius:0 10px 10px 0}
+.gp-nav .sub.on{border-left:2px solid var(--gold)}
+.gp-grp{font-size:10.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--slate);margin:10px 0 2px 14px}
+.gp-cnt{margin-left:auto;font-size:10.5px;color:var(--muted);font-family:'IBM Plex Mono',monospace}
+.gp-cnt.live{color:#151515;background:var(--gold);border-radius:99px;padding:1px 7px;animation:gpPulse 1.4s infinite}
+@keyframes gpPulse{50%{opacity:.55}}
+.gp-side-actions{display:flex;flex-direction:column;gap:6px;margin-top:16px}
+.gp-btn-ghost{all:unset;box-sizing:border-box;cursor:pointer;text-align:center;padding:8px 12px;border-radius:11px;font-size:12.5px;font-weight:600;color:var(--white);background:var(--card-bg);box-shadow:inset 0 0 0 1px var(--line)}
+.gp-btn-ghost:hover{box-shadow:inset 0 0 0 1px var(--gold)}
+.gp-wallet{margin-top:auto;background:var(--deep);border:1px solid var(--line);border-radius:14px;padding:12px}
+.gp-wallet .l{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.08em}
+.gp-wallet .t{font-size:20px;color:var(--gold)}.gp-clock{font-size:16px;color:var(--muted)}
+.gp-mono{font-family:'IBM Plex Mono',monospace;font-variant-numeric:tabular-nums}
+.gp-main{flex:1;padding:22px 26px 60px;min-width:0;max-width:1180px}
+.gp-top{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:20px;flex-wrap:wrap}
+.gp-top h1{font-family:'Space Grotesk';font-size:22px;margin:0}
+.gp-sub{color:var(--muted);font-size:12.5px;margin-top:4px}
+.gp-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.gp-pill{display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:999px;font-size:12.5px;font-weight:600;background:rgba(227,166,62,.14);color:var(--gold);font-family:'IBM Plex Mono',monospace}
+.gp-pill-sm{font-size:11px;padding:3px 9px;font-family:Inter,sans-serif}
+.gp-pill.live{background:rgba(63,191,174,.15);color:var(--teal)}
+.gp-pill.off{background:rgba(107,113,131,.18);color:#9aa0b1}
+.gp-badge{font-size:11px;color:var(--muted);border:1px solid var(--line);padding:3px 8px;border-radius:99px}
+.gp-view{display:none}.gp-view.on{display:grid;gap:16px;align-content:start}
+.gp-card{background:var(--deep);border:1px solid var(--line);border-radius:18px;padding:18px;min-width:0}
+.gp-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;gap:12px;flex-wrap:wrap}
+.gp-hdr h3{font-family:'Space Grotesk';font-size:15px;margin:0;color:var(--white)}
+.gp-mini{font-size:12.5px;color:var(--muted)}
+.gp-hero{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap}
+.gp-hero h2{font-family:'Space Grotesk';font-size:26px;margin:2px 0 4px;color:var(--white)}
+.gp-hero .welcome{font-size:13px;color:var(--muted)}
+.gp-eyebrow{font-size:11px;letter-spacing:.12em;color:var(--teal);text-transform:uppercase}
+.gp-balpill{font-family:'IBM Plex Mono',monospace;font-size:18px;font-weight:600;color:var(--gold);background:rgba(227,166,62,.12);border:1px solid rgba(227,166,62,.3);border-radius:14px;padding:10px 16px}
+.gp-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.gp-stat{background:var(--deep);border:1px solid var(--line);border-radius:16px;padding:16px;min-width:0}
+.gp-stat .k{color:var(--muted);font-size:11.5px;text-transform:uppercase;letter-spacing:.08em}
+.gp-stat .v{font-size:26px;margin-top:6px;font-family:'IBM Plex Mono',monospace}
+.gp-stat .v.gp-v-sm{font-size:18px;font-family:'Space Grotesk'}
+.gp-stat .s{font-size:12px;margin-top:4px;color:var(--muted)}
+.gp-up{color:var(--teal)}.gp-down{color:var(--danger)}
+.gp-two{display:grid;grid-template-columns:1fr 1.15fr;gap:16px}
+.gp-col{display:grid;gap:16px;align-content:start}
+.gp-games{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px}
+.gp-game{background:var(--card-bg);border:1px solid var(--line);border-radius:14px;padding:13px;display:flex;flex-direction:column;gap:6px;cursor:pointer}
+.gp-game:hover{border-color:rgba(227,166,62,.45)}
+.gp-game .ic{font-size:22px}.gp-game b{font-family:'Space Grotesk';font-size:14.5px}
+.gp-left{font-size:12px;color:var(--muted)}.gp-left b{color:var(--white)}
+.gp-act{width:100%;border-collapse:collapse}
+.gp-act th{text-align:left;font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);font-weight:600;padding:8px 8px;border-bottom:1px solid var(--line)}
+.gp-act td{padding:9px 8px;border-bottom:1px solid rgba(255,255,255,.04);font-size:13px;color:var(--white)}
+.gp-act tr:last-child td{border-bottom:0}
+.gp-act .n{text-align:right;font-family:'IBM Plex Mono',monospace}
+.gp-subtabs{display:flex;gap:6px;flex-wrap:wrap}
+.gp-subtabs button{all:unset;cursor:pointer;padding:7px 13px;border-radius:999px;font-size:12.5px;color:var(--muted);box-shadow:inset 0 0 0 1px var(--line)}
+.gp-subtabs button.on{background:var(--card-bg);color:var(--white);box-shadow:inset 0 0 0 1px var(--gold)}
+.gp-bsub{display:none}.gp-bsub.on{display:block}
+.gp-empty{display:none;font-size:13px;color:var(--muted);padding:6px 2px}
+.gp-wrap-panel .panel[style*="display:none"]+.gp-empty,.gp-wrap-panel .panel[style*="display: none"]+.gp-empty{display:block}
+/* existing panels/details sit inside cards: drop their own chrome */
+.gp-wrap-panel>.panel,.gp-wrap-group .panel-group .panel{background:transparent;border:0;padding:0;margin:0}
+.gp-wrap-group>.panel-group{margin:0;overflow:visible}
+.gp-wrap-group>.panel-group>summary{display:none}
+.gp-wrap-group .panel-group-body{border:0;padding:0}
+#gpv-spin .panel-group-body::before,#gpv-hl .panel-group-body::before,#gpv-rps .panel-group-body::before,#gpv-team .panel-group-body::before,#gpv-avatar .panel-group-body::before{display:block;font-family:'Space Grotesk';font-size:17px;font-weight:700;color:var(--white);margin-bottom:8px}
+#gpv-spin .panel-group-body::before{content:'🎡 Spin the Wheel'}
+#gpv-hl .panel-group-body::before{content:'📈 Higher or Lower'}
+#gpv-rps .panel-group-body::before{content:'✊ RPS Duel (1v1)'}
+#gpv-team .panel-group-body::before{content:'⚔️ Team Battles (3v3)'}
+#gpv-avatar .panel-group-body::before{content:'🧑 Avatar Studio'}
+.gp-lb .board-grid .panel{background:var(--deep);border:1px solid var(--line);border-radius:18px;padding:18px}
+#gpv-bingo .live-ball-player,#gpv-bingo #playerPatternDisplay{background:var(--deep);border:1px solid var(--line);border-radius:18px}
+.gp-soon{border-style:dashed}
+.gp-hide-rps-badge #rpsBadge{display:none!important}
+@media(max-width:1000px){.gp-stats{grid-template-columns:repeat(2,1fr)}.gp-two{grid-template-columns:1fr}}
+@media(max-width:820px){.gp-app{flex-direction:column}.gp-side{width:auto;flex:none;height:auto;position:relative;padding:14px}
+  .gp-nav{flex-direction:row;flex-wrap:wrap}.gp-nav .sub{margin-left:0;border-left:0;border-radius:10px;box-shadow:inset 0 0 0 1px var(--line)}.gp-grp{display:none}
+  .gp-wallet{margin-top:12px}.gp-main{padding:16px}}
 </style>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 </head>
 <body>
 
 <!-- ════════════════════ SCREEN: LANDING ════════════════════ -->
 <div id="screen-landing" class="screen active">
   <div class="eyebrow">🌙 Bayaning Puyat Series</div>
-  <h1>SMB BINGO</h1>
-  <div class="sub">Overnight Shift Edition · 9PM – 5AM PHT</div>
+  <h1>SMB GAME PORTAL</h1>
+  <div class="sub">Overnight Shift Edition · 9PM – 5AM PHT<br><span class="gp-landing-games">🎱 BINGO · 🎡 Spin · 📈 Higher/Lower · ✊ RPS · ⚔️ Team Battles · 🛒 Shop</span></div>
   <div class="landing-buttons">
     <button class="btn btn-gold" onclick="gotoAdminLogin()">🔐 Admin Portal</button>
     <button class="btn btn-teal" onclick="gotoPlayerLogin()">🎮 Player Login</button>
@@ -290,7 +436,7 @@ textarea{resize:vertical;min-height:60px;}
 <div id="screen-player-login" class="screen">
   <div class="login-wrap">
     <div class="login-box">
-      <div style="font-size:32px;margin-bottom:8px;">🎮</div>
+      <div class="gp-login-logo"><div class="gp-mark">🎮</div><div><b>SMB Game Portal</b><small>Player login</small></div></div>
       <h2>Player Login</h2>
       <div class="login-sub" id="playerLoginSub">Enter your 4-digit PIN</div>
       <!-- Step 1: PIN entry -->
@@ -317,7 +463,7 @@ textarea{resize:vertical;min-height:60px;}
     <div class="top-bar">
       <div class="top-bar-left">
         <span style="font-size:22px;">🌙</span>
-        <h1>SMB BINGO</h1>
+        <h1>SMB GAME PORTAL</h1>
         <span class="badge badge-admin">Admin</span>
         <span class="badge badge-live" id="adminGameBadge" style="display:none;">● LIVE</span>
       </div>
@@ -463,7 +609,7 @@ textarea{resize:vertical;min-height:60px;}
             <button class="btn btn-outline btn-full btn-sm" onclick="adminResetGame()">↺ Reset Game</button>
 
             <!-- Pending BINGO claim alert -->
-            <div id="adminClaimAlert" style="display:none;background:rgba(245,200,66,.15);border:1px solid var(--gold);border-radius:8px;padding:10px 12px;font-size:12px;color:var(--gold);font-weight:600;margin-top:8px;line-height:1.5;"></div>
+            <div id="adminClaimAlert" style="display:none;background:rgba(227,166,62,.15);border:1px solid var(--gold);border-radius:8px;padding:10px 12px;font-size:12px;color:var(--gold);font-weight:600;margin-top:8px;line-height:1.5;"></div>
             <div class="slack-status" id="adminSlackStatus"></div>
 
             <div class="divider"></div>
@@ -625,38 +771,86 @@ textarea{resize:vertical;min-height:60px;}
 
 <!-- ════════════════════ SCREEN: PLAYER ════════════════════ -->
 <div id="screen-player" class="screen">
-  <div class="app-shell" style="max-width:900px;">
-    <div class="player-header">
-      <div style="font-size:11px;letter-spacing:3px;color:var(--teal);text-transform:uppercase;margin-bottom:4px;">🌙 Bayaning Puyat BINGO</div>
-      <h2 id="playerName">Player</h2>
-      <div id="playerTokenBalance" style="display:inline-block;margin-top:2px;font-size:13px;font-weight:700;color:var(--gold);background:rgba(245,200,66,.12);border:1px solid rgba(245,200,66,.3);border-radius:20px;padding:3px 12px;">🪙 0 SMB Tokens</div>
-      <div class="welcome" id="playerWelcome">Welcome! Handa ka na ba? 🎯</div>
-      <div id="playerPrizeDisplay" style="display:none;background:rgba(245,200,66,.12);border:1px solid rgba(245,200,66,.3);border-radius:8px;padding:8px 14px;margin-top:8px;font-size:13px;text-align:center;">
-        🏆 <strong>Prize ngayong gabi:</strong> <span id="playerPrizeText" style="color:var(--gold);">—</span>
-      </div>
-      <div id="notifPermBox" style="margin-top:8px;text-align:center;display:none;">
+<div class="gp-app">
+  <aside class="gp-side">
+    <div class="gp-logo"><div class="gp-mark">🎮</div><div><b>SMB Game Portal</b><small>Player • Philippine Time</small></div></div>
+    <nav class="gp-nav" id="gpNav">
+      <button data-v="player" class="on" onclick="gpGo('player')">🎮 Player</button>
+      <div class="gp-grp">Games</div>
+      <button class="sub" data-v="bingo" onclick="gpGo('bingo')">🎱 BINGO <span class="gp-cnt" id="gpCntBingo"></span></button>
+      <button class="sub" data-v="spin" onclick="gpGo('spin')">🎡 Spin the Wheel <span class="gp-cnt" id="gpCntSpin"></span></button>
+      <button class="sub" data-v="hl" onclick="gpGo('hl')">📈 Higher or Lower <span class="gp-cnt" id="gpCntHl"></span></button>
+      <button class="sub" data-v="rps" onclick="gpGo('rps')">✊ RPS Duel <span class="gp-cnt" id="gpCntRps"></span></button>
+      <button class="sub" data-v="team" onclick="gpGo('team')">⚔️ Team Battles</button>
+      <div class="gp-grp">Store</div>
+      <button class="sub" data-v="shop" onclick="gpGo('shop')">🛒 Shop</button>
+      <button class="sub" data-v="avatar" onclick="gpGo('avatar')">🧑 Avatar Studio</button>
+      <div class="gp-grp">Community</div>
+      <button class="sub" data-v="lb" onclick="gpGo('lb')">🏆 Leaderboards</button>
+    </nav>
+    <div class="gp-side-actions">
+      <button class="gp-btn-ghost" onclick="openPinChange()">🔑 Change PIN</button>
+      <button class="gp-btn-ghost" onclick="playerLogout()">Sign out</button>
+    </div>
+    <div class="gp-wallet">
+      <div class="l">My tokens</div><div class="t gp-mono" id="gpWalletBal">🪙 —</div>
+      <div class="l" style="margin-top:8px">Manila (PHT)</div><div class="gp-mono gp-clock" id="gpClock">--:--:--</div>
+    </div>
+  </aside>
+
+  <main class="gp-main">
+    <div class="gp-top">
+      <div><h1 id="gpTitle">Player</h1><div class="gp-sub" id="gpSub">🌙 Bayaning Puyat Series</div></div>
+      <div class="gp-row">
+        <div id="notifPermBox" style="margin-top:8px;text-align:center;display:none;">
         <button class="btn btn-outline btn-sm" onclick="requestNotifPermission()" style="font-size:11px;">
           🔔 Enable Draw Notifications
         </button>
       </div>
+        <span class="gp-pill" id="gpTopBal">🪙 —</span>
+      </div>
     </div>
 
-    <!-- Generate Card button — always visible right after login -->
-    <div style="background:var(--deep);border:2px solid var(--gold);border-radius:var(--r);padding:18px;margin-bottom:14px;text-align:center;">
-      <div style="font-size:13px;font-weight:700;color:var(--gold);margin-bottom:6px;">🎰 Generate Your Bingo Cards</div>
-      <div style="font-size:12px;color:var(--muted);margin-bottom:12px;">I-generate ang iyong cards bago mag-laro. Pwedeng mag-generate ulit hanggang satisfied ka — tapos i-lock in ang gusto mo!</div>
-      <button class="btn btn-gold" style="width:100%;font-size:15px;padding:13px;" onclick="generatePlayerCardsUI()">🎲 Generate My Cards</button>
-      <div id="cardGenWrap" class="cards-wrap" style="margin-top:12px;margin-bottom:4px;"></div>
-      <div id="cardGenHint" style="font-size:11px;color:var(--muted);margin-top:4px;"></div>
-    </div>
+    <!-- ═══ PLAYER ═══ -->
+    <section class="gp-view on" id="gpv-player">
+      <div class="gp-card gp-hero">
+        <div>
+          <div class="gp-eyebrow">🌙 Bayaning Puyat Series</div>
+          <h2 id="playerName">Player</h2>
+          <div class="welcome" id="playerWelcome">Welcome! Handa ka na ba? 🎯</div>
+        </div>
+        <div id="playerTokenBalance" class="gp-balpill">🪙 0 SMB Tokens</div>
+      </div>
 
-    <!-- RSVP -->
-    <div class="panel" id="rsvpPanel" style="display:none;text-align:center;padding:18px;">
-      <div id="rsvpPanelContent"></div>
-    </div>
+      <div class="gp-stats">
+        <div class="gp-stat"><div class="k">Token balance</div><div class="v" id="gpStatBal" style="color:var(--gold)">—</div><div class="s">Available to spend</div></div>
+        <div class="gp-stat"><div class="k">Earned this shift</div><div class="v gp-up" id="gpStatEarn">—</div><div class="s">Since 9 PM PHT</div></div>
+        <div class="gp-stat"><div class="k">Spent this shift</div><div class="v" id="gpStatSpent">—</div><div class="s">Cards, pets, shop, bets</div></div>
+        <div class="gp-stat"><div class="k">Tonight's BINGO</div><div class="v gp-v-sm" id="gpStatBingo">—</div><div class="s" id="gpStatBingoSub">&nbsp;</div></div>
+      </div>
 
-    <!-- My Bingo Pets is its own player tab/section (not part of Shop & Tokens). -->
-    <details class="panel-group" id="bingoPetsGroup">
+      <div class="gp-two">
+        <div class="gp-col">
+          <div class="gp-card">
+            <div class="gp-hdr"><h3>🎱 Tonight's BINGO</h3><span class="gp-pill gp-pill-sm" id="gpBingoPill">—</span></div>
+            <div id="playerPrizeDisplay" style="display:none;background:rgba(227,166,62,.12);border:1px solid rgba(227,166,62,.3);border-radius:8px;padding:8px 14px;margin-top:8px;font-size:13px;text-align:center;">
+        🏆 <strong>Prize ngayong gabi:</strong> <span id="playerPrizeText" style="color:var(--gold);">—</span>
+      </div>
+            <div class="gp-mini" id="gpBingoInfo">Waiting for the host to start the game… 🌙</div>
+            <button class="btn btn-gold btn-full" style="margin-top:12px" onclick="gpGo('bingo')">Go to BINGO →</button>
+          </div>
+          <div class="gp-card gp-wrap-panel"><div class="panel" id="cashInPanel" style="display:none;">
+          <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;color:var(--gold);text-transform:uppercase;margin-bottom:8px;">💰 Cash In: Points → SMB Tokens</div>
+          <div id="cashInPanelContent" style="font-size:13px;color:var(--muted);"></div>
+        </div></div>
+        </div>
+        <div class="gp-card">
+          <div class="gp-hdr"><h3>🧾 Recent token activity</h3><span class="gp-badge">Latest entries</span></div>
+          <div id="gpActivity" class="gp-mini">Loading…</div>
+        </div>
+      </div>
+
+      <div class="gp-card gp-wrap-group"><div class="gp-hdr"><h3>🐾 My BINGO Pets</h3><span class="gp-badge">Daily drop 8 PM PHT</span></div><details class="panel-group" id="bingoPetsGroup">
       <summary>🐾 My Bingo Pets</summary>
       <div class="panel-group-body">
         <div class="panel" id="bingoPetsPanel" style="display:none;">
@@ -665,143 +859,45 @@ textarea{resize:vertical;min-height:60px;}
           <div id="bingoPetsPanelContent">Loading your pets...</div>
         </div>
       </div>
-    </details>
+    </details></div>
 
-    <!-- Shop & Tokens (collapsible group — was 6 always-open panels, too much scrolling) -->
-    <details class="panel-group" id="shopTokensGroup">
-      <summary>💰 Shop &amp; Tokens</summary>
-      <div class="panel-group-body">
-        <!-- Cash In: convert Marcus points into SMB Tokens -->
-        <div class="panel" id="cashInPanel" style="display:none;">
-          <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;color:var(--gold);text-transform:uppercase;margin-bottom:8px;">💰 Cash In: Points → SMB Tokens</div>
-          <div id="cashInPanelContent" style="font-size:13px;color:var(--muted);"></div>
-        </div>
-
-        <!-- Buy an Extra Card (spends SMB Tokens) -->
-        <div class="panel" id="buyCardPanel" style="display:none;">
-          <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;color:var(--gold);text-transform:uppercase;margin-bottom:8px;">🎟️ Buy an Extra Card</div>
-          <div id="buyCardPanelContent" style="font-size:13px;color:var(--muted);"></div>
-        </div>
-
-        <!-- Ask / Give SMB Tokens (lobby-only, before first ball is drawn) -->
-        <div class="panel" id="tokenTransferPanel" style="display:none;">
-          <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;color:var(--teal);text-transform:uppercase;margin-bottom:8px;">🙏 Ask / 🎁 Give SMB Tokens</div>
-          <div id="tokenTransferPanelContent" style="font-size:13px;color:var(--muted);"></div>
-        </div>
-
-        <!-- SMB Token Shop: marker themes & card skins (cosmetic-only) -->
-        <div class="panel" id="tokenShopPanel" style="display:none;">
-          <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;color:var(--gold);text-transform:uppercase;margin-bottom:6px;">🛒 SMB Token Shop</div>
-          <div style="font-size:12px;color:var(--muted);margin-bottom:10px;">Spend your SMB Tokens on marker themes and card skins — all cosmetic, no gameplay edge. Tap an item to unlock it, then tap "Equip" to use it. Items marked 🔥 are on sale this week!</div>
-          <div id="tokenShopPanelContent" style="font-size:13px;color:var(--muted);"></div>
-        </div>
-
-        <!-- Cosmetics Shop: badge frames, sound packs, lucky icons, emoji packs -->
-        <div class="panel" id="cosmeticsShopPanel" style="display:none;">
-          <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;color:var(--gold);text-transform:uppercase;margin-bottom:6px;">✨ Cosmetics Shop</div>
-          <div style="font-size:12px;color:var(--muted);margin-bottom:10px;">Badge frames, sound packs, lucky charm icons, and marker emoji packs — all cosmetic, permanent once bought.</div>
-          <div id="cosmeticsShopPanelContent" style="font-size:13px;color:var(--muted);"></div>
-        </div>
-
-        <!-- Titles Shop: weekly, resets every Monday -->
-        <div class="panel" id="titlesShopPanel" style="display:none;">
-          <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;color:var(--gold);text-transform:uppercase;margin-bottom:6px;">🏷️ Weekly Titles</div>
-          <div style="font-size:12px;color:var(--muted);margin-bottom:10px;">5 🪙 SMB Tokens for a fun title next to your name on the leaderboards. Lasts until Monday reset!</div>
-          <div id="titlesShopPanelContent" style="font-size:13px;color:var(--muted);"></div>
+      <div class="gp-card">
+        <div class="gp-hdr"><h3>🕹️ Play</h3><span class="gp-badge">Plays left this shift</span></div>
+        <div class="gp-games">
+          <div class="gp-game" onclick="gpGo('bingo')"><span class="ic">🎱</span><b>BINGO</b><span class="gp-left" id="gpTileBingo">Our main game</span></div>
+          <div class="gp-game" onclick="gpGo('spin')"><span class="ic">🎡</span><b>Spin the Wheel</b><span class="gp-left" id="gpTileSpin">Bet 1–10</span></div>
+          <div class="gp-game" onclick="gpGo('hl')"><span class="ic">📈</span><b>Higher or Lower</b><span class="gp-left" id="gpTileHl">Bet 1–5</span></div>
+          <div class="gp-game" onclick="gpGo('rps')"><span class="ic">✊</span><b>RPS Duel</b><span class="gp-left">Stake 10–50 • 1v1</span></div>
+          <div class="gp-game" onclick="gpGo('team')"><span class="ic">⚔️</span><b>Team Battles</b><span class="gp-left">3v3 • winner takes pot</span></div>
+          <div class="gp-game" onclick="gpGo('shop')"><span class="ic">🛒</span><b>Shop</b><span class="gp-left">Frames, icons, titles</span></div>
         </div>
       </div>
-    </details>
+    </section>
 
-    <!-- Avatar Studio: Boy/Girl base + unlockable Background/Hair/Outfit/Accessory/Frame.
-         Purchases live ONLY here, not in the Shop & Tokens tab (per Rendy, 2026-07-25). -->
-    <details class="panel-group" id="avatarStudioGroup">
-      <summary>🧑 Avatar Studio</summary>
-      <div class="panel-group-body">
-        <div class="panel" id="avatarStudioPanel">
-          <div style="font-size:12px;color:var(--muted);margin-bottom:10px;">Build your look! Pick Boy/Girl, then unlock Background, Hair, Outfit, Accessory, and Frame pieces with SMB Tokens. Your avatar shows on your profile and every leaderboard.</div>
-          <div id="avatarStudioPanelContent" style="font-size:13px;color:var(--muted);">Loading...</div>
-        </div>
+    <!-- ═══ BINGO ═══ -->
+    <section class="gp-view" id="gpv-bingo">
+      <div class="gp-subtabs" id="gpBingoTabs">
+        <button class="on" data-s="play" onclick="gpSub('play')">🎱 Play</button>
+        <button data-s="buy" onclick="gpSub('buy')">🎟️ Buy cards</button>
+        <button data-s="style" onclick="gpSub('style')">🎨 Card skins &amp; markers</button>
+        <button data-s="give" onclick="gpSub('give')">🙏 Ask / 🎁 Give tokens</button>
+        <button data-s="win" onclick="gpSub('win')">🏆 Winners</button>
       </div>
-    </details>
-
-    <!-- Spin the Wheel: bet 1 token, up to 3 spins per shift. 6 segments: 0/1/0/2/0/3x. -->
-    <details class="panel-group" id="spinWheelGroup">
-      <summary>🎡 Spin the Wheel</summary>
-      <div class="panel-group-body">
-        <div class="panel" id="spinWheelPanel">
-          <div style="font-size:12px;color:var(--muted);margin-bottom:10px;">Bet 1–10 SMB Tokens per spin — up to 3 spins per shift. Land on 0x and your bet is gone. Land on 1x and nothing changes. Land on 2x/3x and you win your bet back multiplied!</div>
-          <div id="spinWheelPanelContent" style="text-align:center;">Loading...</div>
-        </div>
-      </div>
-    </details>
-
-    <!-- Higher or Lower: bet 1-5 tokens, up to 3 plays per shift. Draw 1-50, guess higher/lower vs current value. -->
-    <details class="panel-group" id="highLowGroup">
-      <summary>📈 Higher or Lower</summary>
-      <div class="panel-group-body">
-        <div class="panel" id="highLowPanel">
-          <div style="font-size:12px;color:var(--muted);margin-bottom:10px;">Bet 1-5 SMB Tokens per play — up to 3 plays per shift. Guess if the next number (1-50) is Higher or Lower than the current one. Win = double your bet back. Tie = free redraw.</div>
-          <div id="highLowPanelContent" style="text-align:center;">Loading...</div>
-        </div>
-      </div>
-    </details>
-
-    <!-- RPS Duel: 1v1 async Rock-Paper-Scissors (best of 3). Stake 10-50, 3 duels/shift, 2/day per pair, 2-hr expiry, 10% house cut (none on ties). Server: Supabase edge fn bingo-rps. -->
-    <details class="panel-group" id="rpsGroup" ontoggle="if(this.open) rpsFetch(true)">
-      <summary>✊ RPS Duel (1v1) <span id="rpsBadge" style="display:none;background:var(--danger);color:#fff;border-radius:10px;padding:1px 8px;margin-left:6px;font-size:11px;letter-spacing:0;"></span></summary>
-      <div class="panel-group-body">
-        <div class="panel" id="rpsPanel">
-          <div style="font-size:12px;color:var(--muted);margin-bottom:10px;">Challenge a teammate to Rock-Paper-Scissors, best of 3! Pick all 3 rounds in secret, stake 10–50 SMB Tokens each. Your opponent has 2 hours to accept, or you get your tokens back. Winner takes the pot minus a 10% house cut. Tie = both refunded. Max 3 duels per shift and 2 per day with the same person.</div>
-          <div id="rpsPanelContent" style="font-size:13px;">Loading...</div>
-        </div>
-      </div>
-    </details>
-
-    <!-- Leaderboards (collapsible group — Wins, Richest, Big Spender, Check-in Points) -->
-    <details class="panel-group" id="leaderboardsGroup">
-      <summary>🏆 Leaderboards</summary>
-      <div class="panel-group-body">
-        <div class="board-grid">
-          <!-- Bingo Wins Leaderboard (all-time) -->
-          <div class="panel" id="playerWinsLeaderboardPanel">
-            <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;color:var(--gold);text-transform:uppercase;margin-bottom:8px;">🏆 Bingo Wins Leaderboard</div>
-            <div id="playerWinsLeaderboardContent" style="font-size:13px;color:var(--muted);"></div>
-          </div>
-
-          <!-- Richest Bingo Player (SMB Token balances) -->
-          <div class="panel" id="playerRichestPanel">
-            <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;color:var(--gold);text-transform:uppercase;margin-bottom:8px;">💰 Richest Bingo Player</div>
-            <div id="playerRichestContent" style="font-size:13px;color:var(--muted);"></div>
-          </div>
-
-          <!-- Big Spender (SMB Tokens spent all-time) -->
-          <div class="panel" id="playerBigSpenderPanel">
-            <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;color:var(--gold);text-transform:uppercase;margin-bottom:8px;">🔥 Big Spender Board</div>
-            <div id="playerBigSpenderContent" style="font-size:13px;color:var(--muted);"></div>
-          </div>
-
-          <!-- Hourly Check-in Points (running lifetime total from Marcus-Ganzo) -->
-          <div class="panel" id="playerCheckinPointsPanel">
-            <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;color:var(--gold);text-transform:uppercase;margin-bottom:8px;">⏰ Hourly Check-in Points</div>
-            <div id="playerCheckinPointsContent" style="font-size:13px;color:var(--muted);"></div>
-          </div>
-        </div>
-      </div>
-    </details>
-
-    <!-- Team Battles: 3v3 leader-formed token wager mode -->
-    <details class="panel-group" id="teamBattlesGroup">
-      <summary>⚔️ Team Battles (3v3)</summary>
-      <div class="panel-group-body">
-        <div class="panel" id="teamBattlesPanel">
-          <div style="font-size:12px;color:var(--muted);margin-bottom:10px;">Form a 3-player team (1 token entry each), lock in, and battle another team — winner takes the whole pot! An admin needs 2+ locked teams to start a battle.</div>
-          <div id="teamBattlesPanelContent" style="font-size:13px;color:var(--muted);">Loading...</div>
-        </div>
-      </div>
-    </details>
-
-    <!-- Pattern display for player -->
-    <div id="playerPatternDisplay" style="display:none;background:var(--deep);border:1px solid rgba(245,200,66,.15);border-radius:var(--r);padding:14px;margin-bottom:14px;text-align:center;">
+      <div class="gp-bsub on" data-s="play">
+        <!-- Generate Card button — always visible right after login -->
+    <div style="background:var(--deep);border:2px solid var(--gold);border-radius:var(--r);padding:18px;margin-bottom:14px;text-align:center;">
+      <div style="font-size:13px;font-weight:700;color:var(--gold);margin-bottom:6px;">🎰 Generate Your Bingo Cards</div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:12px;">I-generate ang iyong cards bago mag-laro. Pwedeng mag-generate ulit hanggang satisfied ka — tapos i-lock in ang gusto mo!</div>
+      <button class="btn btn-gold" style="width:100%;font-size:15px;padding:13px;" onclick="generatePlayerCardsUI()">🎲 Generate My Cards</button>
+      <div id="cardGenWrap" class="cards-wrap" style="margin-top:12px;margin-bottom:4px;"></div>
+      <div id="cardGenHint" style="font-size:11px;color:var(--muted);margin-top:4px;"></div>
+    </div>
+        <!-- RSVP -->
+    <div class="panel" id="rsvpPanel" style="display:none;text-align:center;padding:18px;">
+      <div id="rsvpPanelContent"></div>
+    </div>
+        <!-- Pattern display for player -->
+    <div id="playerPatternDisplay" style="display:none;background:var(--deep);border:1px solid rgba(227,166,62,.15);border-radius:var(--r);padding:14px;margin-bottom:14px;text-align:center;">
       <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;color:var(--teal);text-transform:uppercase;margin-bottom:6px;">Tonight's Winning Pattern</div>
       <div style="font-size:14px;font-weight:700;color:var(--gold);margin-bottom:8px;" id="playerPatternName">—</div>
       <div class="pattern-grid" id="playerPatternGrid" style="width:100px;gap:4px;"></div>
@@ -845,14 +941,128 @@ textarea{resize:vertical;min-height:60px;}
     <button class="btn btn-outline btn-full" style="margin-top:10px;" onclick="openPuroModal()">🎉 PURO NA AKO MGA SIS!</button>
 
     <div class="log-box" id="playerLog" style="margin-top:12px;"></div>
-
-    <div style="text-align:center;margin-top:16px;">
-      <div style="display:flex;align-items:center;justify-content:center;gap:20px;flex-wrap:wrap;">
-        <span class="back-link" onclick="playerLogout()">← Logout</span>
-        <span class="back-link" style="color:var(--teal);" onclick="openPinChange()">🔑 Change PIN</span>
       </div>
-    </div>
-  </div>
+      <div class="gp-bsub" data-s="buy">
+        <div class="gp-card gp-wrap-panel"><div class="panel" id="buyCardPanel" style="display:none;">
+          <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;color:var(--gold);text-transform:uppercase;margin-bottom:8px;">🎟️ Buy an Extra Card</div>
+          <div id="buyCardPanelContent" style="font-size:13px;color:var(--muted);"></div>
+        </div><div class="gp-empty">🎟️ Card buying opens when the host opens tonight's game lobby.</div></div>
+      </div>
+      <div class="gp-bsub" data-s="style">
+        <div class="gp-card gp-wrap-panel"><div class="panel" id="tokenShopPanel" style="display:none;">
+          <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;color:var(--gold);text-transform:uppercase;margin-bottom:6px;">🛒 SMB Token Shop</div>
+          <div style="font-size:12px;color:var(--muted);margin-bottom:10px;">Spend your SMB Tokens on marker themes and card skins — all cosmetic, no gameplay edge. Tap an item to unlock it, then tap "Equip" to use it. Items marked 🔥 are on sale this week!</div>
+          <div id="tokenShopPanelContent" style="font-size:13px;color:var(--muted);"></div>
+        </div></div>
+      </div>
+      <div class="gp-bsub" data-s="give">
+        <div class="gp-card gp-wrap-panel"><div class="panel" id="tokenTransferPanel" style="display:none;">
+          <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;color:var(--teal);text-transform:uppercase;margin-bottom:8px;">🙏 Ask / 🎁 Give SMB Tokens</div>
+          <div id="tokenTransferPanelContent" style="font-size:13px;color:var(--muted);"></div>
+        </div><div class="gp-empty">🙏 Ask / 🎁 Give works in the game lobby, before the first ball is drawn.</div></div>
+      </div>
+      <div class="gp-bsub" data-s="win">
+        <div class="gp-card"><div class="gp-hdr"><h3>🏆 Recent BINGO winners</h3><span class="gp-badge">Last 8 games</span></div><div id="gpWinners" class="gp-mini">Loading…</div></div>
+      </div>
+    </section>
+
+    <section class="gp-view" id="gpv-spin"><div class="gp-card gp-wrap-group"><details class="panel-group" id="spinWheelGroup">
+      <summary>🎡 Spin the Wheel</summary>
+      <div class="panel-group-body">
+        <div class="panel" id="spinWheelPanel">
+          <div style="font-size:12px;color:var(--muted);margin-bottom:10px;">Bet 1–10 SMB Tokens per spin — up to 3 spins per shift. Land on 0x and your bet is gone. Land on 1x and nothing changes. Land on 2x/3x and you win your bet back multiplied!</div>
+          <div id="spinWheelPanelContent" style="text-align:center;">Loading...</div>
+        </div>
+      </div>
+    </details></div></section>
+    <section class="gp-view" id="gpv-hl"><div class="gp-card gp-wrap-group"><details class="panel-group" id="highLowGroup">
+      <summary>📈 Higher or Lower</summary>
+      <div class="panel-group-body">
+        <div class="panel" id="highLowPanel">
+          <div style="font-size:12px;color:var(--muted);margin-bottom:10px;">Bet 1-5 SMB Tokens per play — up to 3 plays per shift. Guess if the next number (1-50) is Higher or Lower than the current one. Win = double your bet back. Tie = free redraw.</div>
+          <div id="highLowPanelContent" style="text-align:center;">Loading...</div>
+        </div>
+      </div>
+    </details></div></section>
+    <section class="gp-view" id="gpv-rps"><div class="gp-card gp-wrap-group"><details class="panel-group" id="rpsGroup" ontoggle="if(this.open) rpsFetch(true)">
+      <summary>✊ RPS Duel (1v1) <span id="rpsBadge" style="display:none;background:var(--danger);color:#fff;border-radius:10px;padding:1px 8px;margin-left:6px;font-size:11px;letter-spacing:0;"></span></summary>
+      <div class="panel-group-body">
+        <div class="panel" id="rpsPanel">
+          <div style="font-size:12px;color:var(--muted);margin-bottom:10px;">Challenge a teammate to Rock-Paper-Scissors, best of 3! Pick all 3 rounds in secret, stake 10–50 SMB Tokens each. Your opponent has 2 hours to accept, or you get your tokens back. Winner takes the pot minus a 10% house cut. Tie = both refunded. Max 3 duels per shift and 2 per day with the same person.</div>
+          <div id="rpsPanelContent" style="font-size:13px;">Loading...</div>
+        </div>
+      </div>
+    </details></div></section>
+    <section class="gp-view" id="gpv-team"><div class="gp-card gp-wrap-group"><details class="panel-group" id="teamBattlesGroup">
+      <summary>⚔️ Team Battles (3v3)</summary>
+      <div class="panel-group-body">
+        <div class="panel" id="teamBattlesPanel">
+          <div style="font-size:12px;color:var(--muted);margin-bottom:10px;">Form a 3-player team (1 token entry each), lock in, and battle another team — winner takes the whole pot! An admin needs 2+ locked teams to start a battle.</div>
+          <div id="teamBattlesPanelContent" style="font-size:13px;color:var(--muted);">Loading...</div>
+        </div>
+      </div>
+    </details></div></section>
+
+    <!-- ═══ SHOP ═══ -->
+    <section class="gp-view" id="gpv-shop">
+      <div class="gp-card gp-wrap-panel"><div class="panel" id="cosmeticsShopPanel" style="display:none;">
+          <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;color:var(--gold);text-transform:uppercase;margin-bottom:6px;">✨ Cosmetics Shop</div>
+          <div style="font-size:12px;color:var(--muted);margin-bottom:10px;">Badge frames, sound packs, lucky charm icons, and marker emoji packs — all cosmetic, permanent once bought.</div>
+          <div id="cosmeticsShopPanelContent" style="font-size:13px;color:var(--muted);"></div>
+        </div></div>
+      <div class="gp-card gp-wrap-panel"><div class="panel" id="titlesShopPanel" style="display:none;">
+          <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;color:var(--gold);text-transform:uppercase;margin-bottom:6px;">🏷️ Weekly Titles</div>
+          <div style="font-size:12px;color:var(--muted);margin-bottom:10px;">5 🪙 SMB Tokens for a fun title next to your name on the leaderboards. Lasts until Monday reset!</div>
+          <div id="titlesShopPanelContent" style="font-size:13px;color:var(--muted);"></div>
+        </div></div>
+      <div class="gp-card gp-soon">
+        <div class="gp-hdr"><h3>🎁 Real-world rewards</h3><span class="gp-pill gp-pill-sm">Coming soon</span></div>
+        <div class="gp-mini">Gift cards, food treats and more — bridged with SMB Portal tokens. Not available yet.</div>
+      </div>
+      <div class="gp-mini" style="margin-top:4px">🎨 Card skins &amp; marker themes are in <a href="#" style="color:var(--gold)" onclick="gpGo('bingo');gpSub('style');return false;">BINGO → Card skins &amp; markers</a>.</div>
+    </section>
+
+    <section class="gp-view" id="gpv-avatar"><div class="gp-card gp-wrap-group"><details class="panel-group" id="avatarStudioGroup">
+      <summary>🧑 Avatar Studio</summary>
+      <div class="panel-group-body">
+        <div class="panel" id="avatarStudioPanel">
+          <div style="font-size:12px;color:var(--muted);margin-bottom:10px;">Build your look! Pick Boy/Girl, then unlock Background, Hair, Outfit, Accessory, and Frame pieces with SMB Tokens. Your avatar shows on your profile and every leaderboard.</div>
+          <div id="avatarStudioPanelContent" style="font-size:13px;color:var(--muted);">Loading...</div>
+        </div>
+      </div>
+    </details></div></section>
+    <section class="gp-view" id="gpv-lb"><div class="gp-wrap-group gp-lb"><details class="panel-group" id="leaderboardsGroup">
+      <summary>🏆 Leaderboards</summary>
+      <div class="panel-group-body">
+        <div class="board-grid">
+          <!-- Bingo Wins Leaderboard (all-time) -->
+          <div class="panel" id="playerWinsLeaderboardPanel">
+            <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;color:var(--gold);text-transform:uppercase;margin-bottom:8px;">🏆 Bingo Wins Leaderboard</div>
+            <div id="playerWinsLeaderboardContent" style="font-size:13px;color:var(--muted);"></div>
+          </div>
+
+          <!-- Richest Bingo Player (SMB Token balances) -->
+          <div class="panel" id="playerRichestPanel">
+            <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;color:var(--gold);text-transform:uppercase;margin-bottom:8px;">💰 Richest Bingo Player</div>
+            <div id="playerRichestContent" style="font-size:13px;color:var(--muted);"></div>
+          </div>
+
+          <!-- Big Spender (SMB Tokens spent all-time) -->
+          <div class="panel" id="playerBigSpenderPanel">
+            <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;color:var(--gold);text-transform:uppercase;margin-bottom:8px;">🔥 Big Spender Board</div>
+            <div id="playerBigSpenderContent" style="font-size:13px;color:var(--muted);"></div>
+          </div>
+
+          <!-- Hourly Check-in Points (running lifetime total from Marcus-Ganzo) -->
+          <div class="panel" id="playerCheckinPointsPanel">
+            <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;color:var(--gold);text-transform:uppercase;margin-bottom:8px;">⏰ Hourly Check-in Points</div>
+            <div id="playerCheckinPointsContent" style="font-size:13px;color:var(--muted);"></div>
+          </div>
+        </div>
+      </div>
+    </details></div></section>
+  </main>
+</div>
 </div>
 
 <!-- ════════════════════ WIN MODAL ════════════════════ -->
@@ -1783,7 +1993,7 @@ function refreshRosterUI() {
         <div class="flex-row">
           <button class="btn btn-outline btn-sm" onclick="openEditPlayer('${p.id}')">✏️ Edit</button>
           <button class="btn btn-sm" style="background:rgba(224,92,92,.15);color:var(--danger);border:1px solid rgba(224,92,92,.3);" onclick="togglePlayer('${p.id}')">${p.active!==false?'Deactivate':'Activate'}</button>
-          <button class="btn btn-sm" style="background:rgba(245,200,66,.1);color:var(--gold);border:1px solid rgba(245,200,66,.3);" onclick="adminResetPlayerPin('${p.id}')">Reset PIN</button>
+          <button class="btn btn-sm" style="background:rgba(227,166,62,.1);color:var(--gold);border:1px solid rgba(227,166,62,.3);" onclick="adminResetPlayerPin('${p.id}')">Reset PIN</button>
           <button class="btn btn-gold btn-sm" onclick="adminAwardTokens('${p.id}')">🎁 Award</button>
           <button class="btn btn-danger btn-sm" onclick="deletePlayer('${p.id}')">🗑️</button>
         </div>
@@ -2774,6 +2984,8 @@ function showPlayerScreen(){
   document.getElementById('playerName').textContent=currentPlayer.name;
   document.getElementById('playerWelcome').textContent=`Kamusta, ${currentPlayer.name}? Handa ka na ba mag-BINGO? 🎯`;
   refreshPlayerScreen();
+  if(typeof gpGo === 'function'){ let v = null; try { v = sessionStorage.getItem('gpView'); } catch(e){}
+    _initialLoadPromise.then(() => gpGo(gpGameLive() ? 'bingo' : (v || 'player'))); }
   // Poll for game updates
   if(window._playerPoll) clearInterval(window._playerPoll);
   window._playerPoll=setInterval(refreshPlayerScreen,5000);
@@ -3491,7 +3703,7 @@ async function refreshBuyCardPanel(){
     content.innerHTML = `<div style="margin-bottom:8px;">Piliin ang isa sa 7 cards na ito (${CARD_PRICE} 🪙 SMB Tokens):</div>` +
       `<div style="display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;">` +
       _buyCardCandidates.map((grid,i) => `
-        <div style="min-width:110px;border:1px solid rgba(245,200,66,.25);border-radius:8px;padding:6px;">
+        <div style="min-width:110px;border:1px solid rgba(227,166,62,.25);border-radius:8px;padding:6px;">
           ${renderMiniCardGrid(grid)}
           <button class="btn btn-gold btn-sm" style="width:100%;" onclick="choosePurchasedCard(${i})">Pick this</button>
         </div>`).join('') +
@@ -3723,12 +3935,12 @@ async function equipSkin(skinId){
 // Shift boundary mirrors Marcus-Ganzo's graveyard shift (9PM-5AM PHT) so
 // "once per shift" lines up with the rest of the check-in system.
 const SPIN_WHEEL_SEGMENTS = [
-  { mult: 0, color: '#3a1620', label: '0x' },
-  { mult: 1, color: '#16293f', label: '1x' },
-  { mult: 0, color: '#3a1620', label: '0x' },
-  { mult: 2, color: '#1d3a2a', label: '2x' },
-  { mult: 0, color: '#3a1620', label: '0x' },
-  { mult: 3, color: '#3a2f10', label: '3x' },
+  { mult: 0, color: '#4a1b24', inner: '#2c0f15', text: '#ff8f86', label: '0x' },
+  { mult: 1, color: '#25324c', inner: '#151d2e', text: '#c9d3ea', label: '1x' },
+  { mult: 0, color: '#4a1b24', inner: '#2c0f15', text: '#ff8f86', label: '0x' },
+  { mult: 2, color: '#17463f', inner: '#0d2a26', text: '#6fe6d3', label: '2x' },
+  { mult: 0, color: '#4a1b24', inner: '#2c0f15', text: '#ff8f86', label: '0x' },
+  { mult: 3, color: '#6b4a12', inner: '#3a2808', text: '#FFD27A', label: '3x' },
 ];
 const SPIN_WHEEL_MAX_PER_SHIFT = 3;
 const SPIN_WHEEL_MAX_BET = 10;
@@ -3761,40 +3973,55 @@ function renderSpinWheelPanel(){
   const spinsLeft = Math.max(0, SPIN_WHEEL_MAX_PER_SHIFT - spinsUsed);
   const alreadySpun = spinsLeft === 0;
 
-  const gradientStops = SPIN_WHEEL_SEGMENTS.map((s,i) => `${s.color} ${i*60}deg ${(i+1)*60}deg`).join(',');
-  const labels = SPIN_WHEEL_SEGMENTS.map((s,i) => {
-    const angle = i*60 + 30;
-    return `<div style="position:absolute;top:50%;left:50%;width:0;height:0;transform:rotate(${angle}deg) translate(0,-72px) rotate(-${angle}deg);transform-origin:0 0;font-weight:700;font-size:13px;color:#fff;">${s.label}</div>`;
-  }).join('');
-
-  const betOptions = Array.from({length: SPIN_WHEEL_MAX_BET}, (_, i) => i + 1)
-    .map(b => `<option value="${b}" ${b === _spinWheelBet ? 'selected' : ''}>${b} 🪙</option>`).join('');
+  const R = 146, P = Math.PI/180;
+  let wheel = '<defs>' + SPIN_WHEEL_SEGMENTS.map((g,i) => `<radialGradient id="sw2g${i}" cx="0" cy="0" r="150" gradientUnits="userSpaceOnUse"><stop offset="0.25" stop-color="${g.inner}"/><stop offset="1" stop-color="${g.color}"/></radialGradient>`).join('') + '</defs>';
+  SPIN_WHEEL_SEGMENTS.forEach((g,i) => {
+    const s0 = (i*60-90)*P, s1 = ((i+1)*60-90)*P, c = (i*60+30-90)*P;
+    wheel += `<path d="M0 0 L${(R*Math.cos(s0)).toFixed(2)} ${(R*Math.sin(s0)).toFixed(2)} A${R} ${R} 0 0 1 ${(R*Math.cos(s1)).toFixed(2)} ${(R*Math.sin(s1)).toFixed(2)} Z" fill="url(#sw2g${i})" stroke="#E3A63E" stroke-opacity=".55" stroke-width="2"/>`;
+    wheel += `<g transform="translate(${(100*Math.cos(c)).toFixed(2)} ${(100*Math.sin(c)).toFixed(2)}) rotate(${i*60+30})"><text text-anchor="middle" dy="10" font-weight="800" font-size="30" font-family="Inter,system-ui,sans-serif" fill="${g.text}">${g.label}</text><text text-anchor="middle" dy="27" font-size="10.5" font-family="Inter,system-ui,sans-serif" fill="${g.text}" opacity=".75">${g.mult===0?'lose':g.mult===1?'push':'win'}</text></g>`;
+  });
+  wheel += `<circle r="${R}" fill="none" stroke="#E3A63E" stroke-width="3"/>`;
+  let ring = '<circle cx="0" cy="0" r="148" fill="#1a1e2c"/><circle cx="0" cy="0" r="139" fill="none" stroke="#3a2d12" stroke-width="8"/>';
+  for(let i=0;i<24;i++){ const t = i*15*P; ring += `<circle class="b ${i%2?'o':'e'}" cx="${(139*Math.cos(t)).toFixed(2)}" cy="${(139*Math.sin(t)).toFixed(2)}" r="3.6"/>`; }
+  const pips = Array.from({length: SPIN_WHEEL_MAX_PER_SHIFT}, (_, i) => `<span class="${i < spinsUsed ? 'used' : ''}"></span>`).join('');
+  const chips = Array.from({length: SPIN_WHEEL_MAX_BET}, (_, i) => i + 1)
+    .map(b => `<button type="button" class="sw2-chip ${b === _spinWheelBet ? 'on' : ''}" ${alreadySpun ? 'disabled' : ''} onclick="_spinWheelBet = ${b}; renderSpinWheelPanel();">${b}</button>`).join('');
 
   content.innerHTML = `
-    <div style="position:relative;width:200px;height:200px;margin:0 auto 14px;">
-      <div style="position:absolute;top:-6px;left:50%;transform:translateX(-50%);font-size:20px;z-index:2;">🔻</div>
-      <div id="spinWheelDial" style="width:200px;height:200px;border-radius:50%;background:conic-gradient(${gradientStops});border:4px solid var(--gold);position:relative;transition:transform 3.2s cubic-bezier(.17,.67,.16,.99);">${labels}</div>
+    <div class="sw2" id="sw2Stage">
+      <div class="sw2-conf" id="sw2Conf"></div>
+      <div class="sw2-top"><span>${alreadySpun ? 'Ubos na ang spins ngayong shift' : `${spinsLeft}/${SPIN_WHEEL_MAX_PER_SHIFT} spins left this shift`}</span><div class="sw2-pips">${pips}</div></div>
+      <div class="sw2-wrap">
+        <svg class="sw2-ring" viewBox="-150 -150 300 300">${ring}</svg>
+        <svg id="spinWheelDial" viewBox="-150 -150 300 300">${wheel}</svg>
+        <svg class="sw2-ptr" viewBox="0 0 34 42"><defs><linearGradient id="sw2p" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#FFE9B8"/><stop offset="1" stop-color="#C98A27"/></linearGradient></defs><path d="M17 41 L3 12 A14 14 0 1 1 31 12 Z" fill="url(#sw2p)" stroke="#1a1205" stroke-width="1.5"/><circle cx="17" cy="13" r="5" fill="#1a1205"/></svg>
+        <div class="sw2-hub ${alreadySpun ? 'off' : ''}" ${alreadySpun ? '' : 'onclick="spinTheWheel()"'}>SPIN<small>${_spinWheelBet} 🪙</small></div>
+      </div>
+      <div class="sw2-lbl">Your bet</div>
+      <div class="sw2-chips">${chips}</div>
+      <div id="spinWheelResult" class="sw2-res">${alreadySpun ? 'Balik next shift para sa 3 bagong spins! 🎡' : 'Pili ng bet, tapos SPIN!'}</div>
+      <button class="btn btn-gold btn-full" id="spinWheelBtn" ${alreadySpun ? 'disabled' : ''} onclick="spinTheWheel()">${alreadySpun ? `Ubos na ang ${SPIN_WHEEL_MAX_PER_SHIFT} spins mo ngayong shift ✔️` : `SPIN (${_spinWheelBet} 🪙) — ${spinsLeft}/${SPIN_WHEEL_MAX_PER_SHIFT} left`}</button>
+      <div class="sw2-pay">
+        <div><b style="color:#E2685F">0x</b>lose bet</div><div><b style="color:#b8bdca">1x</b>bet back</div><div><b style="color:#3FBFAE">2x</b>+1× bet</div><div><b style="color:#E3A63E">3x</b>+2× bet</div>
+      </div>
     </div>
-    <div id="spinWheelResult" style="min-height:20px;font-weight:700;margin-bottom:10px;"></div>
-    <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:12px;">
-      <label style="font-size:12px;color:var(--muted);">Bet:</label>
-      <select id="spinWheelBetSelect" ${alreadySpun ? 'disabled' : ''} onchange="_spinWheelBet = Number(this.value); renderSpinWheelPanel();" style="padding:4px 8px;border-radius:6px;">${betOptions}</select>
-    </div>
-    <button class="btn btn-gold btn-full" id="spinWheelBtn" ${alreadySpun ? 'disabled' : ''} onclick="spinTheWheel()">${alreadySpun ? `Ubos na ang ${SPIN_WHEEL_MAX_PER_SHIFT} spins mo ngayong shift ✔️` : `SPIN (${_spinWheelBet} 🪙) — ${spinsLeft}/${SPIN_WHEEL_MAX_PER_SHIFT} left`}</button>
   `;
 }
+
 
 async function spinTheWheel(){
   if(!currentPlayer || _spinWheelAnimating) return;
   const btn = document.getElementById('spinWheelBtn');
   const dial = document.getElementById('spinWheelDial');
   const resultEl = document.getElementById('spinWheelResult');
-  if(!btn || !dial) return;
+  if(!btn || !dial || btn.disabled) return; // hub + button both trigger; block double-taps
 
   const bet = _spinWheelBet;
   btn.disabled = true;
   btn.textContent = 'Spinning...';
-  resultEl.textContent = '';
+  resultEl.className = 'sw2-res';
+  resultEl.textContent = 'Umiikot… 🎡';
+  document.querySelectorAll('.sw2-chip').forEach(c => c.disabled = true);
 
   try {
     const r = await fetch(`${COSMETICS_BACKEND_URL}/spin-wheel`, {
@@ -3809,6 +4036,7 @@ async function spinTheWheel(){
     }
 
     _spinWheelAnimating = true;
+    const stage = document.getElementById('sw2Stage'); if(stage) stage.classList.add('spinning');
     const segAngle = j.segmentIndex * 60 + 30;
     const extraSpins = 4 * 360;
     const targetRotation = extraSpins + (360 - segAngle);
@@ -3823,11 +4051,17 @@ async function spinTheWheel(){
         DB.spinWheelShift[currentPlayer.id] = shiftStartMsClient();
       }
       const leftNote = j.spinsLeft > 0 ? ` <span style="color:var(--muted);font-weight:400;">(${j.spinsLeft} spin${j.spinsLeft > 1 ? 's' : ''} pa ngayong shift)</span>` : ` <span style="color:var(--muted);font-weight:400;">(ubos na ang spins mo ngayong shift)</span>`;
+      if(stage) stage.classList.remove('spinning');
+      btn.textContent = j.spinsLeft > 0 ? `Ready ulit in a few seconds… (${j.spinsLeft} left)` : 'Ubos na ang spins mo ngayong shift ✔️';
       if(j.multiplier === 0){
+        resultEl.className = 'sw2-res lose';
         resultEl.innerHTML = `<span style="color:#ff6b6b;">💥 0x — nawala ang ${j.bet ?? bet} token${(j.bet ?? bet) === 1 ? '' : 's'} mo!</span>${leftNote}`;
       } else if(j.multiplier === 1){
+        resultEl.className = 'sw2-res even';
         resultEl.innerHTML = `<span style="color:var(--muted);">😅 1x — walang nawala, walang nadagdag.</span>${leftNote}`;
       } else {
+        resultEl.className = 'sw2-res win';
+        sw2Confetti();
         resultEl.innerHTML = `<span style="color:var(--gold);">🎉 ${j.multiplier}x — nanalo ka ng ${j.netChange ?? j.payout} tokens!</span>${leftNote}`;
       }
       refreshTokenBalance();
@@ -3838,6 +4072,12 @@ async function spinTheWheel(){
     alert('Hindi na-process ang spin — try ulit.');
     renderSpinWheelPanel();
   }
+}
+
+function sw2Confetti(){
+  const c = document.getElementById('sw2Conf'); if(!c) return;
+  const cols = ['#E3A63E','#3FBFAE','#FFE4A3','#E2685F','#F3F1E9'];
+  for(let i=0;i<50;i++){ const e = document.createElement('i'); e.style.left = (Math.random()*100)+'%'; e.style.background = cols[i%5]; e.style.animationDelay = (Math.random()*.4)+'s'; c.appendChild(e); setTimeout(() => e.remove(), 2200); }
 }
 
 // ─── Higher or Lower: bet 1-5 tokens, up to 3 plays per shift, draw 1-50.
@@ -4014,7 +4254,7 @@ function rpsRevealHtml(){
     else final = `<div style="font-size:20px;font-weight:800;color:var(--danger);margin-top:8px;">💥 ${them} wins ${thW}–${myW}. −${d.stake} 🪙</div>`;
     final += `<button class="btn btn-gold" style="margin-top:10px;" onclick="_rpsReveal=null;renderRpsPanel(true)">OK</button>`;
   }
-  return `<div style="text-align:center;padding:10px;border:1px solid rgba(245,200,66,.35);border-radius:10px;margin-bottom:12px;">
+  return `<div style="text-align:center;padding:10px;border:1px solid rgba(227,166,62,.35);border-radius:10px;margin-bottom:12px;">
     <div style="font-weight:800;color:var(--gold);margin-bottom:6px;">🥁 REVEAL</div>
     <table class="roster-table" style="margin:0 auto;"><thead><tr><th>Rd</th><th>You</th><th>${them}</th><th>Win</th></tr></thead><tbody>${rows}</tbody></table>${final}</div>`;
 }
@@ -4353,7 +4593,7 @@ async function renderTeamBattlesPanel(){
   // Pending invites for me
   if(myInvites.length){
     html += myInvites.map(t=>`
-      <div style="background:var(--card-bg,var(--deep));border:1px solid rgba(46,202,213,.4);border-radius:8px;padding:10px 12px;margin-bottom:8px;">
+      <div style="background:var(--card-bg,var(--deep));border:1px solid rgba(63,191,174,.4);border-radius:8px;padding:10px 12px;margin-bottom:8px;">
         <div style="font-size:13px;margin-bottom:8px;"><strong>${t.leaderName}</strong> invited you to join "<span style="color:var(--gold);">${escapeHtml(t.name)}</span>" — entry: 1 token.</div>
         <div style="display:flex;gap:8px;">
           <button class="btn btn-gold btn-sm" style="flex:1;" onclick="tbRespond('${t.id}','accept')">Accept</button>
@@ -4452,7 +4692,7 @@ function tbRenderMyTeam(t, state, myId){
       const iWon = myGrid && typeof checkWinManual==='function' && checkWinManual(myGrid, match.pattern, cardMarks);
       // Mini pattern banner, same visual treatment as "Tonight's Winning Pattern" (pattern-grid/pcell),
       // but clearly labeled as the battle's own pattern so it's never confused with the main game's.
-      body += `<div style="background:var(--panel,#16293f);border:1px solid rgba(245,200,66,.15);border-radius:8px;padding:10px;margin-top:8px;text-align:center;">
+      body += `<div style="background:var(--panel,#16293f);border:1px solid rgba(227,166,62,.15);border-radius:8px;padding:10px;margin-top:8px;text-align:center;">
         <div style="font-size:9px;font-weight:700;letter-spacing:1.2px;color:var(--teal);text-transform:uppercase;margin-bottom:4px;">Your Team Battle Pattern</div>
         <div style="font-size:12px;font-weight:700;color:var(--gold);margin-bottom:6px;">${escapeHtml(match.pattern.name||'Custom')}</div>
         <div class="pattern-grid" style="width:80px;gap:3px;margin:0 auto;">${(match.pattern.cells||[]).map(on=>`<div class="pcell${on?' on':''}"></div>`).join('')}</div>
@@ -4610,7 +4850,7 @@ function renderPlayerWinsLeaderboard(){
     const p = (DB.players||[]).find(pl => pl.name === name);
     const flair = p ? nameWithFlair(p.id, name) : name;
     return `
-    <tr${name===currentPlayer.name ? ' style="background:rgba(245,200,66,.08);"' : ''}>
+    <tr${name===currentPlayer.name ? ' style="background:rgba(227,166,62,.08);"' : ''}>
       <td style="font-size:16px;">${medals[i] || '🎖️'}</td>
       <td style="font-weight:700;">${flair}${name===currentPlayer.name ? ' (You)' : ''}</td>
       <td style="color:var(--gold);font-weight:700;">${wins} win${wins!==1?'s':''}</td>
@@ -4639,7 +4879,7 @@ function renderPlayerRichestBoard(){
   const medals = ['🥇','🥈','🥉'];
   const isMe = r => currentPlayer && r.id === currentPlayer.id;
   const rowsHtml = rows.map((r, i) => `
-    <tr${isMe(r) ? ' style="background:rgba(245,200,66,.08);"' : ''}>
+    <tr${isMe(r) ? ' style="background:rgba(227,166,62,.08);"' : ''}>
       <td style="font-size:16px;">${medals[i] || '🎖️'}</td>
       <td style="font-weight:700;">${nameWithFlair(r.id, r.name)}${isMe(r) ? ' (You)' : ''}</td>
       <td style="color:var(--gold);font-weight:700;">🪙 ${r.balance}</td>
@@ -4677,7 +4917,7 @@ function renderPlayerBigSpenderBoard(){
   const medals = ['🥇','🥈','🥉'];
   const isMe = r => currentPlayer && r.id === currentPlayer.id;
   const rowsHtml2 = rows.map((r, i) => `
-    <tr${isMe(r) ? ' style="background:rgba(245,200,66,.08);"' : ''}>
+    <tr${isMe(r) ? ' style="background:rgba(227,166,62,.08);"' : ''}>
       <td style="font-size:16px;">${medals[i] || '🎖️'}</td>
       <td style="font-weight:700;">${nameWithFlair(r.id, r.name)}${isMe(r) ? ' (You)' : ''}</td>
       <td style="color:var(--gold);font-weight:700;">🪙 ${r.spent} spent</td>
@@ -4718,7 +4958,7 @@ async function renderPlayerCheckinPointsBoard(){
       const p = (DB.players||[]).find(pl => pl.slackUserId === row.user_id);
       const flair = p ? nameWithFlair(p.id, p.name) : row.name;
       return `
-      <tr${isMe(row) ? ' style="background:rgba(245,200,66,.08);"' : ''}>
+      <tr${isMe(row) ? ' style="background:rgba(227,166,62,.08);"' : ''}>
         <td style="font-size:16px;">${medals[i] || '🎖️'}</td>
         <td style="font-weight:700;">${flair}${isMe(row) ? ' (You)' : ''}</td>
         <td style="color:var(--gold);font-weight:700;">${row.total} pt${row.total!==1?'s':''}</td>
@@ -4763,6 +5003,7 @@ async function refreshPlayerScreen(){
   renderPlayerBigSpenderBoard();
   renderPlayerCheckinPointsBoard();
   renderTeamBattlesPanel();
+  if(typeof gpRefresh === 'function') gpRefresh();
 
   const g=DB.game;
   const bingoBtn=document.getElementById('playerBingoBtn');
@@ -5601,7 +5842,7 @@ function requestNotifPermission(){
     const box = document.getElementById('notifPermBox');
     if(box) box.style.display='none';
     if(perm==='granted'){
-      new Notification('🎱 SMB BINGO', {
+      new Notification('🎱 SMB Game Portal — BINGO', {
         body: 'Notifications enabled! Maabisuhan ka kapag may bagong draw. 🌙',
         icon: '🎱'
       });
@@ -5731,6 +5972,148 @@ function setCardsView(mode){
   });
 }
 
+</script>
+
+<script>
+// ═════ SMB GAME PORTAL (R2): sidebar views. Display only — no token writes. ═════
+const GP_TITLES = {player:'Player', bingo:'BINGO', spin:'Spin the Wheel', hl:'Higher or Lower', rps:'RPS Duel', team:'Team Battles', shop:'Shop', avatar:'Avatar Studio', lb:'Leaderboards'};
+let _gpView = 'player', _gpSub = 'play';
+function gpGo(v){
+  if(!GP_TITLES[v]) v = 'player';
+  _gpView = v;
+  document.querySelectorAll('#gpNav button').forEach(b => b.classList.toggle('on', b.dataset.v === v));
+  document.querySelectorAll('.gp-view').forEach(s => {
+    const on = s.id === 'gpv-' + v;
+    s.classList.toggle('on', on);
+    // open the <details> groups inside the visible view (keeps RPS's ontoggle fetch + its fast-poll rule)
+    s.querySelectorAll('details.panel-group').forEach(d => { if(d.open !== on) d.open = on; });
+  });
+  const t = document.getElementById('gpTitle'); if(t) t.textContent = GP_TITLES[v];
+  try { sessionStorage.setItem('gpView', v); } catch(e){}
+  window.scrollTo(0, 0);
+  gpRefresh();
+}
+function gpSub(s){
+  _gpSub = s;
+  document.querySelectorAll('#gpBingoTabs button').forEach(b => b.classList.toggle('on', b.dataset.s === s));
+  document.querySelectorAll('#gpv-bingo .gp-bsub').forEach(d => d.classList.toggle('on', d.dataset.s === s));
+  if(s === 'win') gpRenderWinners();
+}
+function gpEsc(x){ return String(x == null ? '' : x).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function gpGameLive(){ const g = DB && DB.game; return !!(g && g.active && !g.ended); }
+// Signed token effect of one tokenLog entry for player id (display only).
+const GP_SPEND = ['buy_card','shop_purchase','cosmetic_purchase','title_purchase','pet_care','pet_egg','pet_rename','rps_stake','team_battle_entry'];
+const GP_GAIN  = ['cash_in','daily_pet_token_grant','rps_payout','rps_refund','team_battle_payout','team_battle_refund'];
+function gpDelta(e, id){
+  const a = Number(e.amount) || 0;
+  if(e.type === 'give') return e.toPlayerId === id ? a : (e.fromPlayerId === id ? -a : null);
+  if(e.playerId !== id) return null;
+  if(GP_SPEND.includes(e.type)) return -Math.abs(a);
+  if(GP_GAIN.includes(e.type)) return Math.abs(a);
+  if(e.type === 'spin_wheel' || e.type === 'high_low' || e.type === 'admin_adjust') return a;
+  return null; // ask, unknown: no balance effect shown
+}
+function gpLabel(e, id){
+  const n = x => gpEsc(typeof playerNameById === 'function' ? playerNameById(x) : x);
+  switch(e.type){
+    case 'spin_wheel': return `🎡 Spin the Wheel ×${e.multiplier}${e.bet ? ` (bet ${e.bet})` : ''}`;
+    case 'high_low': return `📈 Higher or Lower — ${e.outcome === 'win' ? 'won' : 'lost'}${e.bet ? ` (bet ${e.bet})` : ''}`;
+    case 'buy_card': return '🎟️ Bought a BINGO card';
+    case 'pet_care': return `🐾 ${gpEsc(e.itemName || 'Pet care')}`;
+    case 'pet_egg': return `🥚 Bought ${gpEsc(e.itemName || 'an egg')}`;
+    case 'pet_rename': return `🐾 ${gpEsc(e.itemName || 'Pet rename')}`;
+    case 'daily_pet_token_grant': return '🐾 Daily pet drop';
+    case 'cash_in': return `💰 Cash In (${e.pointsSpent || '?'} pts)`;
+    case 'rps_stake': return `✊ RPS stake vs ${n(e.opponentId)}`;
+    case 'rps_payout': return `✊ RPS win vs ${n(e.opponentId)}`;
+    case 'rps_refund': return `✊ RPS refund (${gpEsc(e.reason || 'refund')})`;
+    case 'give': return e.toPlayerId === id ? `🎁 Gift from ${n(e.fromPlayerId)}` : `🎁 Gave to ${n(e.toPlayerId)}`;
+    case 'shop_purchase': case 'cosmetic_purchase': return `🛒 ${gpEsc(e.itemName || 'Shop item')}`;
+    case 'title_purchase': return `🏷️ Title: ${gpEsc(e.itemName || '')}`;
+    case 'team_battle_entry': return '⚔️ Team Battle entry';
+    case 'team_battle_payout': return '⚔️ Team Battle win';
+    case 'team_battle_refund': return '⚔️ Team Battle refund';
+    case 'admin_adjust': return `🛠️ Admin adjustment${e.reason ? ' — ' + gpEsc(e.reason) : ''}`;
+    default: return gpEsc(e.type);
+  }
+}
+function gpFmt(d){ return (d > 0 ? '+' : d < 0 ? '−' : '') + Math.abs(d); }
+function gpRenderActivity(){
+  const el = document.getElementById('gpActivity'); if(!el || !currentPlayer) return;
+  const id = currentPlayer.id, since = shiftStartMsClient();
+  const mine = (DB.tokenLog || []).map(e => ({e, d: gpDelta(e, id)})).filter(x => x.d !== null);
+  let earn = 0, spent = 0;
+  mine.forEach(x => { if((x.e.ts || 0) >= since){ if(x.d > 0) earn += x.d; else spent += -x.d; } });
+  const se = document.getElementById('gpStatEarn'); if(se) se.textContent = '+' + earn;
+  const ss = document.getElementById('gpStatSpent'); if(ss) ss.textContent = spent ? '−' + spent : '0';
+  if(!mine.length){ el.innerHTML = '<div class="empty-state">No recent token activity yet.</div>'; return; }
+  el.innerHTML = '<table class="gp-act"><thead><tr><th>When (PHT)</th><th>Activity</th><th class="n">Tokens</th></tr></thead><tbody>' +
+    mine.slice(0, 10).map(x => {
+      const when = new Date(x.e.ts).toLocaleString('en-PH', {timeZone:'Asia/Manila', month:'short', day:'numeric', hour:'numeric', minute:'2-digit'});
+      return `<tr><td class="gp-mono" style="color:var(--muted)">${when}</td><td>${gpLabel(x.e, id)}</td><td class="n ${x.d > 0 ? 'gp-up' : x.d < 0 ? 'gp-down' : ''}">${gpFmt(x.d)}</td></tr>`;
+    }).join('') + '</tbody></table>';
+}
+function gpRenderWinners(){
+  const el = document.getElementById('gpWinners'); if(!el) return;
+  const hist = (DB.gameHistory || []).slice(0, 8);
+  if(!hist.length){ el.innerHTML = '<div class="empty-state">No finished games yet.</div>'; return; }
+  el.innerHTML = '<table class="gp-act"><thead><tr><th>Date</th><th>Pattern</th><th>Winner(s)</th><th>Prize</th></tr></thead><tbody>' +
+    hist.map(g => `<tr><td class="gp-mono" style="color:var(--muted)">${gpEsc(g.date)}</td><td>${gpEsc(g.pattern)}</td><td style="color:var(--gold);font-weight:600">${gpEsc((g.winners && g.winners.length ? g.winners.join(', ') : g.winner) || '—')}</td><td>${gpEsc(g.prize || '—')}</td></tr>`).join('') +
+    '</tbody></table>';
+}
+function gpRefresh(){
+  if(!currentPlayer || typeof DB === 'undefined') return;
+  try {
+    const id = currentPlayer.id, shift = shiftStartMsClient(), g = DB.game;
+    const live = gpGameLive();
+    const cards = (g && g.playerCards && g.playerCards[id]) || [];
+    // BINGO status
+    let status = 'No game yet', sub = 'Host starts it at 9 PM PHT', pill = 'off';
+    if(live && g.lobbyOpen){ status = 'Lobby open'; sub = 'Get your cards now'; pill = 'live'; }
+    else if(live){ status = '● LIVE'; sub = `${(g.drawnNumbers || []).length} balls drawn`; pill = 'live'; }
+    const sb = document.getElementById('gpStatBingo'); if(sb){ sb.textContent = status; sb.style.color = live ? 'var(--teal)' : ''; }
+    const sbs = document.getElementById('gpStatBingoSub'); if(sbs) sbs.textContent = sub;
+    const bp = document.getElementById('gpBingoPill'); if(bp){ bp.textContent = status; bp.className = 'gp-pill gp-pill-sm ' + pill; }
+    const bi = document.getElementById('gpBingoInfo');
+    if(bi) bi.innerHTML = live
+      ? `Pattern: <b style="color:var(--white)">${gpEsc(g.pattern && g.pattern.name || '—')}</b> • My cards: <b style="color:var(--white)">${cards.length}</b>`
+      : 'Waiting for the host to start the game… 🌙';
+    const cb = document.getElementById('gpCntBingo'); if(cb){ cb.textContent = live ? 'LIVE' : ''; cb.classList.toggle('live', live); }
+    const tb = document.getElementById('gpTileBingo'); if(tb) tb.innerHTML = live ? `<b>LIVE</b> • ${cards.length} card${cards.length === 1 ? '' : 's'}` : 'Our main game • 9 PM PHT';
+    // Spin / Higher-Lower plays left (same calc as their panels)
+    if(typeof SPIN_WHEEL_MAX_PER_SHIFT !== 'undefined'){
+      const rec = DB.spinWheelSpins && DB.spinWheelSpins[id];
+      let used = (rec && rec.shift === shift) ? rec.count : ((DB.spinWheelShift && DB.spinWheelShift[id]) === shift ? 1 : 0);
+      const left = Math.max(0, SPIN_WHEEL_MAX_PER_SHIFT - used);
+      const c = document.getElementById('gpCntSpin'); if(c) c.textContent = `${left}/${SPIN_WHEEL_MAX_PER_SHIFT}`;
+      const t = document.getElementById('gpTileSpin'); if(t) t.innerHTML = `Spins left <b>${left} / ${SPIN_WHEEL_MAX_PER_SHIFT}</b> • bet 1–10`;
+    }
+    if(typeof HIGH_LOW_MAX_PER_SHIFT !== 'undefined'){
+      const rec = DB.highLowRounds && DB.highLowRounds[id];
+      const left = Math.max(0, HIGH_LOW_MAX_PER_SHIFT - ((rec && rec.shift === shift) ? rec.count : 0));
+      const c = document.getElementById('gpCntHl'); if(c) c.textContent = `${left}/${HIGH_LOW_MAX_PER_SHIFT}`;
+      const t = document.getElementById('gpTileHl'); if(t) t.innerHTML = `Rounds left <b>${left} / ${HIGH_LOW_MAX_PER_SHIFT}</b> • bet 1–5`;
+    }
+    const rb = document.getElementById('rpsBadge'), rc = document.getElementById('gpCntRps');
+    if(rb && rc){ const show = rb.style.display !== 'none' && rb.textContent.trim(); rc.textContent = show ? rb.textContent.trim() : ''; rc.classList.toggle('live', !!show); }
+    document.getElementById('gpSub').textContent = `Kamusta, ${currentPlayer.name}! • Shift ${new Date(shift).toLocaleDateString('en-PH', {timeZone:'Asia/Manila', weekday:'short', month:'short', day:'numeric'})}`;
+    gpRenderActivity();
+    if(_gpSub === 'win') gpRenderWinners();
+  } catch(e){ console.warn('gpRefresh', e); }
+}
+// Mirror the balance that refreshTokenBalance() already fetched into the sidebar/top/stat (no extra fetch).
+function gpMirrorBalance(){
+  const src = document.getElementById('playerTokenBalance'); if(!src) return;
+  const m = src.textContent.match(/-?\d[\d,]*/); const v = m ? m[0] : '—';
+  ['gpWalletBal','gpTopBal'].forEach(i => { const el = document.getElementById(i); if(el) el.textContent = '🪙 ' + v; });
+  const s = document.getElementById('gpStatBal'); if(s) s.textContent = v;
+}
+(function gpInit(){
+  const src = document.getElementById('playerTokenBalance');
+  if(src) new MutationObserver(gpMirrorBalance).observe(src, {childList:true, characterData:true, subtree:true});
+  const tick = () => { const c = document.getElementById('gpClock'); if(c) c.textContent = new Date().toLocaleTimeString('en-PH', {timeZone:'Asia/Manila', hour12:true}); };
+  tick(); setInterval(tick, 1000);
+})();
 </script>
 </body>
 </html>
