@@ -337,7 +337,11 @@ body::before{display:none}
 .gp-wallet .l{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.08em}
 .gp-wallet .t{font-size:20px;color:var(--gold)}.gp-clock{font-size:16px;color:var(--muted)}
 .gp-mono{font-family:'IBM Plex Mono',monospace;font-variant-numeric:tabular-nums}
-.gp-main{flex:1;padding:22px 26px 60px;min-width:0;max-width:1180px}
+.gp-main{flex:1;padding:22px 28px 60px;min-width:0}
+.gp-latest .live-ball-player{margin:0;background:var(--deep);border:1px solid rgba(227,166,62,.35);border-radius:18px;padding:16px 20px}
+.gp-latest{margin-bottom:2px}
+.gp-rpst{width:100%;border-collapse:collapse}.gp-rpst th{text-align:left;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600;padding:6px;border-bottom:1px solid var(--line)}.gp-rpst td{padding:7px 6px;border-bottom:1px solid rgba(255,255,255,.04);font-size:13px;color:var(--white)}.gp-rpst .n{text-align:right;font-family:'IBM Plex Mono',monospace}.gp-rpst tr.me td{background:rgba(227,166,62,.08)}
+@media(min-width:1500px){.gp-lb .board-grid{grid-template-columns:repeat(3,1fr)}}
 .gp-top{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:20px;flex-wrap:wrap}
 .gp-top h1{font-family:'Space Grotesk';font-size:22px;margin:0}
 .gp-sub{color:var(--muted);font-size:12.5px;margin-top:4px}
@@ -394,7 +398,7 @@ body::before{display:none}
 #gpv-team .panel-group-body::before{content:'⚔️ Team Battles (3v3)'}
 #gpv-avatar .panel-group-body::before{content:'🧑 Avatar Studio'}
 .gp-lb .board-grid .panel{background:var(--deep);border:1px solid var(--line);border-radius:18px;padding:18px}
-#gpv-bingo .live-ball-player,#gpv-bingo #playerPatternDisplay{background:var(--deep);border:1px solid var(--line);border-radius:18px}
+#gpv-bingo #playerPatternDisplay{background:var(--deep);border:1px solid var(--line);border-radius:18px}
 .gp-soon{border-style:dashed}
 .gp-hide-rps-badge #rpsBadge{display:none!important}
 @media(max-width:1000px){.gp-stats{grid-template-columns:repeat(2,1fr)}.gp-two{grid-template-columns:1fr}}
@@ -876,6 +880,21 @@ body::before{display:none}
 
     <!-- ═══ BINGO ═══ -->
     <section class="gp-view" id="gpv-bingo">
+      <div class="gp-latest"><!-- Live ball -->
+    <div class="live-ball-player" id="playerLiveBall">
+      <div>
+        <div class="big-ball empty" id="playerBigBall" style="width:80px;height:80px;">
+          <div class="ball-letter dim" style="font-size:16px;">—</div>
+          <div class="ball-number dim" style="font-size:34px;">—</div>
+        </div>
+      </div>
+      <div style="flex:1;">
+        <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Latest Draw</div>
+        <div style="font-weight:700;font-size:16px;" id="playerLastDraw">Waiting for draw...</div>
+        <div class="tagline-box" id="playerTagline" style="text-align:left;margin:6px 0 0;padding:6px 10px;min-height:auto;font-size:12px;">—</div>
+        <div class="live-numbers" id="playerCalledSummary"></div>
+      </div>
+    </div></div>
       <div class="gp-subtabs" id="gpBingoTabs">
         <button class="on" data-s="play" onclick="gpSub('play')">🎱 Play</button>
         <button data-s="buy" onclick="gpSub('buy')">🎟️ Buy cards</button>
@@ -911,22 +930,6 @@ body::before{display:none}
       <div class="marking-hint">👆 I-tap ang numero para markahan. Tap ulit para tanggalin. <strong>Ikaw ang bahala sa pagmarka — kung hindi mo na-mark, ikaw ang nakaligtaan!</strong></div>
       <div class="cards-wrap" id="playerCardsWrap">
         <div class="empty-state">Waiting for the host to start the game...</div>
-      </div>
-    </div>
-
-    <!-- Live ball -->
-    <div class="live-ball-player" id="playerLiveBall">
-      <div>
-        <div class="big-ball empty" id="playerBigBall" style="width:80px;height:80px;">
-          <div class="ball-letter dim" style="font-size:16px;">—</div>
-          <div class="ball-number dim" style="font-size:34px;">—</div>
-        </div>
-      </div>
-      <div style="flex:1;">
-        <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Latest Draw</div>
-        <div style="font-weight:700;font-size:16px;" id="playerLastDraw">Waiting for draw...</div>
-        <div class="tagline-box" id="playerTagline" style="text-align:left;margin:6px 0 0;padding:6px 10px;min-height:auto;font-size:12px;">—</div>
-        <div class="live-numbers" id="playerCalledSummary"></div>
       </div>
     </div>
 
@@ -992,7 +995,8 @@ body::before{display:none}
           <div id="rpsPanelContent" style="font-size:13px;">Loading...</div>
         </div>
       </div>
-    </details></div></section>
+    </details></div>
+      <div class="gp-card"><div class="gp-hdr"><h3>✊ RPS Leaderboard</h3><span class="gp-badge">All-time • completed duels</span></div><div class="gp-rpsboard gp-mini">Loading…</div></div></section>
     <section class="gp-view" id="gpv-team"><div class="gp-card gp-wrap-group"><details class="panel-group" id="teamBattlesGroup">
       <summary>⚔️ Team Battles (3v3)</summary>
       <div class="panel-group-body">
@@ -1039,6 +1043,12 @@ body::before{display:none}
           <div class="panel" id="playerWinsLeaderboardPanel">
             <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;color:var(--gold);text-transform:uppercase;margin-bottom:8px;">🏆 Bingo Wins Leaderboard</div>
             <div id="playerWinsLeaderboardContent" style="font-size:13px;color:var(--muted);"></div>
+          </div>
+
+          <!-- RPS Leaderboard (all-time, completed duels; from bingo-rps-board) -->
+          <div class="panel" id="playerRpsLeaderboardPanel">
+            <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;color:var(--gold);text-transform:uppercase;margin-bottom:8px;">✊ RPS Duel Leaderboard</div>
+            <div class="gp-rpsboard" style="font-size:13px;color:var(--muted);">Loading…</div>
           </div>
 
           <!-- Richest Bingo Player (SMB Token balances) -->
@@ -5992,6 +6002,27 @@ function gpGo(v){
   try { sessionStorage.setItem('gpView', v); } catch(e){}
   window.scrollTo(0, 0);
   gpRefresh();
+  if(v === 'lb' || v === 'rps') gpLoadRpsBoard();
+}
+const GP_RPS_BOARD_URL = 'https://ebeggngsggwnxufovkco.supabase.co/functions/v1/bingo-rps-board';
+let _gpRpsBoardAt = 0, _gpRpsBoard = null;
+async function gpLoadRpsBoard(force){
+  const els = document.querySelectorAll('.gp-rpsboard'); if(!els.length) return;
+  if(!force && _gpRpsBoard && Date.now() - _gpRpsBoardAt < 60000){ gpRenderRpsBoard(); return; }
+  try {
+    const r = await fetch(GP_RPS_BOARD_URL); const j = await r.json();
+    if(!j || !j.ok) throw new Error('bad');
+    _gpRpsBoard = j; _gpRpsBoardAt = Date.now(); gpRenderRpsBoard();
+  } catch(e){ els.forEach(el => { if(!_gpRpsBoard) el.innerHTML = '<div class="empty-state">RPS leaderboard unavailable — try ulit later.</div>'; }); }
+}
+function gpRenderRpsBoard(){
+  const j = _gpRpsBoard; if(!j) return;
+  const me = currentPlayer && currentPlayer.id, medal = ['🥇','🥈','🥉'];
+  const html = !(j.rows || []).length ? '<div class="empty-state">No completed duels yet.</div>' :
+    '<table class="gp-rpst"><thead><tr><th>#</th><th>Player</th><th class="n">W</th><th class="n">L</th><th class="n">T</th><th class="n">Net 🪙</th></tr></thead><tbody>' +
+    j.rows.map((x, i) => `<tr class="${x.playerId === me ? 'me' : ''}"><td>${medal[i] || (i + 1)}</td><td style="font-weight:600">${gpEsc(typeof playerNameById === 'function' ? (playerNameById(x.playerId) || x.name) : x.name)}</td><td class="n gp-up">${x.wins}</td><td class="n">${x.losses}</td><td class="n" style="color:var(--muted)">${x.ties}</td><td class="n ${x.net > 0 ? 'gp-up' : x.net < 0 ? 'gp-down' : ''}">${gpFmt(x.net)}</td></tr>`).join('') +
+    `</tbody></table><div style="font-size:11px;color:var(--muted);margin-top:6px">Ranked by wins, then net tokens • ${j.totalDuels} duels played</div>`;
+  document.querySelectorAll('.gp-rpsboard').forEach(el => el.innerHTML = html);
 }
 function gpSub(s){
   _gpSub = s;
