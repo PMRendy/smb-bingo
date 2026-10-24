@@ -613,9 +613,12 @@ body::before{display:none}
       <div class="adm-grp">Games</div>
       <button class="tab-btn" data-tab="petrace" onclick="switchAdminTab('petrace')">🏁 Pet Race <span class="adm-chip">NEW</span></button>
       <button class="tab-btn" data-tab="teambattles" onclick="switchAdminTab('teambattles')">⚔️ Team Battles</button>
-      <button class="tab-btn soon" data-tab="soon" onclick="switchAdminTab('soon')">🎡 Spin • H/L • RPS <span class="adm-chip soon">SOON</span></button>
-      <button class="tab-btn soon" data-tab="soon2" onclick="switchAdminTab('soon')">🐾 Pets • 🛒 Shop <span class="adm-chip soon">SOON</span></button>
+      <button class="tab-btn" data-tab="spin" onclick="switchAdminTab('spin')">🎡 Spin the Wheel</button>
+      <button class="tab-btn" data-tab="highlow" onclick="switchAdminTab('highlow')">📈 Higher or Lower</button>
+      <button class="tab-btn" data-tab="rps" onclick="switchAdminTab('rps')">✊ RPS Duel</button>
       <div class="adm-grp">Economy</div>
+      <button class="tab-btn" data-tab="pets" onclick="switchAdminTab('pets')">🐾 Pets</button>
+      <button class="tab-btn" data-tab="shop" onclick="switchAdminTab('shop')">🛒 Shop & Cosmetics</button>
       <button class="tab-btn" data-tab="history" onclick="switchAdminTab('history')">🪙 Transaction History</button>
       <div class="adm-grp">People</div>
       <button class="tab-btn active" data-tab="roster" onclick="switchAdminTab('roster')">👥 Player Roster</button>
@@ -918,17 +921,39 @@ body::before{display:none}
       </div>
     </div>
 
-    <div class="tab-content" id="tab-soon">
+    <div class="tab-content" id="tab-spin">
       <div class="panel">
-        <div class="panel-title">🛠️ Coming next: price editing for the other games</div>
-        <div style="font-size:13px;color:var(--muted);line-height:1.7">Each game gets its own settings tab here after Nov 2, one at a time, after a check that the rebuilt backend matches today's results exactly.<br>
-        • 🎡 Spin the Wheel: min/max bet, spins per shift, wheel multipliers (with expected return)<br>
-        • 📈 Higher or Lower: min/max bet, rounds per shift, payout<br>
-        • ✊ RPS Duel: stake min/max/step, duels per shift, pair limit, expiry, house cut<br>
-        • 🎱 BINGO: card price, max cards per game<br>
-        • 🐾 Pets: egg, care, rename, gender-switch prices, daily pet drop<br>
-        • 🛒 Shop: price and on/off for every skin, cosmetic and title<br>
-        Until then these keep their current fixed prices.</div>
+        <div class="panel-title">🎡 Spin the Wheel</div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:12px;">Bets, spins per shift and the wheel. Players see changes within a minute. The server enforces every value; the page only displays.</div>
+        <div id="gaRoot-spin"><div class="empty-state">Loading...</div></div>
+      </div>
+    </div>
+    <div class="tab-content" id="tab-highlow">
+      <div class="panel">
+        <div class="panel-title">📈 Higher or Lower</div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:12px;">Bets, plays per shift, number range and payout. The server enforces every value; the page only displays.</div>
+        <div id="gaRoot-highlow"><div class="empty-state">Loading...</div></div>
+      </div>
+    </div>
+    <div class="tab-content" id="tab-rps">
+      <div class="panel">
+        <div class="panel-title">✊ RPS Duel</div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:12px;">Stakes, limits, expiry and the house cut. The server enforces every value; the page only displays.</div>
+        <div id="gaRoot-rps"><div class="empty-state">Loading...</div></div>
+      </div>
+    </div>
+    <div class="tab-content" id="tab-pets">
+      <div class="panel">
+        <div class="panel-title">🐾 Pets</div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:12px;">Egg, care and rename prices, and how many pets each player can keep. The server enforces every value; the page only displays.</div>
+        <div id="gaRoot-pets"><div class="empty-state">Loading...</div></div>
+      </div>
+    </div>
+    <div class="tab-content" id="tab-shop">
+      <div class="panel">
+        <div class="panel-title">🛒 Shop & Cosmetics</div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:12px;">Price and on/off for every marker theme, card skin, cosmetic, avatar item and title. The server enforces every value; the page only displays.</div>
+        <div id="gaRoot-shop"><div class="empty-state">Loading...</div></div>
       </div>
     </div>
   </div>
@@ -1031,9 +1056,9 @@ body::before{display:none}
         <div class="gp-hdr"><h3>🕹️ Play</h3><span class="gp-badge">Plays left this shift</span></div>
         <div class="gp-games">
           <div class="gp-game" onclick="gpGo('bingo')"><span class="ic">🎱</span><b>BINGO</b><span class="gp-left" id="gpTileBingo">Our main game</span></div>
-          <div class="gp-game" onclick="gpGo('spin')"><span class="ic">🎡</span><b>Spin the Wheel</b><span class="gp-left" id="gpTileSpin">Bet 1–10</span></div>
-          <div class="gp-game" onclick="gpGo('hl')"><span class="ic">📈</span><b>Higher or Lower</b><span class="gp-left" id="gpTileHl">Bet 1–5</span></div>
-          <div class="gp-game" onclick="gpGo('rps')"><span class="ic">✊</span><b>RPS Duel</b><span class="gp-left">Stake 10–50 • 1v1</span></div>
+          <div class="gp-game" onclick="gpGo('spin')"><span class="ic">🎡</span><b>Spin the Wheel</b><span class="gp-left" id="gpTileSpin">Bet 5–50</span></div>
+          <div class="gp-game" onclick="gpGo('hl')"><span class="ic">📈</span><b>Higher or Lower</b><span class="gp-left" id="gpTileHl">Bet 5–20</span></div>
+          <div class="gp-game" onclick="gpGo('rps')"><span class="ic">✊</span><b>RPS Duel</b><span class="gp-left" id="gpTileRps">Stake 10–50 • 1v1</span></div>
           <div class="gp-game" onclick="gpGo('race')"><span class="ic">🏁</span><b>Pet Race Frenzy</b><span class="gp-left" id="gpTileRace">Weekly pet marathon</span></div>
           <div class="gp-game" onclick="gpGo('team')"><span class="ic">⚔️</span><b>Team Battles</b><span class="gp-left">3v3 • winner takes pot</span></div>
           <div class="gp-game" onclick="gpGo('shop')"><span class="ic">🛒</span><b>Shop</b><span class="gp-left">Frames, icons, titles</span></div>
@@ -1136,7 +1161,7 @@ body::before{display:none}
       <summary>🎡 Spin the Wheel</summary>
       <div class="panel-group-body">
         <div class="panel" id="spinWheelPanel">
-          <div style="font-size:12px;color:var(--muted);margin-bottom:10px;">Bet 1–10 SMB Tokens per spin — up to 3 spins per shift. Land on 0x and your bet is gone. Land on 1x and nothing changes. Land on 2x/3x and you win your bet back multiplied!</div>
+          <div id="gaDescSpin" style="font-size:12px;color:var(--muted);margin-bottom:10px;">Bet 5–50 SMB Tokens per spin — up to 3 spins per shift. Land on 0x and your bet is gone. Land on 1x and nothing changes. Land on 2x/3x and you win your bet back multiplied!</div>
           <div id="spinWheelPanelContent" style="text-align:center;">Loading...</div>
         </div>
       </div>
@@ -1145,7 +1170,7 @@ body::before{display:none}
       <summary>📈 Higher or Lower</summary>
       <div class="panel-group-body">
         <div class="panel" id="highLowPanel">
-          <div style="font-size:12px;color:var(--muted);margin-bottom:10px;">Bet 1-5 SMB Tokens per play — up to 3 plays per shift. Guess if the next number (1-50) is Higher or Lower than the current one. Win = double your bet back. Tie = free redraw.</div>
+          <div id="gaDescHl" style="font-size:12px;color:var(--muted);margin-bottom:10px;">Bet 5-20 SMB Tokens per play — up to 3 plays per shift. Guess if the next number (1-50) is Higher or Lower than the current one. Win = double your bet back. Tie = free redraw.</div>
           <div id="highLowPanelContent" style="text-align:center;">Loading...</div>
         </div>
       </div>
@@ -1154,7 +1179,7 @@ body::before{display:none}
       <summary>✊ RPS Duel (1v1) <span id="rpsBadge" style="display:none;background:var(--danger);color:#fff;border-radius:10px;padding:1px 8px;margin-left:6px;font-size:11px;letter-spacing:0;"></span></summary>
       <div class="panel-group-body">
         <div class="panel" id="rpsPanel">
-          <div style="font-size:12px;color:var(--muted);margin-bottom:10px;">Challenge a teammate to Rock-Paper-Scissors, best of 3! Pick all 3 rounds in secret, stake 10–50 SMB Tokens each. Your opponent has 2 hours to accept, or you get your tokens back. Winner takes the pot minus a 10% house cut. Tie = both refunded. Max 3 duels per shift and 2 per day with the same person.</div>
+          <div id="gaDescRps" style="font-size:12px;color:var(--muted);margin-bottom:10px;">Challenge a teammate to Rock-Paper-Scissors, best of 3! Pick all 3 rounds in secret, stake 10–50 SMB Tokens each. Your opponent has 2 hours to accept, or you get your tokens back. Winner takes the pot minus a 10% house cut. Tie = both refunded. Max 3 duels per shift and 2 per day with the same person.</div>
           <div id="rpsPanelContent" style="font-size:13px;">Loading...</div>
         </div>
       </div>
@@ -1877,6 +1902,7 @@ function switchAdminTab(name) {
   if(name==='topics') refreshWeeklyTopicsTab();
   if(name==='teambattles') refreshAdminTeamBattlesTab();
   if(name==='petrace') prAdminLoad();
+  if(['spin','highlow','rps','pets','shop'].includes(name)) gaAdminLoad(name);
 }
 
 // ════════════════════════════════════════════════════════════
@@ -3439,7 +3465,7 @@ const AVATAR_CATEGORIES = [
   { key: 'avatarNails', label: '💅 Nails', catalog: AVATAR_NAILS },
   { key: 'avatarEarrings', label: '💎 Earrings', catalog: AVATAR_EARRINGS },
 ];
-const AVATAR_GENDER_SWITCH_FEE = 15;
+let AVATAR_GENDER_SWITCH_FEE = 15;
 // Fun/witty weekly titles — 5 tokens, resets every Monday. Keep in sync with
 // the cosmetics backend's lib/catalog.js.
 const TITLES_CATALOG = [
@@ -3640,7 +3666,7 @@ function pickWitty(list, vars){
   return msg;
 }
 function isFeatured(itemId){ return Array.isArray(DB.shopFeatured) && DB.shopFeatured.includes(itemId); }
-function shopPrice(item){ return isFeatured(item.id) ? Math.max(1, item.price - 1) : item.price; }
+function shopPrice(item){ return isFeatured(item.id) ? Math.max(1, item.price - (typeof SHOP_FEATURED_DISCOUNT === "number" ? SHOP_FEATURED_DISCOUNT : 1)) : item.price; }
 
 const CASHIN_MESSAGES = [
   'Nagconvert na si {name} ng {n} SMB Token{s}! Alam na this. 💰',
@@ -3691,7 +3717,7 @@ const PET_SPECIES = [
   ['rabbit','Rabbit','🐰'], ['chicken','Chicken','🐥'], ['goat','Goat','🐐'], ['cow','Cow','🐮'], ['hamster','Hamster','🐹'],
   ['turtle','Turtle','🐢'], ['snake','Snake','🐍'], ['spider','Spider','🕷️'], ['frog','Frog','🐸'], ['gecko','Gecko','🦎'],
 ];
-const PET_MAX = 3;
+let PET_MAX = 3;
 let _petBusy = false;
 let _petResultUntil = 0;
 let _petSelectedSpecies = 'dog';
@@ -3718,10 +3744,10 @@ function petCard(pet){
   const meters = petMeter('🍖',pet.meters?.hunger)+petMeter('🎾',pet.meters?.fun)+petMeter('🫧',pet.meters?.clean);
   const actions=isDead ? `<div style="text-align:center;color:#ff9c9c;font-size:11px;margin-top:10px;">This pet is gone.</div>` :
     `<div class="pet-actions">
-      <button class="btn btn-gold" ${_petBusy?'disabled':''} onclick="petAction('care','${pet.id}','feed')">🍖 Feed<br>1 🪙</button>
-      <button class="btn btn-gold" ${_petBusy?'disabled':''} onclick="petAction('care','${pet.id}','play')">🎾 Play<br>1 🪙</button>
-      <button class="btn btn-gold" ${_petBusy?'disabled':''} onclick="petAction('care','${pet.id}','bath')">🫧 Bath<br>1 🪙</button>
-    </div><button class="btn btn-outline btn-sm" style="width:100%;justify-content:center;margin-top:6px;" onclick="renamePet('${pet.id}')">✏️ Rename${Number(pet.renameCount||0)===0?' — First Free':' — 3 🪙'}</button>`;
+      <button class="btn btn-gold" ${_petBusy?'disabled':''} onclick="petAction('care','${pet.id}','feed')">🍖 Feed<br>${PET_CARE_PRICE} 🪙</button>
+      <button class="btn btn-gold" ${_petBusy?'disabled':''} onclick="petAction('care','${pet.id}','play')">🎾 Play<br>${PET_CARE_PRICE} 🪙</button>
+      <button class="btn btn-gold" ${_petBusy?'disabled':''} onclick="petAction('care','${pet.id}','bath')">🫧 Bath<br>${PET_CARE_PRICE} 🪙</button>
+    </div><button class="btn btn-outline btn-sm" style="width:100%;justify-content:center;margin-top:6px;" onclick="renamePet('${pet.id}')">✏️ Rename${Number(pet.renameCount||0)===0&&PET_FIRST_FREE?' — First Free':` — ${PET_RENAME_PRICE} 🪙`}</button>`;
   const hatch=isEgg ? `<div class="pet-hatch">🥚 ${Math.min(3,pet.hatchCareCount||0)}/3 care actions to hatch</div>` : '';
   return `<div class="pet-card ${stateClass}">
     <div class="pet-portrait ${portraitClass}">${isDead?'💤':isEgg?`<img class="pet-egg-img" src="${COSMETICS_BACKEND_URL}/pets/egg.gif" alt="Twitching pet egg" onerror="this.replaceWith(document.createTextNode('🥚'))">`:`<img src="${COSMETICS_BACKEND_URL}/pets/${pet.species}.gif" alt="Animated ${petSpecies(pet.species)[1]}" onerror="this.replaceWith(document.createTextNode('${emoji}'))">`}</div>
@@ -3744,7 +3770,7 @@ function renderBingoPetsPanel(){
   const speciesOptions=PET_SPECIES.map(([id,name,emoji])=>`<option value="${id}" ${id===_petSelectedSpecies?'selected':''}>${emoji} ${name}</option>`).join('');
   const buy=active.length<PET_MAX ? `<div style="margin-top:12px;padding-top:11px;border-top:1px solid rgba(255,255,255,.08);display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
       <select id="petEggSpecies" onchange="_petSelectedSpecies=this.value" style="margin:0;flex:1;min-width:155px;">${speciesOptions}</select>
-      <button class="btn btn-teal btn-sm" onclick="buyPetEgg()">🐣 Buy Egg — 5 🪙</button>
+      <button class="btn btn-teal btn-sm" onclick="buyPetEgg()">🐣 Buy Egg — ${PET_EGG_PRICE} 🪙</button>
     </div>` : `<div style="margin-top:12px;color:var(--muted);font-size:11px;">You are caring for the maximum ${PET_MAX}/${PET_MAX} pets.</div>`;
   content.innerHTML = (active.length?`<div class="pet-grid">${active.map(petCard).join('')}</div>`:`<div class="pet-empty">No pet yet. Choose an egg below and care for it 3 times to hatch your new companion. 🐣</div>`) + buy +
     (dead.length?`<div style="margin-top:10px;color:var(--muted);font-size:10px;">Pet memories: ${dead.map(p=>escapeHtml(p.name||'Pet')).join(', ')}</div>`:'');
@@ -3757,7 +3783,7 @@ async function buyPetEgg(){
 }
 async function renamePet(petId){
   const pet=((DB.pets&&DB.pets[currentPlayer.id])||[]).find(p=>p.id===petId);
-  const cost=Number(pet?.renameCount||0)===0?'Your first rename is FREE.':'This rename costs 3 SMB Tokens.';
+  const cost=Number(pet?.renameCount||0)===0&&PET_FIRST_FREE?'Your first rename is FREE.':`This rename costs ${PET_RENAME_PRICE} SMB Tokens.`;
   const name=prompt(`${cost}\n\nName your pet (up to 20 characters):`,pet?.name||'');
   if(name===null) return;
   await petAction('rename',petId,'','',name);
@@ -3767,9 +3793,9 @@ async function petAction(action,petId='',careType='',species='',name=''){
   _petBusy=true;
   renderBingoPetsPanel();
   try{
-    const r=await fetch(`${COSMETICS_BACKEND_URL}/pet-action`,{
+    const r=await fetch(GAMES_URL,{
       method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({playerId:currentPlayer.id,playerName:currentPlayer.name,action,petId,careType,species,name}),
+      body:JSON.stringify({action:'pet',petAction:action,playerId:currentPlayer.id,playerName:currentPlayer.name,petId,careType,species,name}),
     });
     const j=await r.json();
     if(!r.ok||!j.ok){alert(j.error||'Hindi na-update ang pet.');return;}
@@ -3780,7 +3806,7 @@ async function petAction(action,petId='',careType='',species='',name=''){
     const msg=j.event==='egg_bought'?`🐣 ${petDisplayName}'s egg is ready — care for it 3 times!`:
       j.event==='hatched'?`✨ ${petDisplayName} hatched! Keep your new pet healthy.`:
       j.event==='level_up'?`🌟 ${petDisplayName} reached Level ${j.pet.level}!`:
-      j.event==='renamed'?`✏️ Your pet is now ${petDisplayName}${j.renameCost===0?' — first rename free!':' — 3 tokens used.'}`:
+      j.event==='renamed'?`✏️ Your pet is now ${petDisplayName}${j.renameCost===0?' — first rename free!':` — ${j.renameCost} tokens used.`}`:
       `🐾 You cared for ${petDisplayName}.`;
     playerLog(msg,'ok');
     await refreshTokenBalance();
@@ -4028,7 +4054,7 @@ async function refreshTokenShopPanel(){
   const owned = (DB.unlocks && DB.unlocks[currentPlayer.id]) || { markerThemes: [], cardSkins: [] };
   const equipped = (DB.equippedSkin && DB.equippedSkin[currentPlayer.id]) || 'default';
 
-  const themeTiles = MARKER_THEMES.map(t => {
+  const themeTiles = MARKER_THEMES.filter(t => !t.off || (owned.markerThemes||[]).includes(t.id)).map(t => {
     const has = (owned.markerThemes||[]).includes(t.id);
     const price = shopPrice(t);
     const name = `${t.name}${isFeatured(t.id)?' 🔥':''}`;
@@ -4037,7 +4063,7 @@ async function refreshTokenShopPanel(){
   }).join('');
 
   const skinTiles = [shopTile('🔷', 'Classic Navy', equipped==='default' ? `<span class="st-status">✓ Equipped</span>` : `<button class="btn btn-outline btn-sm" onclick="equipSkin('default')">Equip</button>`)]
-    .concat(CARD_SKINS.map(s => {
+    .concat(CARD_SKINS.filter(s => !s.off || (owned.cardSkins||[]).includes(s.id)).map(s => {
     const has = (owned.cardSkins||[]).includes(s.id);
     const price = shopPrice(s);
     const isEquipped = equipped === s.id;
@@ -4059,9 +4085,9 @@ async function refreshTokenShopPanel(){
 async function buyShopItem(type, itemId){
   if(!currentPlayer) return;
   try {
-    const r = await fetch(`${COSMETICS_BACKEND_URL}/buy-shop-item`, {
+    const r = await fetch(GAMES_URL, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ playerId: currentPlayer.id, type, itemId }),
+      body: JSON.stringify({ action:'shop_item', playerId: currentPlayer.id, playerName: currentPlayer.name, type, itemId }),
     });
     const j = await r.json();
     if(!r.ok || !j.ok){
@@ -4108,7 +4134,7 @@ async function equipSkin(skinId){
 // ─── Spin the Wheel: bet 1 token, up to 3 spins per shift, 6 segments 0/1/0/2/0/3x.
 // Shift boundary mirrors Marcus-Ganzo's graveyard shift (9PM-5AM PHT) so
 // "once per shift" lines up with the rest of the check-in system.
-const SPIN_WHEEL_SEGMENTS = [
+let SPIN_WHEEL_SEGMENTS = [
   { mult: 0, color: '#4a1b24', inner: '#2c0f15', text: '#ff8f86', label: '0x' },
   { mult: 1, color: '#25324c', inner: '#151d2e', text: '#c9d3ea', label: '1x' },
   { mult: 0, color: '#4a1b24', inner: '#2c0f15', text: '#ff8f86', label: '0x' },
@@ -4116,9 +4142,9 @@ const SPIN_WHEEL_SEGMENTS = [
   { mult: 0, color: '#4a1b24', inner: '#2c0f15', text: '#ff8f86', label: '0x' },
   { mult: 3, color: '#6b4a12', inner: '#3a2808', text: '#FFD27A', label: '3x' },
 ];
-const SPIN_WHEEL_MAX_PER_SHIFT = 3;
-const SPIN_WHEEL_MAX_BET = 10;
-let _spinWheelBet = 1;
+let SPIN_WHEEL_MAX_PER_SHIFT = 3;
+let SPIN_WHEEL_MAX_BET = 50;
+let _spinWheelBet = 5;
 function shiftStartMsClient(){
   const now = new Date();
   const hourPHT = Number(now.toLocaleString('en-US', { hour: '2-digit', hour12: false, timeZone: 'Asia/Manila' }));
@@ -4137,6 +4163,7 @@ function renderSpinWheelPanel(){
   if(!panel || !content || !currentPlayer) return;
   panel.style.display = 'block';
   if(_spinWheelAnimating || Date.now() < _spinWheelResultUntil) return; // don't blow away the mid-spin/result DOM
+  if(gaClosed('spin')){ content.innerHTML = gaClosedHtml('Spin the Wheel'); return; }
 
   const currentShift = shiftStartMsClient();
   const spinsRec = (DB.spinWheelSpins && DB.spinWheelSpins[currentPlayer.id]) || null;
@@ -4158,7 +4185,7 @@ function renderSpinWheelPanel(){
   let ring = '<circle cx="0" cy="0" r="148" fill="#1a1e2c"/><circle cx="0" cy="0" r="139" fill="none" stroke="#3a2d12" stroke-width="8"/>';
   for(let i=0;i<24;i++){ const t = i*15*P; ring += `<circle class="b ${i%2?'o':'e'}" cx="${(139*Math.cos(t)).toFixed(2)}" cy="${(139*Math.sin(t)).toFixed(2)}" r="3.6"/>`; }
   const pips = Array.from({length: SPIN_WHEEL_MAX_PER_SHIFT}, (_, i) => `<span class="${i < spinsUsed ? 'used' : ''}"></span>`).join('');
-  const chips = Array.from({length: SPIN_WHEEL_MAX_BET}, (_, i) => i + 1)
+  const chips = spinBetOptions()
     .map(b => `<button type="button" class="sw2-chip ${b === _spinWheelBet ? 'on' : ''}" ${alreadySpun ? 'disabled' : ''} onclick="_spinWheelBet = ${b}; renderSpinWheelPanel();">${b}</button>`).join('');
 
   content.innerHTML = `
@@ -4176,7 +4203,7 @@ function renderSpinWheelPanel(){
       <div id="spinWheelResult" class="sw2-res">${alreadySpun ? 'Balik next shift para sa 3 bagong spins! 🎡' : 'Pili ng bet, tapos SPIN!'}</div>
       <button class="btn btn-gold btn-full" id="spinWheelBtn" ${alreadySpun ? 'disabled' : ''} onclick="spinTheWheel()">${alreadySpun ? `Ubos na ang ${SPIN_WHEEL_MAX_PER_SHIFT} spins mo ngayong shift ✔️` : `SPIN (${_spinWheelBet} 🪙) — ${spinsLeft}/${SPIN_WHEEL_MAX_PER_SHIFT} left`}</button>
       <div class="sw2-pay">
-        <div><b style="color:#E2685F">0x</b>lose bet</div><div><b style="color:#b8bdca">1x</b>bet back</div><div><b style="color:#3FBFAE">2x</b>+1× bet</div><div><b style="color:#E3A63E">3x</b>+2× bet</div>
+        ${spinPayLegend()}
       </div>
     </div>
   `;
@@ -4198,9 +4225,9 @@ async function spinTheWheel(){
   document.querySelectorAll('.sw2-chip').forEach(c => c.disabled = true);
 
   try {
-    const r = await fetch(`${COSMETICS_BACKEND_URL}/spin-wheel`, {
+    const r = await fetch(GAMES_URL, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ playerId: currentPlayer.id, playerName: currentPlayer.name, bet }),
+      body: JSON.stringify({ action:'spin', playerId: currentPlayer.id, playerName: currentPlayer.name, bet }),
     });
     const j = await r.json();
     if(!r.ok || !j.ok){
@@ -4255,11 +4282,11 @@ function sw2Confetti(){
 }
 
 // ─── Higher or Lower: bet 1-5 tokens, up to 3 plays per shift, draw 1-50.
-const HIGH_LOW_MAX_PER_SHIFT = 3;
-const HIGH_LOW_MAX_BET = 5;
-const HIGH_LOW_MIN_VAL = 1;
-const HIGH_LOW_MAX_VAL = 50;
-let _highLowBet = 1;
+let HIGH_LOW_MAX_PER_SHIFT = 3;
+let HIGH_LOW_MAX_BET = 20;
+let HIGH_LOW_MIN_VAL = 1;
+let HIGH_LOW_MAX_VAL = 50;
+let _highLowBet = 5;
 let _highLowBusy = false;
 let _highLowResultUntil = 0; // skip re-render while result message is still on screen (poll loop would wipe it)
 
@@ -4269,6 +4296,7 @@ function renderHighLowPanel(){
   if(!panel || !content || !currentPlayer) return;
   panel.style.display = 'block';
   if(_highLowBusy || Date.now() < _highLowResultUntil) return; // don't blow away mid-play/result DOM
+  if(gaClosed('highlow')){ content.innerHTML = gaClosedHtml('Higher or Lower'); return; }
 
   const currentShift = shiftStartMsClient();
   const rec = (DB.highLowRounds && DB.highLowRounds[currentPlayer.id]) || null;
@@ -4277,7 +4305,7 @@ function renderHighLowPanel(){
   const outOfPlays = playsLeft === 0;
   const currentValue = (rec && rec.shift === currentShift && typeof rec.currentValue === 'number') ? rec.currentValue : null;
 
-  const betOptions = [1,2,3,4,5].map(b => `<option value="${b}" ${b === _highLowBet ? 'selected' : ''}>${b} 🪙</option>`).join('');
+  const betOptions = hlBetOptions().map(b => `<option value="${b}" ${b === _highLowBet ? 'selected' : ''}>${b} 🪙</option>`).join('');
 
   content.innerHTML = `
     <div style="font-size:48px;font-weight:800;color:var(--gold);margin-bottom:10px;">${currentValue !== null ? currentValue : '?'}</div>
@@ -4307,9 +4335,9 @@ async function playHighLow(guess){
   resultEl.textContent = 'Drawing...';
 
   try {
-    const r = await fetch(`${COSMETICS_BACKEND_URL}/high-low`, {
+    const r = await fetch(GAMES_URL, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ playerId: currentPlayer.id, playerName: currentPlayer.name, bet: _highLowBet, guess }),
+      body: JSON.stringify({ action:'highlow', playerId: currentPlayer.id, playerName: currentPlayer.name, bet: _highLowBet, guess }),
     });
     const j = await r.json();
     _highLowBusy = false;
@@ -4345,7 +4373,7 @@ async function playHighLow(guess){
 const RPS_URL = 'https://ebeggngsggwnxufovkco.supabase.co/functions/v1/bingo-rps';
 const RPS_EMO = { R:'✊', P:'✋', S:'✌️' };
 const RPS_NAME = { R:'Rock', P:'Paper', S:'Scissors' };
-const RPS_STAKES = [10,15,20,25,30,35,40,45,50];
+let RPS_STAKES = [10,15,20,25,30,35,40,45,50];
 let _rpsData = null, _rpsLastFetch = 0, _rpsFetching = false, _rpsBusy = false, _rpsSig = '', _rpsFor = null;
 let _rpsNew = { opponentId:'', stake:10, picks:[] };
 let _rpsAcceptPicks = {};      // duelId -> picks
@@ -4361,7 +4389,7 @@ async function rpsCall(body){
 
 async function rpsFetch(force){
   if(!currentPlayer || _rpsFetching) return;
-  if(_rpsFor !== currentPlayer.id){ _rpsData = null; _rpsSig = ''; _rpsFor = currentPlayer.id; _rpsNew = { opponentId:'', stake:10, picks:[] }; _rpsAcceptPicks = {}; force = true; }
+  if(_rpsFor !== currentPlayer.id){ _rpsData = null; _rpsSig = ''; _rpsFor = currentPlayer.id; _rpsNew = { opponentId:'', stake:RPS_STAKES[0], picks:[] }; _rpsAcceptPicks = {}; force = true; }
   const open = document.getElementById('rpsGroup')?.open;
   const every = open ? 20000 : 120000;
   if(!force && (document.hidden || Date.now() - _rpsLastFetch < every)) return;
@@ -4571,7 +4599,7 @@ function renderAvatarStudioPanel(){
   const sections = AVATAR_CATEGORIES.map(cat => {
     const owned = ownedCosmetics(currentPlayer.id, cat.key);
     const equipped = equippedCosmetic(currentPlayer.id, cat.key);
-    const tiles = cat.catalog.map(item => {
+    const tiles = cat.catalog.filter(item => !item.off || owned.includes(item.id)).map(item => {
       const has = owned.includes(item.id);
       const isEquipped = equipped === item.id;
       let action;
@@ -4593,9 +4621,9 @@ function renderAvatarStudioPanel(){
 async function setAvatarGender(gender){
   if(!currentPlayer) return;
   try {
-    const r = await fetch(`${COSMETICS_BACKEND_URL}/set-avatar-gender`, {
+    const r = await fetch(GAMES_URL, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ playerId: currentPlayer.id, playerName: currentPlayer.name, gender }),
+      body: JSON.stringify({ action:'gender', playerId: currentPlayer.id, playerName: currentPlayer.name, gender }),
     });
     const j = await r.json();
     if(!r.ok || !j.ok){ alert(j.error || 'Hindi na-process.'); return; }
@@ -4620,7 +4648,7 @@ function renderCosmeticsShopPanel(){
   const sections = COSMETIC_CATEGORIES.map(cat => {
     const owned = ownedCosmetics(currentPlayer.id, cat.key);
     const equipped = equippedCosmetic(currentPlayer.id, cat.key);
-    const tiles = cat.catalog.map(item => {
+    const tiles = cat.catalog.filter(item => !item.off || owned.includes(item.id)).map(item => {
       const has = owned.includes(item.id);
       const isEquipped = equipped === item.id;
       let action;
@@ -4642,9 +4670,9 @@ function renderCosmeticsShopPanel(){
 async function buyCosmetic(category, itemId){
   if(!currentPlayer) return;
   try {
-    const r = await fetch(`${COSMETICS_BACKEND_URL}/buy-cosmetic`, {
+    const r = await fetch(GAMES_URL, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ playerId: currentPlayer.id, playerName: currentPlayer.name, category, itemId }),
+      body: JSON.stringify({ action:'cosmetic', playerId: currentPlayer.id, playerName: currentPlayer.name, category, itemId }),
     });
     const j = await r.json();
     if(!r.ok || !j.ok){ alert(j.error || 'Hindi na-process ang pagbili.'); return; }
@@ -4695,7 +4723,7 @@ function renderTitlesShopPanel(){
     ? `<div style="margin-bottom:10px;font-size:12px;">Active title: <strong style="color:var(--teal);">${activeText}</strong> — expires ${new Date(active.expiresAt).toLocaleDateString('en-PH',{weekday:'short',month:'short',day:'numeric'})} or at Monday reset.</div>`
     : `<div style="margin-bottom:10px;font-size:12px;color:var(--muted);">No active title — pick one below!</div>`;
 
-  const tiles = TITLES_CATALOG.map(t => {
+  const tiles = TITLES_CATALOG.filter(t => !t.off || (active && active.titleId === t.id)).map(t => {
     const isActive = active && active.titleId === t.id;
     const action = isActive
       ? `<span class="st-status">✓ Active</span>`
@@ -4709,9 +4737,9 @@ function renderTitlesShopPanel(){
 async function buyTitle(titleId){
   if(!currentPlayer) return;
   try {
-    const r = await fetch(`${COSMETICS_BACKEND_URL}/buy-title`, {
+    const r = await fetch(GAMES_URL, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ playerId: currentPlayer.id, playerName: currentPlayer.name, titleId }),
+      body: JSON.stringify({ action:'title', playerId: currentPlayer.id, playerName: currentPlayer.name, titleId }),
     });
     const j = await r.json();
     if(!r.ok || !j.ok){ alert(j.error || 'Hindi na-process ang pagbili ng title.'); return; }
@@ -6293,13 +6321,13 @@ function gpRefresh(){
       let used = (rec && rec.shift === shift) ? rec.count : ((DB.spinWheelShift && DB.spinWheelShift[id]) === shift ? 1 : 0);
       const left = Math.max(0, SPIN_WHEEL_MAX_PER_SHIFT - used);
       const c = document.getElementById('gpCntSpin'); if(c) c.textContent = `${left}/${SPIN_WHEEL_MAX_PER_SHIFT}`;
-      const t = document.getElementById('gpTileSpin'); if(t) t.innerHTML = `Spins left <b>${left} / ${SPIN_WHEEL_MAX_PER_SHIFT}</b> • bet 1–10`;
+      const t = document.getElementById('gpTileSpin'); if(t) t.innerHTML = `Spins left <b>${left} / ${SPIN_WHEEL_MAX_PER_SHIFT}</b> • bet ${SPIN_WHEEL_MIN_BET}–${SPIN_WHEEL_MAX_BET}`;
     }
     if(typeof HIGH_LOW_MAX_PER_SHIFT !== 'undefined'){
       const rec = DB.highLowRounds && DB.highLowRounds[id];
       const left = Math.max(0, HIGH_LOW_MAX_PER_SHIFT - ((rec && rec.shift === shift) ? rec.count : 0));
       const c = document.getElementById('gpCntHl'); if(c) c.textContent = `${left}/${HIGH_LOW_MAX_PER_SHIFT}`;
-      const t = document.getElementById('gpTileHl'); if(t) t.innerHTML = `Rounds left <b>${left} / ${HIGH_LOW_MAX_PER_SHIFT}</b> • bet 1–5`;
+      const t = document.getElementById('gpTileHl'); if(t) t.innerHTML = `Rounds left <b>${left} / ${HIGH_LOW_MAX_PER_SHIFT}</b> • bet ${HIGH_LOW_MIN_BET}–${HIGH_LOW_MAX_BET}`;
     }
     const rb = document.getElementById('rpsBadge'), rc = document.getElementById('gpCntRps');
     if(rb && rc){ const show = rb.style.display !== 'none' && rb.textContent.trim(); rc.textContent = show ? rb.textContent.trim() : ''; rc.classList.toggle('live', !!show); }
@@ -6795,6 +6823,190 @@ async function praCancel(){
 async function praPaid(payoutId, paid){ const j = await praCall('mark_paid', {payoutId, paid}); if(!j.ok) alert(j.error || 'Failed'); await prAdminLoad(); }
 let _prBooted = null;
 function prBoot(){ if(currentPlayer && _prBooted !== currentPlayer.id){ _prBooted = currentPlayer.id; _pr = null; _prPrevL = {}; prFetch(); } }
+
+</script>
+<script>
+// ═══ R5: mini-game settings (Spin / H-L / RPS / Pets / Shop) ═══════════════
+// Prices and limits come from the server (edge fn bingo-games → bingo_game_settings).
+// The server enforces everything; this only keeps what players SEE in sync.
+const GAMES_URL = 'https://ebeggngsggwnxufovkco.supabase.co/functions/v1/bingo-games';
+let GAMES_CFG = null;
+let SPIN_WHEEL_MIN_BET = 5, HIGH_LOW_MIN_BET = 5, HIGH_LOW_WIN_MULT = 2;
+let PET_EGG_PRICE = 5, PET_CARE_PRICE = 1, PET_RENAME_PRICE = 3, PET_FIRST_FREE = true;
+let SHOP_FEATURED_DISCOUNT = 1;
+let RPS_CFG = { minStake:10, maxStake:50, stakeStep:5, perShift:3, perPairPerDay:2, expiryHours:2, houseCutPct:10 };
+const GA_SEG_STYLE = {
+  0: { color: '#4a1b24', inner: '#2c0f15', text: '#ff8f86', legend: '#E2685F' },
+  1: { color: '#25324c', inner: '#151d2e', text: '#c9d3ea', legend: '#b8bdca' },
+  2: { color: '#17463f', inner: '#0d2a26', text: '#6fe6d3', legend: '#3FBFAE' },
+  3: { color: '#6b4a12', inner: '#3a2808', text: '#FFD27A', legend: '#E3A63E' },
+};
+function gaSegStyle(m){ return GA_SEG_STYLE[Math.min(3, Math.max(0, m))]; }
+function gaRange(min, max, maxCount){
+  min = Number(min); max = Number(max);
+  if(!(max >= min)) return [min];
+  if(max - min + 1 <= maxCount) return Array.from({length: max - min + 1}, (_, i) => min + i);
+  let step = Math.ceil((max - min) / (maxCount - 1));
+  if(step > 2) step = Math.ceil(step / 5) * 5;
+  const out = []; for(let v = min; v < max; v += step) out.push(v);
+  out.push(max); return out;
+}
+function spinBetOptions(){ return gaRange(SPIN_WHEEL_MIN_BET, SPIN_WHEEL_MAX_BET, 10); }
+function hlBetOptions(){ return gaRange(HIGH_LOW_MIN_BET, HIGH_LOW_MAX_BET, 16); }
+function spinPayLegend(){
+  const seen = [...new Set(SPIN_WHEEL_SEGMENTS.map(s => s.mult))].sort((a, b) => a - b);
+  return seen.map(m => `<div><b style="color:${gaSegStyle(m).legend}">${m}x</b>${m === 0 ? 'lose bet' : m === 1 ? 'bet back' : `+${m - 1}× bet`}</div>`).join('');
+}
+function gaClosed(game){ return !!(GAMES_CFG && GAMES_CFG[game] && GAMES_CFG[game].on === false); }
+function gaClosedHtml(name){ return `<div class="empty-state" style="padding:22px">⏸️ ${name} is closed right now. Balik later!</div>`; }
+
+function applyGamesConfig(cfg){
+  if(!cfg || !cfg.ok) return;
+  GAMES_CFG = cfg;
+  const sp = cfg.spin || {}, hl = cfg.highlow || {}, rp = cfg.rps || {}, pe = cfg.pets || {}, sh = cfg.shop || {};
+  if(sp.maxBet){ SPIN_WHEEL_MIN_BET = sp.minBet; SPIN_WHEEL_MAX_BET = sp.maxBet; SPIN_WHEEL_MAX_PER_SHIFT = sp.perShift; }
+  if(Array.isArray(sp.segments) && sp.segments.length){
+    SPIN_WHEEL_SEGMENTS = sp.segments.map(m => { const st = gaSegStyle(m); return { mult: m, color: st.color, inner: st.inner, text: st.text, label: `${m}x` }; });
+  }
+  if(!spinBetOptions().includes(_spinWheelBet)) _spinWheelBet = spinBetOptions()[0];
+  if(hl.maxBet){ HIGH_LOW_MIN_BET = hl.minBet; HIGH_LOW_MAX_BET = hl.maxBet; HIGH_LOW_MAX_PER_SHIFT = hl.perShift;
+    HIGH_LOW_MIN_VAL = hl.minVal; HIGH_LOW_MAX_VAL = hl.maxVal; HIGH_LOW_WIN_MULT = hl.winMult || 2; }
+  if(!hlBetOptions().includes(_highLowBet)) _highLowBet = hlBetOptions()[0];
+  if(rp.maxStake){
+    RPS_CFG = Object.assign({}, RPS_CFG, rp);
+    RPS_STAKES = []; for(let v = rp.minStake; v <= rp.maxStake; v += Math.max(1, rp.stakeStep || 1)) RPS_STAKES.push(v);
+    if(typeof _rpsNew !== 'undefined' && !RPS_STAKES.includes(_rpsNew.stake)) _rpsNew.stake = RPS_STAKES[0];
+  }
+  if(pe.eggPrice !== undefined){ PET_EGG_PRICE = pe.eggPrice; PET_CARE_PRICE = pe.carePrice; PET_RENAME_PRICE = pe.renamePrice;
+    PET_FIRST_FREE = pe.firstRenameFree !== false; PET_MAX = pe.maxPets; }
+  if(sh.items){
+    const apply = (list, cat) => (list || []).forEach(it => { const s = sh.items[cat] && sh.items[cat][it.id]; if(s){ it.price = s.price; it.off = s.on === false; } });
+    apply(MARKER_THEMES, 'markerTheme'); apply(CARD_SKINS, 'cardSkin'); apply(TITLES_CATALOG, 'title');
+    COSMETIC_CATEGORIES.forEach(c => apply(c.catalog, c.key)); AVATAR_CATEGORIES.forEach(c => apply(c.catalog, c.key));
+    if(sh.genderFee !== undefined) AVATAR_GENDER_SWITCH_FEE = sh.genderFee;
+    if(sh.featuredDiscount !== undefined) SHOP_FEATURED_DISCOUNT = sh.featuredDiscount;
+  }
+  gaDescribe();
+}
+function gaDescribe(){
+  const set = (id, h) => { const e = document.getElementById(id); if(e) e.innerHTML = h; };
+  const segs = SPIN_WHEEL_SEGMENTS.map(s => s.mult);
+  set('gaDescSpin', `Bet ${SPIN_WHEEL_MIN_BET}–${SPIN_WHEEL_MAX_BET} SMB Tokens per spin — up to ${SPIN_WHEEL_MAX_PER_SHIFT} spins per shift. The wheel: ${segs.map(m => m + 'x').join(' / ')}. 0x = bet gone, 1x = nothing changes, 2x/3x = bet back multiplied!`);
+  set('gaDescHl', `Bet ${HIGH_LOW_MIN_BET}–${HIGH_LOW_MAX_BET} SMB Tokens per play — up to ${HIGH_LOW_MAX_PER_SHIFT} plays per shift. Guess if the next number (${HIGH_LOW_MIN_VAL}-${HIGH_LOW_MAX_VAL}) is Higher or Lower than the current one. Win = ${HIGH_LOW_WIN_MULT}× your bet back. Tie = free redraw.`);
+  const c = RPS_CFG;
+  set('gaDescRps', `Challenge a teammate to Rock-Paper-Scissors, best of 3! Pick all 3 rounds in secret, stake ${c.minStake}–${c.maxStake} SMB Tokens each. Your opponent has ${c.expiryHours} hour${c.expiryHours == 1 ? '' : 's'} to accept, or you get your tokens back. Winner takes the pot minus a ${c.houseCutPct}% house cut. Tie = both refunded. Max ${c.perShift} duels per shift and ${c.perPairPerDay} per day with the same person.`);
+  set('gpTileRps', `Stake ${c.minStake}–${c.maxStake} • 1v1`);
+}
+async function loadGamesConfig(){
+  try { const r = await fetch(GAMES_URL); applyGamesConfig(await r.json()); } catch(e){ /* keep last known values */ }
+}
+loadGamesConfig();
+setInterval(loadGamesConfig, 60000);
+
+// ─── Admin: one tab per game ──────────────────────────────────────────────
+let _gaAdmin = null;
+const GA_LABELS = { markerTheme:'🖍️ Marker Themes', cardSkin:'🎨 Card Skins', badgeFrame:'🖼️ Badge Frames', luckyIcon:'🍀 Lucky Charms', soundPack:'🔊 Sound Packs',
+  emojiPack:'😄 Emoji Packs', avatarBackground:'🎨 Avatar Background', avatarHair:'💇 Hair Color', avatarOutfit:'👕 Outfit', avatarAccessory:'✨ Accessory',
+  avatarFrame:'⭕ Avatar Frame', avatarLipstick:'💄 Lipstick', avatarNails:'💅 Nails', avatarEarrings:'💎 Earrings', title:'🏷️ Weekly Titles' };
+const GA_FIELDS = {
+  spin: [['on','Game on','bool','Off = players see "closed"'],['minBet','Min bet','num','tokens'],['maxBet','Max bet','num','tokens'],['perShift','Spins per shift','num','resets 9 PM PHT'],['slack','Post results to Slack','bool','BINGO channel']],
+  highlow: [['on','Game on','bool','Off = players see "closed"'],['minBet','Min bet','num','tokens'],['maxBet','Max bet','num','tokens'],['perShift','Plays per shift','num','a tie (push) doesn\'t use a play'],
+    ['minVal','Lowest number','num','draw range'],['maxVal','Highest number','num','draw range'],['winMult','Win pays','num','× the bet (2 = double back)'],['slack','Post results to Slack','bool','BINGO channel']],
+  rps: [['on','Game on','bool','Off = no new challenges'],['minStake','Min stake','num','tokens'],['maxStake','Max stake','num','tokens'],['stakeStep','Stake step','num','e.g. 5 → 10, 15, 20…'],
+    ['houseCutPct','House cut on a win','num','% of pot, burned (0–50)'],['perShift','Duels per shift','num','per player'],['perPairPerDay','Duels per pair per day','num','same two people'],
+    ['expiryHours','Challenge expires after','num','hours (1–24), then refunded'],['slack','Post to Slack','bool','challenges + results']],
+  pets: [['on','Pet actions on','bool','Off = no eggs/care/rename'],['eggPrice','Egg price','num','tokens'],['carePrice','Care action','num','feed / play / bath, tokens each'],
+    ['renamePrice','Rename','num','tokens'],['firstRenameFree','First rename free','bool',''],['maxPets','Max pets per player','num','alive + eggs (1–10)'],['slack','Post to Slack','bool','eggs, hatches, level-ups, renames']],
+  shop: [['on','Shop on','bool','Off = no purchases'],['genderFee','Avatar gender switch','num','tokens (first pick free)'],['featuredDiscount','Featured item discount','num','tokens off (min price 1)'],
+    ['titleDays','Title lasts','num','days (1–30)'],['slack','Post purchases to Slack','bool','BINGO channel']],
+};
+const GA_TITLES = { spin:'🎡 Spin the Wheel', highlow:'📈 Higher or Lower', rps:'✊ RPS Duel', pets:'🐾 Pets', shop:'🛒 Shop & Cosmetics' };
+async function gaCall(adminAction, game, payload){
+  if(!_adminPinSession){ alert('Please log in to admin again.'); return { ok:false }; }
+  try {
+    const r = await fetch(GAMES_URL, { method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ action:'admin', pin:_adminPinSession, adminAction, game, payload: payload || {} }) });
+    return await r.json();
+  } catch(e){ return { ok:false, error:'Network error — try again.' }; }
+}
+async function gaAdminLoad(game){
+  const el = document.getElementById('gaRoot-' + game); if(!el) return;
+  if(!_gaAdmin) el.innerHTML = '<div class="empty-state">Loading…</div>';
+  const j = await gaCall('get', null);
+  if(!j.ok){ el.innerHTML = `<div class="empty-state">⚠ ${escapeHtml(j.error || 'Could not load settings')}</div>`; return; }
+  _gaAdmin = j; applyGamesConfig(j); gaAdminRender(game);
+}
+function gaHlEdge(c){
+  const lo = Number(c.minVal), hi = Number(c.maxVal), n = hi - lo + 1; if(!(n > 1)) return null;
+  let w = 0, l = 0; for(let v = lo; v <= hi; v++){ const up = hi - v, dn = v - lo; w += Math.max(up, dn) / n; l += Math.min(up, dn) / n; }
+  w /= n; l /= n; const m = Number(c.winMult) || 2; return { win: w / (w + l), ev: (w * (m - 1) - l) / (w + l) };
+}
+function gaAdminNote(game, c){
+  if(game === 'spin'){
+    const s = (c.segments || []).map(Number), avg = s.length ? s.reduce((a, b) => a + b, 0) / s.length : 0;
+    return `Average return per token bet: <b>${avg.toFixed(2)}</b> ${avg > 1 ? '(players gain tokens over time)' : avg < 1 ? '(the wheel burns tokens over time)' : '(break-even: no tokens created or burned on average)'}. Biggest swing per shift: ${c.perShift} × ${c.maxBet} bet → up to +${c.perShift * c.maxBet * (Math.max(...s, 1) - 1)} / −${c.perShift * c.maxBet}.`;
+  }
+  if(game === 'highlow'){
+    const e = gaHlEdge(c); if(!e) return '';
+    return `Players see the number before guessing, so the obvious guess wins about <b>${Math.round(e.win * 100)}%</b> of rounds. Average gain ≈ <b>${e.ev >= 0 ? '+' : ''}${(e.ev * 100).toFixed(0)}%</b> of the bet per play → a smart player at max bet averages about <b>${e.ev >= 0 ? '+' : ''}${Math.round(e.ev * c.maxBet * c.perShift)} tokens per shift</b> (range −${c.maxBet * c.perShift} to +${c.maxBet * (c.winMult - 1) * c.perShift}).`;
+  }
+  if(game === 'rps') return `Open challenges keep the stake they were made with. New limits apply to new duels right away. The house cut is the only part that burns tokens.`;
+  if(game === 'pets') return `Pet decay (−10 per meter per weekday shift, weekends skipped) and the nightly pet token drop are unchanged and not edited here.`;
+  if(game === 'shop') return `Turning an item Off hides it from players who don't own it yet; owners keep it. Pick featured items in 🪙 Transaction History, same as before.`;
+  return '';
+}
+function gaAdminRender(game){
+  const el = document.getElementById('gaRoot-' + game); if(!el || !_gaAdmin) return;
+  const c = _gaAdmin[game] || {};
+  const fld = ([k, lab, t, help]) => {
+    const v = c[k];
+    const inp = t === 'bool'
+      ? `<select data-k="${k}" data-t="bool"><option value="true" ${v !== false ? 'selected' : ''}>On</option><option value="false" ${v === false ? 'selected' : ''}>Off</option></select>`
+      : `<input data-k="${k}" data-t="num" type="number" min="0" step="1" value="${escapeHtml(v ?? '')}" oninput="gaPreview('${game}')">`;
+    return `<div class="pra-f"><label>${lab}<small>${help}</small></label>${inp}</div>`;
+  };
+  let h = `<div class="pra-form">${GA_FIELDS[game].map(fld).join('')}</div>`;
+  if(game === 'spin'){
+    h += `<div class="pra-sec">Wheel segments (6 equal slices, 0x–5x)</div><div class="pra-form">${(c.segments || []).map((m, i) =>
+      `<div class="pra-f"><label>Slice ${i + 1}</label><select data-k="segments.${i}" data-t="num" onchange="gaPreview('spin')">${[0,1,2,3,4,5].map(o => `<option value="${o}" ${o === m ? 'selected' : ''}>${o}x</option>`).join('')}</select></div>`).join('')}</div>`;
+  }
+  if(game === 'shop'){
+    const items = c.items || {};
+    h += Object.keys(items).map(cat => `<div class="pra-sec">${GA_LABELS[cat] || cat}</div><div class="pr-tbl"><table class="roster-table"><thead><tr><th>Item</th><th>Price 🪙</th><th>For sale</th></tr></thead><tbody>${
+      Object.keys(items[cat]).map(id => { const it = items[cat][id]; return `<tr><td>${escapeHtml(it.name)}</td>
+        <td><input type="number" min="1" step="1" style="width:90px;margin:0" data-k="items.${cat}.${id}.price" data-t="num" value="${it.price}"></td>
+        <td><select style="margin:0" data-k="items.${cat}.${id}.on" data-t="bool"><option value="true" ${it.on !== false ? 'selected' : ''}>On</option><option value="false" ${it.on === false ? 'selected' : ''}>Off</option></select></td></tr>`; }).join('')
+    }</tbody></table></div>`).join('');
+  }
+  h += `<div class="pr-muted" id="gaNote-${game}" style="font-size:12px;margin-top:12px;line-height:1.6">${gaAdminNote(game, c)}</div>`;
+  h += `<div class="pra-save"><span class="pra-msg" id="gaMsg-${game}"></span><span><button class="btn btn-outline btn-sm" onclick="gaAdminLoad('${game}')">Reload</button> <button class="btn btn-gold" onclick="gaSave('${game}')">💾 Save ${GA_TITLES[game].replace(/^\S+\s/, '')} settings</button></span></div>`;
+  el.innerHTML = h;
+}
+function gaCollect(game){
+  const out = {};
+  document.querySelectorAll(`#gaRoot-${game} [data-k]`).forEach(inp => {
+    const path = inp.dataset.k.split('.'); let v = inp.value;
+    if(inp.dataset.t === 'num'){ v = Math.round(Number(v)); if(!isFinite(v)) return; } else if(inp.dataset.t === 'bool') v = v === 'true';
+    if(path[0] === 'segments'){ out.segments = out.segments || []; out.segments[Number(path[1])] = v; }
+    else if(path[0] === 'items'){ out.items = out.items || {}; out.items[path[1]] = out.items[path[1]] || {}; out.items[path[1]][path[2]] = out.items[path[1]][path[2]] || {}; out.items[path[1]][path[2]][path[3]] = v; }
+    else out[path[0]] = v;
+  });
+  return out;
+}
+function gaPreview(game){
+  const n = document.getElementById('gaNote-' + game); if(!n || !_gaAdmin) return;
+  n.innerHTML = gaAdminNote(game, Object.assign({}, _gaAdmin[game], gaCollect(game)));
+}
+async function gaSave(game){
+  const payload = gaCollect(game), msg = document.getElementById('gaMsg-' + game);
+  if(payload.on === false && _gaAdmin[game].on !== false && !confirm(`Turn ${GA_TITLES[game]} OFF for everyone?`)) return;
+  const j = await gaCall('save', game, payload);
+  if(!j.ok){ if(msg){ msg.textContent = '⚠ ' + (j.error || 'Save failed'); msg.style.color = 'var(--danger)'; } return; }
+  _gaAdmin[game] = j.settings; applyGamesConfig(Object.assign({}, _gaAdmin, { ok:true }));
+  gaAdminRender(game);
+  const m2 = document.getElementById('gaMsg-' + game); if(m2){ m2.textContent = '✅ Saved — live for players within a minute.'; m2.style.color = 'var(--success)'; }
+  if(typeof adminLog === 'function') adminLog(`${GA_TITLES[game]} settings saved.`, 'info');
+}
 
 </script>
 </body>
