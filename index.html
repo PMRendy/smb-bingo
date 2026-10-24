@@ -407,6 +407,137 @@ body::before{display:none}
   .gp-wallet{margin-top:12px}.gp-main{padding:16px}}
 </style>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ═════ R4: Pet Race Frenzy (player) + admin sidebar ═════ */
+#gpv-race{--pr-p2:#0f2036;--pr-l2:rgba(255,255,255,.08);--pr-good:#4ecb84;--pr-warn:#ffba49;--pr-bad:#e05c5c}
+.pr-wrap{display:flex;flex-direction:column;gap:14px}
+.pr-grid2{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:14px}
+.pr-grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+@media(max-width:900px){.pr-grid2,.pr-grid3{grid-template-columns:1fr}}
+.pr-mono{font-family:'IBM Plex Mono',monospace;font-variant-numeric:tabular-nums}
+.pr-muted{color:var(--muted)}
+.pr-btn{border:0;border-radius:10px;padding:9px 13px;font-weight:700;font-size:13px;cursor:pointer;color:#1b1305;background:linear-gradient(180deg,#fbe08a,var(--gold));line-height:1.2}
+.pr-btn.ghost{background:transparent;color:var(--white);border:1px solid var(--line)}
+.pr-btn.red{background:linear-gradient(180deg,#ff8a8a,var(--danger));color:#2a0707}
+.pr-btn:disabled{opacity:.42;cursor:not-allowed}
+.pr-btn small{display:block;font-weight:600;font-size:10.5px;opacity:.85}
+.pr-banner{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center;background:radial-gradient(120% 140% at 0% 0%,rgba(236,127,165,.2),transparent 55%),linear-gradient(135deg,#1c3557,#12243b);border:1px solid var(--line);border-radius:16px;padding:14px 16px}
+.pr-banner .ph{font-family:'Space Grotesk';font-size:22px;font-weight:700;color:var(--white)}
+.pr-banner .wh{color:var(--muted);font-size:13px}
+.pr-preview{border:1px dashed var(--gold);border-radius:12px;padding:10px 14px;color:var(--gold);font-weight:600;background:rgba(245,200,66,.07)}
+.pr-prizes{display:flex;gap:8px;flex-wrap:wrap}
+.pr-prize{background:rgba(0,0,0,.25);border:1px solid var(--line);border-radius:12px;padding:6px 12px;text-align:center;min-width:80px}
+.pr-prize .p{font-family:'Space Grotesk';font-size:20px;font-weight:700;color:var(--gold)}
+.pr-prize .l{font-size:11px;color:var(--muted);font-weight:600}
+@media(max-width:700px){.pr-banner{grid-template-columns:1fr}}
+.pr-sched{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
+.pr-sched div{background:var(--pr-p2);border:1px solid var(--pr-l2);border-radius:10px;padding:7px 9px;font-size:12px;color:var(--muted)}
+.pr-sched b{display:block;color:var(--white)}
+.pr-sched .now{border-color:var(--gold);box-shadow:0 0 0 1px var(--gold) inset}
+@media(max-width:700px){.pr-sched{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.pr-track{position:relative;border-radius:12px;overflow:hidden;border:1px solid var(--pr-l2)}
+.pr-lane{position:relative;height:52px;border-bottom:1px dashed rgba(255,255,255,.18)}
+.pr-lane:last-child{border-bottom:0}
+.pr-lane.grass{background:repeating-linear-gradient(90deg,#2f6b3a 0 40px,#2a6235 40px 80px)}
+.pr-lane.sky{background:linear-gradient(180deg,#4f8ed1,#78b2e8)}
+.pr-lane.water{background:linear-gradient(180deg,#1f6f8f,#15536e)}
+.pr-lane .tag{position:absolute;left:6px;top:4px;font-size:10.5px;font-weight:700;background:rgba(0,0,0,.45);color:#fff;padding:1px 6px;border-radius:6px;z-index:4;white-space:nowrap;max-width:60%;overflow:hidden;text-overflow:ellipsis}
+.pr-lane.me .tag{background:var(--gold);color:#1b1305}
+.pr-lane.me{box-shadow:inset 0 0 0 2px var(--gold)}
+.pr-finish{position:absolute;top:0;bottom:0;right:3%;width:10px;z-index:1;background:repeating-conic-gradient(#fff 0 25%,#111 0 50%) 0 0/10px 10px;opacity:.85}
+.pr-ob{position:absolute;top:50%;transform:translate(-50%,-50%);font-size:22px;z-index:2;filter:drop-shadow(0 2px 2px rgba(0,0,0,.5))}
+.pr-runner{position:absolute;top:58%;transform:translate(-50%,-50%);transition:left 1.4s cubic-bezier(.3,.7,.3,1);z-index:3;display:flex;align-items:center}
+.pr-runner img,.pr-runner .emo{width:38px;height:38px;object-fit:contain;font-size:28px;display:inline-flex;align-items:center;justify-content:center;animation:prbob .45s ease-in-out infinite alternate;filter:drop-shadow(0 3px 2px rgba(0,0,0,.4))}
+.pr-runner .fx{font-size:15px;margin-right:-3px;opacity:0;transform:scaleX(-1)}
+.pr-runner.boost .fx{opacity:1;animation:prflick .2s infinite alternate}
+.pr-runner.dnf img,.pr-runner.dnf .emo{animation:none;filter:grayscale(1);opacity:.55}
+.pr-runner.spin img,.pr-runner.spin .emo{animation:prspin .6s linear 2}
+.pr-runner.blocked img,.pr-runner.blocked .emo{animation:prshake .25s infinite}
+.pr-runner .bub{position:absolute;top:-8px;right:-8px;background:var(--danger);color:#fff;font-size:10px;font-weight:800;border-radius:99px;padding:0 5px}
+@keyframes prbob{from{transform:translateY(2px) rotate(-4deg)}to{transform:translateY(-3px) rotate(4deg)}}
+@keyframes prflick{from{opacity:.6}to{opacity:1}}
+@keyframes prspin{to{transform:rotate(360deg)}}
+@keyframes prshake{0%,100%{transform:translateX(0)}50%{transform:translateX(3px)}}
+.pr-overlay{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:6;font-family:'Space Grotesk';font-size:32px;font-weight:700;color:var(--gold);text-shadow:0 3px 0 #000;background:rgba(11,24,40,.6);text-align:center}
+.pr-trackfoot{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center;margin-top:10px;font-size:12px;color:var(--muted)}
+.pr-row{display:flex;gap:12px;align-items:center}
+.pr-portrait{width:62px;height:62px;flex:none;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:34px;background:linear-gradient(135deg,#fbcf70,#ec7fa5 52%,#8069cc);border:3px solid rgba(255,255,255,.6);overflow:hidden}
+.pr-portrait img{width:100%;height:100%;object-fit:contain}
+.pr-stats{display:flex;flex-direction:column;gap:5px;flex:1;min-width:0}
+.pr-stat{display:grid;grid-template-columns:24px minmax(0,1fr) 38px auto;align-items:center;gap:6px;font-size:12px}
+.pr-bar{height:8px;border-radius:99px;background:rgba(255,255,255,.1);overflow:hidden}
+.pr-bar i{display:block;height:100%;border-radius:99px;background:var(--pr-good);transition:width .4s}
+.pr-bar i.w{background:var(--pr-warn)} .pr-bar i.b{background:var(--pr-bad)} .pr-bar i.s{background:var(--teal)}
+.pr-stat .pr-btn{padding:4px 8px;font-size:11px}
+.pr-hl{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:10px;padding:8px 10px;border-radius:10px;background:var(--pr-p2);font-size:13px;flex-wrap:wrap}
+.pr-chip{font-size:11px;font-weight:700;padding:3px 8px;border-radius:999px;white-space:nowrap}
+.pr-chip.g{background:rgba(78,203,132,.16);color:var(--pr-good)} .pr-chip.w{background:rgba(255,186,73,.16);color:var(--pr-warn)}
+.pr-chip.b{background:rgba(224,92,92,.18);color:#ff8f8f} .pr-chip.y{background:rgba(245,200,66,.16);color:var(--gold)}
+.pr-meter{height:10px;border-radius:99px;background:rgba(255,255,255,.1);overflow:hidden;margin-top:5px}
+.pr-meter i{display:block;height:100%;background:linear-gradient(90deg,var(--gold),#ec7fa5);transition:width .4s}
+.pr-dice{display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+.pr-die{width:62px;height:62px;border-radius:14px;background:#fff;color:#14263d;font-family:'Space Grotesk';font-size:30px;font-weight:700;display:flex;align-items:center;justify-content:center;box-shadow:0 5px 0 #c9cfd8,0 8px 16px rgba(0,0,0,.35)}
+.pr-die.rolling{animation:prdie .12s infinite}
+@keyframes prdie{0%{transform:rotate(-12deg)}50%{transform:rotate(12deg) translateY(-3px)}100%{transform:rotate(-8deg)}}
+.pr-faces{display:flex;gap:4px;flex-wrap:wrap;margin-top:6px}
+.pr-faces span{font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:700;padding:3px 7px;border-radius:7px;background:var(--pr-p2);border:1px solid var(--pr-l2)}
+.pr-faces span.neg{color:#ff8f8f} .pr-faces span.pos{color:var(--pr-good)}
+.pr-shop{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+.pr-item{background:var(--pr-p2);border:1px solid var(--pr-l2);border-radius:12px;padding:10px;display:flex;flex-direction:column;gap:6px;min-width:0}
+.pr-item .t{font-weight:700;display:flex;justify-content:space-between;gap:6px;color:var(--white)}
+.pr-item .d{font-size:12px;color:var(--muted);flex:1}
+.pr-item .pr-btn{width:100%}
+.pr-tbl{overflow-x:auto}
+.pr-tbl table{width:100%;border-collapse:collapse;font-size:13px}
+.pr-tbl th{text-align:left;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);padding:6px 8px;border-bottom:1px solid var(--pr-l2);white-space:nowrap}
+.pr-tbl td{padding:7px 8px;border-bottom:1px solid var(--pr-l2);white-space:nowrap;color:var(--white)}
+.pr-tbl tr.me td{background:rgba(245,200,66,.09)}
+.pr-tbl td.n{text-align:right;font-family:'IBM Plex Mono',monospace}
+.pr-log{display:flex;flex-direction:column;gap:5px;max-height:220px;overflow:auto;font-size:12.5px}
+.pr-log div{padding:5px 8px;border-radius:8px;background:var(--pr-p2);color:var(--white)}
+.pr-log .t{color:var(--muted);font-family:'IBM Plex Mono',monospace;font-size:11px;margin-right:6px}
+.pr-pick{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+@media(max-width:700px){.pr-pick{grid-template-columns:1fr}}
+.pr-pick label{display:flex;flex-direction:column;align-items:center;gap:5px;text-align:center;padding:12px;border-radius:12px;background:var(--pr-p2);border:2px solid var(--pr-l2);cursor:pointer;position:relative;color:var(--white)}
+.pr-pick label.on{border-color:var(--gold);box-shadow:0 0 0 3px rgba(245,200,66,.18)}
+.pr-pick label.no{opacity:.45;cursor:not-allowed}
+.pr-pick .pr-portrait{width:54px;height:54px;font-size:28px}
+.pr-podium{display:grid;grid-template-columns:1fr 1.1fr 1fr;gap:10px;align-items:end;text-align:center}
+.pr-pod{border-radius:14px 14px 6px 6px;padding:12px 8px;background:var(--pr-p2);border:1px solid var(--line);color:var(--white)}
+.pr-pod .r{font-family:'Space Grotesk';font-size:24px;font-weight:700;color:var(--gold)}
+.pr-pod.p1{padding-block:22px;background:linear-gradient(180deg,rgba(245,200,66,.25),var(--pr-p2))}
+.pr-alert{border:2px solid var(--danger);background:rgba(224,92,92,.12);border-radius:12px;padding:12px;text-align:center}
+.pr-tap{width:110px;height:110px;border-radius:50%;border:0;font-size:46px;cursor:pointer;background:radial-gradient(circle,#ffd27a,#c9862b);margin:8px auto;display:flex;align-items:center;justify-content:center;position:relative}
+.pr-tap:active{transform:scale(.94)}
+.pr-ring{font-family:'IBM Plex Mono',monospace;font-weight:700;color:var(--gold)}
+@media (prefers-reduced-motion: reduce){.pr-runner{transition:none}.pr-runner img,.pr-runner .emo,.pr-die.rolling{animation:none!important}}
+
+/* admin sidebar (R4) */
+#screen-admin .app-shell{display:grid;grid-template-columns:232px minmax(0,1fr);column-gap:18px;align-items:start}
+#screen-admin .top-bar{grid-column:1/-1}
+#screen-admin .tab-bar{grid-column:1;grid-row:2/span 40;display:flex;flex-direction:column;gap:3px;position:sticky;top:12px;background:var(--deep);border:1px solid var(--line);border-radius:16px;padding:10px;margin:0}
+#screen-admin .tab-bar .tab-btn{border-radius:10px;text-align:left;border:0;padding:8px 12px;display:flex;justify-content:space-between;align-items:center;gap:6px}
+#screen-admin .tab-bar .tab-btn:hover{background:rgba(255,255,255,.05);color:var(--white)}
+#screen-admin .tab-bar .tab-btn.active{background:var(--gold);color:#151515}
+#screen-admin .tab-bar .tab-btn.soon{opacity:.55}
+#screen-admin .adm-grp{font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);padding:10px 12px 3px;font-weight:700}
+#screen-admin .adm-chip{font-size:9.5px;font-weight:700;padding:1px 6px;border-radius:99px;background:rgba(46,202,213,.16);color:var(--teal)}
+#screen-admin .adm-chip.soon{background:rgba(255,255,255,.08);color:var(--muted)}
+#screen-admin .tab-content{grid-column:2}
+@media(max-width:860px){#screen-admin .app-shell{display:block}#screen-admin .tab-bar{flex-direction:row;flex-wrap:nowrap;overflow-x:auto;position:static;margin-bottom:14px}#screen-admin .adm-grp{display:none}#screen-admin .tab-bar .tab-btn{white-space:nowrap}}
+.pra-sub{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:14px}
+.pra-sub button{background:transparent;border:1px solid var(--line);color:var(--muted);border-radius:99px;padding:6px 14px;font-weight:600;font-size:12.5px;cursor:pointer}
+.pra-sub button.on{background:var(--gold);color:#151515;border-color:var(--gold)}
+.pra-form{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px 14px}
+.pra-f label{display:block;font-size:12px;color:var(--white);font-weight:600;margin-bottom:3px}
+.pra-f small{display:block;color:var(--muted);font-weight:400;font-size:11px}
+.pra-f input,.pra-f select{width:100%;margin:0}
+.pra-sec{font-family:'Space Grotesk';color:var(--gold);font-size:14px;margin:16px 0 8px;border-top:1px solid var(--line);padding-top:12px}
+.pra-sec:first-child{border-top:0;margin-top:0;padding-top:0}
+.pra-save{position:sticky;bottom:0;display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap;background:var(--deep);border-top:1px solid var(--line);padding:10px 0;margin-top:14px}
+.pra-msg{font-size:12.5px}
+
+</style>
 </head>
 <body>
 
@@ -414,7 +545,7 @@ body::before{display:none}
 <div id="screen-landing" class="screen active">
   <div class="eyebrow">🌙 Bayaning Puyat Series</div>
   <h1>SMB GAME PORTAL</h1>
-  <div class="sub">Overnight Shift Edition · 9PM – 5AM PHT<br><span class="gp-landing-games">🎱 BINGO · 🎡 Spin · 📈 Higher/Lower · ✊ RPS · ⚔️ Team Battles · 🛒 Shop</span></div>
+  <div class="sub">Overnight Shift Edition · 9PM – 5AM PHT<br><span class="gp-landing-games">🎱 BINGO · 🎡 Spin · 📈 Higher/Lower · ✊ RPS · 🏁 Pet Race · ⚔️ Team Battles · 🛒 Shop</span></div>
   <div class="landing-buttons">
     <button class="btn btn-gold" onclick="gotoAdminLogin()">🔐 Admin Portal</button>
     <button class="btn btn-teal" onclick="gotoPlayerLogin()">🎮 Player Login</button>
@@ -475,13 +606,22 @@ body::before{display:none}
     </div>
 
     <div class="tab-bar">
-      <button class="tab-btn active" onclick="switchAdminTab('roster')">👥 Player Roster</button>
-      <button class="tab-btn" onclick="switchAdminTab('game')">🎱 Game Control</button>
-      <button class="tab-btn" onclick="switchAdminTab('dashboard')">📊 Live Dashboard</button>
-      <button class="tab-btn" onclick="switchAdminTab('settings')">⚙️ Settings</button>
-      <button class="tab-btn" onclick="switchAdminTab('history')">🪙 Transaction History</button>
-      <button class="tab-btn" onclick="switchAdminTab('topics')">🗓️ Weekly Topics</button>
-      <button class="tab-btn" onclick="switchAdminTab('teambattles')">⚔️ Team Battles</button>
+      <div class="adm-grp">Overview</div>
+      <button class="tab-btn" data-tab="dashboard" onclick="switchAdminTab('dashboard')">📊 Live Dashboard</button>
+      <div class="adm-grp">BINGO</div>
+      <button class="tab-btn" data-tab="game" onclick="switchAdminTab('game')">🎱 Game Control</button>
+      <div class="adm-grp">Games</div>
+      <button class="tab-btn" data-tab="petrace" onclick="switchAdminTab('petrace')">🏁 Pet Race <span class="adm-chip">NEW</span></button>
+      <button class="tab-btn" data-tab="teambattles" onclick="switchAdminTab('teambattles')">⚔️ Team Battles</button>
+      <button class="tab-btn soon" data-tab="soon" onclick="switchAdminTab('soon')">🎡 Spin • H/L • RPS <span class="adm-chip soon">SOON</span></button>
+      <button class="tab-btn soon" data-tab="soon2" onclick="switchAdminTab('soon')">🐾 Pets • 🛒 Shop <span class="adm-chip soon">SOON</span></button>
+      <div class="adm-grp">Economy</div>
+      <button class="tab-btn" data-tab="history" onclick="switchAdminTab('history')">🪙 Transaction History</button>
+      <div class="adm-grp">People</div>
+      <button class="tab-btn active" data-tab="roster" onclick="switchAdminTab('roster')">👥 Player Roster</button>
+      <div class="adm-grp">System</div>
+      <button class="tab-btn" data-tab="settings" onclick="switchAdminTab('settings')">⚙️ Settings</button>
+      <button class="tab-btn" data-tab="topics" onclick="switchAdminTab('topics')">🗓️ Weekly Topics</button>
     </div>
 
     <!-- TAB: ROSTER -->
@@ -770,6 +910,27 @@ body::before{display:none}
         <div id="adminTeamBattleCardsWrap" class="cards-wrap view-3" style="margin-top:16px;"></div>
       </div>
     </div>
+    <div class="tab-content" id="tab-petrace">
+      <div class="panel">
+        <div class="panel-title">🏁 Pet Race Frenzy</div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:12px;">Weekly 3-shift pet marathon. Every price, limit and toggle is here. The server enforces all of it; the page only displays.</div>
+        <div id="prAdminRoot"><div class="empty-state">Loading...</div></div>
+      </div>
+    </div>
+
+    <div class="tab-content" id="tab-soon">
+      <div class="panel">
+        <div class="panel-title">🛠️ Coming next: price editing for the other games</div>
+        <div style="font-size:13px;color:var(--muted);line-height:1.7">Each game gets its own settings tab here after Nov 2, one at a time, after a check that the rebuilt backend matches today's results exactly.<br>
+        • 🎡 Spin the Wheel: min/max bet, spins per shift, wheel multipliers (with expected return)<br>
+        • 📈 Higher or Lower: min/max bet, rounds per shift, payout<br>
+        • ✊ RPS Duel: stake min/max/step, duels per shift, pair limit, expiry, house cut<br>
+        • 🎱 BINGO: card price, max cards per game<br>
+        • 🐾 Pets: egg, care, rename, gender-switch prices, daily pet drop<br>
+        • 🛒 Shop: price and on/off for every skin, cosmetic and title<br>
+        Until then these keep their current fixed prices.</div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -785,6 +946,7 @@ body::before{display:none}
       <button class="sub" data-v="spin" onclick="gpGo('spin')">🎡 Spin the Wheel <span class="gp-cnt" id="gpCntSpin"></span></button>
       <button class="sub" data-v="hl" onclick="gpGo('hl')">📈 Higher or Lower <span class="gp-cnt" id="gpCntHl"></span></button>
       <button class="sub" data-v="rps" onclick="gpGo('rps')">✊ RPS Duel <span class="gp-cnt" id="gpCntRps"></span></button>
+      <button class="sub" data-v="race" onclick="gpGo('race')">🏁 Pet Race Frenzy <span class="gp-cnt" id="gpCntRace"></span></button>
       <button class="sub" data-v="team" onclick="gpGo('team')">⚔️ Team Battles</button>
       <div class="gp-grp">Store</div>
       <button class="sub" data-v="shop" onclick="gpGo('shop')">🛒 Shop</button>
@@ -872,6 +1034,7 @@ body::before{display:none}
           <div class="gp-game" onclick="gpGo('spin')"><span class="ic">🎡</span><b>Spin the Wheel</b><span class="gp-left" id="gpTileSpin">Bet 1–10</span></div>
           <div class="gp-game" onclick="gpGo('hl')"><span class="ic">📈</span><b>Higher or Lower</b><span class="gp-left" id="gpTileHl">Bet 1–5</span></div>
           <div class="gp-game" onclick="gpGo('rps')"><span class="ic">✊</span><b>RPS Duel</b><span class="gp-left">Stake 10–50 • 1v1</span></div>
+          <div class="gp-game" onclick="gpGo('race')"><span class="ic">🏁</span><b>Pet Race Frenzy</b><span class="gp-left" id="gpTileRace">Weekly pet marathon</span></div>
           <div class="gp-game" onclick="gpGo('team')"><span class="ic">⚔️</span><b>Team Battles</b><span class="gp-left">3v3 • winner takes pot</span></div>
           <div class="gp-game" onclick="gpGo('shop')"><span class="ic">🛒</span><b>Shop</b><span class="gp-left">Frames, icons, titles</span></div>
         </div>
@@ -903,8 +1066,8 @@ body::before{display:none}
         <button data-s="win" onclick="gpSub('win')">🏆 Winners</button>
       </div>
       <div class="gp-bsub on" data-s="play">
-        <!-- Generate Card button — always visible right after login -->
-    <div style="background:var(--deep);border:2px solid var(--gold);border-radius:var(--r);padding:18px;margin-bottom:14px;text-align:center;">
+        <!-- Generate Card button — hidden once the game has started -->
+    <div id="cardGenPanel" style="background:var(--deep);border:2px solid var(--gold);border-radius:var(--r);padding:18px;margin-bottom:14px;text-align:center;">
       <div style="font-size:13px;font-weight:700;color:var(--gold);margin-bottom:6px;">🎰 Generate Your Bingo Cards</div>
       <div style="font-size:12px;color:var(--muted);margin-bottom:12px;">I-generate ang iyong cards bago mag-laro. Pwedeng mag-generate ulit hanggang satisfied ka — tapos i-lock in ang gusto mo!</div>
       <button class="btn btn-gold" style="width:100%;font-size:15px;padding:13px;" onclick="generatePlayerCardsUI()">🎲 Generate My Cards</button>
@@ -997,6 +1160,7 @@ body::before{display:none}
       </div>
     </details></div>
       <div class="gp-card"><div class="gp-hdr"><h3>✊ RPS Leaderboard</h3><span class="gp-badge">All-time • completed duels</span></div><div class="gp-rpsboard gp-mini">Loading…</div></div></section>
+    <section class="gp-view" id="gpv-race"><div class="pr-wrap" id="prRoot"><div class="gp-card"><div class="empty-state">Loading Pet Race…</div></div></div></section>
     <section class="gp-view" id="gpv-team"><div class="gp-card gp-wrap-group"><details class="panel-group" id="teamBattlesGroup">
       <summary>⚔️ Team Battles (3v3)</summary>
       <div class="panel-group-body">
@@ -1704,15 +1868,15 @@ let _currentAdminTab = 'roster';
 
 function switchAdminTab(name) {
   _currentAdminTab = name;
-  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('#screen-admin .tab-btn').forEach(b=>b.classList.toggle('active', b.dataset.tab===name));
   document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
   const tabEl = document.getElementById('tab-'+name);
   if(tabEl) tabEl.classList.add('active');
-  event.target.classList.add('active');
   if(name==='dashboard') refreshDashboard();
   if(name==='history') refreshHistoryTab();
   if(name==='topics') refreshWeeklyTopicsTab();
   if(name==='teambattles') refreshAdminTeamBattlesTab();
+  if(name==='petrace') prAdminLoad();
 }
 
 // ════════════════════════════════════════════════════════════
@@ -5014,6 +5178,7 @@ async function refreshPlayerScreen(){
   renderPlayerCheckinPointsBoard();
   renderTeamBattlesPanel();
   if(typeof gpRefresh === 'function') gpRefresh();
+  gpCardGenToggle();
 
   const g=DB.game;
   const bingoBtn=document.getElementById('playerBingoBtn');
@@ -5505,6 +5670,7 @@ const TOKEN_EVENT_LABELS = {
   team_battle_entry: '⚔️ Team Battle Entry', team_battle_payout: '🏆 Team Battle Payout', team_battle_refund: '↩️ Team Battle Refund',
   avatar_gender_switch: '👤 Avatar Gender Switch', pet_egg: '🐣 Pet Egg', pet_care: '🐾 Pet Care', pet_rename: '✏️ Pet Rename',
   rps_stake: '✊ RPS Stake', rps_payout: '🏆 RPS Win', rps_refund: '↩️ RPS Refund',
+  race_spend: '🏁 Pet Race', race_refund: '↩️ Pet Race Refund',
 };
 function playerNameById(id){ const p=DB.players.find(x=>x.id===id); return p?p.name:(id||'—'); }
 
@@ -5558,6 +5724,8 @@ function renderTokenLog(){
       else if(e.type === 'rps_stake') detail = `${playerNameById(e.playerId)} staked ${e.amount} 🪙 on an RPS Duel vs ${playerNameById(e.opponentId)}`;
       else if(e.type === 'rps_payout') detail = `${playerNameById(e.playerId)} beat ${playerNameById(e.opponentId)} in RPS — won ${e.amount} 🪙 (pot ${e.pot}, house cut ${e.houseCut})`;
       else if(e.type === 'rps_refund') detail = `${playerNameById(e.playerId)} refunded ${e.amount} 🪙 (RPS ${e.reason||'refund'})`;
+      else if(e.type === 'race_spend') detail = `${playerNameById(e.playerId)} spent ${e.amount} 🪙 — ${e.itemName||'Pet Race'}`;
+      else if(e.type === 'race_refund') detail = `${playerNameById(e.playerId)} refunded ${e.amount} 🪙 — ${e.itemName||'Pet Race'} (${e.reason||'refund'})`;
       else if(e.type === 'avatar_gender_switch') detail = `${playerNameById(e.playerId)} switched avatar gender for ${e.amount} 🪙`;
       return `<tr><td>${when}</td><td>${label}</td><td>${detail}</td></tr>`;
     }).join('') +
@@ -5694,8 +5862,11 @@ ${msg}`;
 let _pendingCards = []; // cards being previewed before lock-in
 let _lockedCards = {};  // {cardIndex: true} — cards the player has locked in
 
+function gpGameStarted(){ const g = DB.game; return !!(g && g.active && !g.ended && !g.lobbyOpen); }
+function gpCardGenToggle(){ const el = document.getElementById('cardGenPanel'); if(el) el.style.display = gpGameStarted() ? 'none' : ''; }
 function generatePlayerCardsUI(){
   if(!currentPlayer) return;
+  if(gpGameStarted()){ gpCardGenToggle(); return; }
   const g = DB.game; // may be null — that's okay, player can still browse cards
   const player = currentPlayer;
   const maxCards = player.maxCards || 2;
@@ -5788,6 +5959,7 @@ function renderPendingCards(animate){
 
 async function lockInCard(cardIndex){
   if(!currentPlayer) return;
+  if(gpGameStarted()){ gpCardGenToggle(); return; }
   if(!DB.game){
     const hint = document.getElementById('cardGenHint');
     if(hint) hint.textContent = '⚠️ Wala pang active game. Hintayin ang admin na mag-start ng laro para ma-lock in ang iyong card!';
@@ -5986,7 +6158,7 @@ function setCardsView(mode){
 
 <script>
 // ═════ SMB GAME PORTAL (R2): sidebar views. Display only — no token writes. ═════
-const GP_TITLES = {player:'Player', bingo:'BINGO', spin:'Spin the Wheel', hl:'Higher or Lower', rps:'RPS Duel', team:'Team Battles', shop:'Shop', avatar:'Avatar Studio', lb:'Leaderboards'};
+const GP_TITLES = {player:'Player', bingo:'BINGO', spin:'Spin the Wheel', hl:'Higher or Lower', rps:'RPS Duel', race:'Pet Race Frenzy', team:'Team Battles', shop:'Shop', avatar:'Avatar Studio', lb:'Leaderboards'};
 let _gpView = 'player', _gpSub = 'play';
 function gpGo(v){
   if(!GP_TITLES[v]) v = 'player';
@@ -6003,6 +6175,7 @@ function gpGo(v){
   window.scrollTo(0, 0);
   gpRefresh();
   if(v === 'lb' || v === 'rps') gpLoadRpsBoard();
+  if(v === 'race'){ if(_pr) prRender(); prFetch(); prLoop(); }
 }
 const GP_RPS_BOARD_URL = 'https://ebeggngsggwnxufovkco.supabase.co/functions/v1/bingo-rps-board';
 let _gpRpsBoardAt = 0, _gpRpsBoard = null;
@@ -6033,8 +6206,8 @@ function gpSub(s){
 function gpEsc(x){ return String(x == null ? '' : x).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 function gpGameLive(){ const g = DB && DB.game; return !!(g && g.active && !g.ended); }
 // Signed token effect of one tokenLog entry for player id (display only).
-const GP_SPEND = ['buy_card','shop_purchase','cosmetic_purchase','title_purchase','pet_care','pet_egg','pet_rename','rps_stake','team_battle_entry'];
-const GP_GAIN  = ['cash_in','daily_pet_token_grant','rps_payout','rps_refund','team_battle_payout','team_battle_refund'];
+const GP_SPEND = ['buy_card','shop_purchase','cosmetic_purchase','title_purchase','pet_care','pet_egg','pet_rename','rps_stake','team_battle_entry','race_spend'];
+const GP_GAIN  = ['cash_in','daily_pet_token_grant','rps_payout','rps_refund','team_battle_payout','team_battle_refund','race_refund'];
 function gpDelta(e, id){
   const a = Number(e.amount) || 0;
   if(e.type === 'give') return e.toPlayerId === id ? a : (e.fromPlayerId === id ? -a : null);
@@ -6064,6 +6237,8 @@ function gpLabel(e, id){
     case 'team_battle_entry': return '⚔️ Team Battle entry';
     case 'team_battle_payout': return '⚔️ Team Battle win';
     case 'team_battle_refund': return '⚔️ Team Battle refund';
+    case 'race_spend': return `🏁 ${gpEsc(e.itemName || 'Pet Race')}`;
+    case 'race_refund': return `🏁 ${gpEsc(e.itemName || 'Pet Race refund')}`;
     case 'admin_adjust': return `🛠️ Admin adjustment${e.reason ? ' — ' + gpEsc(e.reason) : ''}`;
     default: return gpEsc(e.type);
   }
@@ -6094,6 +6269,7 @@ function gpRenderWinners(){
 }
 function gpRefresh(){
   if(!currentPlayer || typeof DB === 'undefined') return;
+  try { if(typeof prBoot === 'function') prBoot(); } catch(e){}
   try {
     const id = currentPlayer.id, shift = shiftStartMsClient(), g = DB.game;
     const live = gpGameLive();
@@ -6145,6 +6321,481 @@ function gpMirrorBalance(){
   const tick = () => { const c = document.getElementById('gpClock'); if(c) c.textContent = new Date().toLocaleTimeString('en-PH', {timeZone:'Asia/Manila', hour12:true}); };
   tick(); setInterval(tick, 1000);
 })();
+</script>
+<script>
+// ═════ R4: PET RACE FRENZY — player view + admin tab. Server (bingo-pet-race) owns every rule and token charge. ═════
+const PR_URL = 'https://ebeggngsggwnxufovkco.supabase.co/functions/v1/bingo-pet-race';
+let _pr = null, _prSkew = 0, _prTimer = null, _prBusy = false, _prSel = null, _prTaps = 0, _prDice = null, _prShownFinal = 0;
+let _prAdmin = null, _prAdminSub = 'set', _prPrevL = {};
+const PR_TAP_GOAL = 8;
+function prNow(){ return Date.now() + _prSkew; }
+function prEsc(x){ return (typeof escapeHtml === 'function') ? escapeHtml(String(x == null ? '' : x)) : String(x == null ? '' : x).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function prLane(sp){ return sp === 'parrot' ? 'sky' : (sp === 'arowana' || sp === 'goldfish') ? 'water' : 'grass'; }
+function prEmoji(sp){ try { return petSpecies(sp)[2]; } catch(e){ return '🐾'; } }
+function prPetImg(sp){ const em = prEmoji(sp); return `<img src="${COSMETICS_BACKEND_URL}/pets/${encodeURIComponent(sp)}.gif" alt="" onerror="this.outerHTML='<span class=&quot;emo&quot;>${em}</span>'">`; }
+function prFmtDur(ms){
+  if(ms <= 0) return 'now';
+  const s = Math.floor(ms / 1000), d = Math.floor(s / 86400), h = Math.floor(s % 86400 / 3600), m = Math.floor(s % 3600 / 60), ss = s % 60;
+  return d ? `${d}d ${h}h ${m}m` : h ? `${h}h ${m}m` : `${m}m ${String(ss).padStart(2,'0')}s`;
+}
+function prTime(ms){ return new Date(ms).toLocaleString('en-PH', {timeZone:'Asia/Manila', weekday:'short', hour:'numeric', minute:'2-digit'}); }
+async function prCall(body){
+  const r = await fetch(PR_URL, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body)});
+  return r.json();
+}
+async function prFetch(){
+  if(!currentPlayer) return;
+  try {
+    const j = await prCall({action:'state', playerId: currentPlayer.id});
+    if(j && j.ok){ _pr = j; _prSkew = j.now - Date.now(); prBadge(); if(_gpView === 'race') prRender(); }
+  } catch(e){ const el = document.getElementById('prRoot'); if(el && !_pr) el.innerHTML = '<div class="gp-card"><div class="empty-state">Pet Race is unavailable — try ulit in a bit.</div></div>'; }
+}
+function prLoop(){
+  clearTimeout(_prTimer);
+  _prTimer = setTimeout(async () => {
+    if(_gpView === 'race' && document.visibilityState === 'visible' && currentPlayer && !_prBusy) await prFetch();
+    prLoop();
+  }, 20000);
+}
+document.addEventListener('visibilitychange', () => { if(document.visibilityState === 'visible' && _gpView === 'race') prFetch(); });
+setInterval(() => {
+  if(_gpView !== 'race') return;
+  document.querySelectorAll('[data-pr-cd]').forEach(el => { el.textContent = prFmtDur(Number(el.dataset.prCd) - prNow()); });
+}, 1000);
+
+// phase from server state
+function prPhase(){
+  const s = _pr, r = s && s.race;
+  if(!r) return {key:'none', title:'No race scheduled', when:'', target:0};
+  const now = prNow(), L = r.legTimes || [];
+  if(r.status === 'registration'){
+    if(now < r.regOpenAt) return {key:'soon', title:'Registration opens soon', when:'Opens in', target:r.regOpenAt};
+    return {key:'reg', title:'Registration open', when:'Closes in', target:r.regCloseAt};
+  }
+  if(r.status === 'locked') return {key:'lineup', title:'Lineup locked', when:'Race starts in', target:L[0]};
+  if(r.status === 'racing'){
+    const nl = r.lastLeg + 1;
+    return {key:'race', title:`Day ${Math.min(3, Math.floor(r.lastLeg / 8) + 1)} • Leg ${Math.min(24, nl)} of 24${nl === 24 ? ' — FINAL STRETCH' : ''}`, when:'Next leg in', target:L[nl - 1]};
+  }
+  if(r.status === 'finished') return {key:'done', title:'🏁 Results are in!', when:'', target:0};
+  return {key:'cancel', title:'Race cancelled', when:r.cancelReason || '', target:0};
+}
+function prBadge(){
+  const b = document.getElementById('gpCntRace'), nav = document.querySelector('#gpNav button[data-v="race"]'), tile = document.getElementById('gpTileRace');
+  const mode = _pr && _pr.mode;
+  if(nav) nav.style.display = mode === 'off' ? 'none' : '';
+  if(tile) tile.parentElement.style.display = mode === 'off' ? 'none' : '';
+  if(!_pr) return;
+  const ph = prPhase(), mine = (_pr.entries || []).find(e => currentPlayer && e.playerId === currentPlayer.id);
+  let t = '';
+  if(mode === 'preview') t = 'SOON';
+  else if(ph.key === 'reg') t = mine ? 'IN' : 'OPEN';
+  else if(ph.key === 'race' || ph.key === 'lineup') t = mine ? `#${(_pr.entries || []).filter(e => !e.dnf).findIndex(e => e.id === mine.id) + 1 || '–'}` : 'LIVE';
+  else if(ph.key === 'done') t = '🏁';
+  if(b){ b.textContent = t; b.classList.toggle('live', !!t && t !== 'SOON'); }
+  if(tile) tile.innerHTML = mode === 'preview' ? 'Sneak peek • opens soon' : `${prEsc(ph.title)}`;
+}
+
+function prMyEntry(){ return _pr && (_pr.entries || []).find(e => currentPlayer && e.playerId === currentPlayer.id); }
+function prCanPlay(){ return _pr && _pr.mode === 'live' && !(currentPlayer && currentPlayer.id === 'default_25'); }
+function prRunning(){ const r = _pr && _pr.race; return r && (r.status === 'locked' || r.status === 'racing') && r.lastLeg < 24; }
+function prDis(reason){ return reason ? `disabled title="${prEsc(reason)}"` : ''; }
+
+function prRender(){
+  const root = document.getElementById('prRoot'); if(!root || !_pr) return;
+  const s = _pr, c = s.settings || {}, r = s.race, ph = prPhase(), me = prMyEntry();
+  const prizes = c.prizes || [0,0,0];
+  let h = '';
+  if(s.mode === 'preview') h += `<div class="pr-preview">👀 Sneak peek: ${prEsc(s.previewText || 'Pet Race opens soon')} — buttons are locked until launch.</div>`;
+  h += `<div class="pr-banner"><div><div class="ph">${prEsc(ph.title)}</div>
+      <div class="wh">${ph.target ? `${prEsc(ph.when)} <b class="pr-mono" data-pr-cd="${ph.target}">${prFmtDur(ph.target - prNow())}</b> • ${prTime(ph.target)} PHT` : prEsc(ph.when)}</div>
+      <div class="wh" style="margin-top:4px">${prEsc(c.prizeNote || '')}</div></div>
+    <div class="pr-prizes">${['🥇 1st','🥈 2nd','🥉 3rd'].map((l, i) => `<div class="pr-prize"><div class="p">₱${Number(prizes[i] || 0)}</div><div class="l">${l}</div></div>`).join('')}</div></div>`;
+  if(r){
+    const L = r.legTimes || [], now = prNow();
+    const cells = [['Registration', `${prTime(r.regOpenAt)} → ${prTime(r.regCloseAt)}`, ph.key === 'reg' || ph.key === 'soon'],
+      ['Lineup', `until ${prTime(L[0])}`, ph.key === 'lineup'],
+      ['Day 1', `legs 1–8 • ${prTime(L[0])}`, ph.key === 'race' && r.lastLeg < 8],
+      ['Day 2', `legs 9–16 • ${prTime(L[8])}`, ph.key === 'race' && r.lastLeg >= 8 && r.lastLeg < 16],
+      ['Day 3', `legs 17–24 • final ${prTime(L[23])}`, ph.key === 'race' && r.lastLeg >= 16]];
+    h += `<div class="pr-sched">${cells.map(x => `<div class="${x[2] ? 'now' : ''}"><b>${x[0]}</b>${x[1]}</div>`).join('')}</div>`;
+  }
+  if(ph.key === 'reg' || ph.key === 'soon' || (s.mode === 'preview' && r && r.status === 'registration')) h += prRegCard();
+  if(ph.key === 'done' || ph.key === 'cancel' || (s.lastResult && Date.now() - s.lastResult.finishedAt < 6 * 86400000)) h += prResultsCard();
+  h += `<div class="gp-card"><div class="gp-hdr"><h3>🏟️ Track</h3><span class="gp-badge">${Number(c.totalLaps || 42)} laps • 24 hourly legs</span></div><div id="prTrack"></div>
+     <div class="pr-trackfoot"><span>${r && r.obstacle ? `🚧 Day ${r.obstacle.day} obstacle at lap <b>${r.obstacle.lap}</b>` : 'No obstacle on the track right now'}</span>
+     <span>Updates every 20 s while this tab is open</span></div></div>`;
+  if(me && (ph.key === 'lineup' || ph.key === 'race')){
+    h += `<div class="pr-grid2"><div class="pr-wrap">${prMyCard(me)}${prObstacleCard(me)}</div><div class="pr-wrap">${prDiceCard(me)}${prShopCard(me)}</div></div>`;
+  }
+  h += `<div class="pr-grid2">${prStandingsCard()}${prFeedCard()}</div>`;
+  h += prRulesCard();
+  root.innerHTML = h;
+  prDrawTrack(true);
+  if(document.getElementById('prLastTrack')) prAutoReplay();
+}
+
+function prRegCard(){
+  const s = _pr, c = s.settings || {}, me = prMyEntry(), open = prPhase().key === 'reg', can = prCanPlay() && open;
+  const fee = Number(c.entryFee || 20), bal = Number(_myTokenBalance || 0);
+  let body;
+  if(me){
+    body = `<div class="pr-hl"><span>✅ You're in with <b>${prEsc(me.petName)}</b>. Alagaan mo para mabilis!</span>
+      <button class="pr-btn ghost" ${prDis(!can && 'Registration closed')} onclick="prAct('withdraw')">Withdraw (+${fee} 🪙)</button></div>`;
+  } else {
+    const pets = (s.myPets || []).filter(p => p.status !== 'egg');
+    if(!pets.length) body = `<div class="pr-hl"><span>Wala ka pang hatched pet. Get one first, then come back!</span><button class="pr-btn" onclick="gpGo('player')">🐣 Get a pet</button></div>`;
+    else {
+      if(!_prSel || !pets.find(p => p.id === _prSel)) _prSel = (pets.find(p => (p.health || 0) >= 20) || {}).id || null;
+      body = `<div class="pr-pick">${pets.map(p => { const ok = (p.health || 0) >= 20; return `<label class="${p.id === _prSel ? 'on' : ''} ${ok ? '' : 'no'}" ${ok ? `onclick="_prSel='${prEsc(p.id)}';prRender()"` : ''}>
+          <div class="pr-portrait">${prPetImg(p.species)}</div><b>${prEsc(p.name || 'Pet')}</b><span class="pr-muted" style="font-size:12px">Lv ${p.level || 1} • health ${p.health}</span>
+          ${ok ? '' : '<span class="pr-chip b">Alagaan muna (health < 20)</span>'}</label>`; }).join('')}</div>
+        <div class="pr-hl"><span>Entry fee <b>${fee} 🪙</b> • one pet per player • withdraw anytime before close for a full refund</span>
+        <button class="pr-btn" ${prDis(!can ? (s.mode !== 'live' ? 'Locked until launch' : 'Registration not open') : !_prSel ? 'Pick a pet' : bal < fee ? 'Not enough tokens' : '')} onclick="prAct('register',{petId:_prSel})">Register (${fee} 🪙)</button></div>`;
+    }
+  }
+  const list = (s.entries || []).map(e => prEsc(`${e.petName} (${e.playerName})`)).join(' • ') || 'No racers yet — be the first!';
+  return `<div class="gp-card"><div class="gp-hdr"><h3>📝 Registration</h3><span class="gp-badge">${(s.entries || []).length} registered • min ${Number(c.minRacers || 5)}</span></div>${body}
+    <div style="margin-top:10px;font-size:12.5px" class="pr-muted">Racers: ${list}</div></div>`;
+}
+
+function prMyCard(me){
+  const s = _pr, c = s.settings || {}, m = (s.me && s.me.meters) || {}, run = prRunning() && prCanPlay(), my = s.me || {};
+  const col = v => v >= 70 ? '' : v >= 50 ? 'w' : 'b';
+  const meter = (ic, k, type) => { const v = Math.max(0, Math.min(100, Number(m[k] ?? 100))); return `<div class="pr-stat"><span>${ic}</span><div class="pr-bar"><i class="${col(v)}" style="width:${v}%"></i></div><span class="pr-mono">${v}</span>
+      <button class="pr-btn" ${prDis(!prCanPlay() && 'Locked')} onclick="prCare('${type}')">${type === 'feed' ? 'Feed' : type === 'play' ? 'Play' : 'Bath'} 1🪙</button></div>`; };
+  const st = me.stamina, restMax = Number(c.restsPerShift || 3), restUsed = Number(my.restsUsed || 0);
+  const restWhy = !run ? 'Race not running' : me.dnf ? 'DNF' : restUsed >= restMax ? 'Max rests this shift' : st >= 100 ? 'Full stamina' : '';
+  const wc = Number(c.walletCap || 60);
+  const hcol = me.health >= 90 ? 'g' : me.health >= 70 ? 'y' : me.health >= 50 ? 'w' : 'b';
+  return `<div class="gp-card"><div class="gp-hdr"><h3>🐾 My racer</h3>${me.dnf ? `<span class="pr-chip b">DNF — ${prEsc(me.dnfReason || '')}</span>` : `<span class="pr-chip ${hcol}">Speed health ${me.health ?? '—'}</span>`}</div>
+    <div class="pr-row"><div class="pr-portrait">${prPetImg(me.species)}</div><div class="pr-stats">
+      ${meter('🍖','hunger','feed')}${meter('🎾','fun','play')}${meter('🫧','clean','bath')}
+      <div class="pr-stat"><span>⚡</span><div class="pr-bar"><i class="s" style="width:${st}%"></i></div><span class="pr-mono">${st}</span>
+        <button class="pr-btn" ${prDis(restWhy)} onclick="prAct('rest')">Rest ${Number(c.restPrice || 1)}🪙</button></div></div></div>
+    <div class="pr-hl"><span>Speed = lowest of the 3 meters and ⚡ Stamina. Stamina −${Number(c.staminaPerLeg || 4)}/leg; Rest +${Number(c.restGain || 15)} (${restUsed}/${restMax} this shift).</span></div>
+    <div class="pr-hl" style="display:block"><div style="display:flex;justify-content:space-between"><span>Race wallet (boosts + dice)</span><b class="pr-mono">${me.walletUsed}/${wc}</b></div>
+      <div class="pr-meter"><i style="width:${Math.min(100, me.walletUsed / wc * 100)}%"></i></div>
+      <div class="pr-muted" style="font-size:11.5px;margin-top:4px">Care, Rest, entry fee and obstacle clears don't count.${my.pendingItem ? ` • Ready next leg: <b style="color:var(--gold)">${prEsc(((c.items || {})[my.pendingItem] || {}).name || my.pendingItem)}</b>` : ''}${me.shoes ? ' • 👟 Shoes on' : ''}</div></div></div>`;
+}
+
+function prObstacleCard(me){
+  const s = _pr, c = s.settings || {}, r = s.race, ob = r.obstacle;
+  if(!ob) return `<div class="gp-card"><div class="gp-hdr"><h3>🚧 Obstacle</h3></div><div class="pr-muted" style="font-size:13px">No obstacle right now. A new one appears each race day, ${c.obstacleMode === 'fixed' ? 'inside the day\'s lap range' : '1–4 laps ahead of the leader'}.</div></div>`;
+  const type = (ob.types || {})[prLane(me.species)] || 'Obstacle', icon = {grass:'🪨', sky:'🌩️', water:'🕸️'}[prLane(me.species)];
+  if(!me.blocked) return `<div class="gp-card"><div class="gp-hdr"><h3>🚧 Obstacle</h3><span class="pr-chip w">Lap ${ob.lap}</span></div>
+    <div style="font-size:13px">${icon} <b>${prEsc(type)}</b> on your lane at lap <b>${ob.lap}</b>. Pets that reach it stop until cleared (${Number(c.obstacleCost || 8)} 🪙) or it clears by itself after ${Number(c.obstacleAutoclear || 2)} legs.</div></div>`;
+  const left = Math.max(0, Number(c.obstacleAutoclear || 2) - (r.lastLeg - (me.blockedSinceLeg || r.lastLeg)));
+  const clears = Number((s.me || {}).clears || 0), maxC = Number(c.obstacleMaxClears || 3), cost = Number(c.obstacleCost || 8);
+  const why = !prCanPlay() ? 'Locked' : clears >= maxC ? 'Max clears used — it will auto-clear' : Number(_myTokenBalance || 0) < cost ? 'Not enough tokens' : '';
+  return `<div class="gp-card"><div class="pr-alert"><div style="font-size:18px;font-weight:700">${icon} BLOCKED by ${prEsc(type)}!</div>
+    <div class="pr-muted" style="font-size:12.5px">Auto-clears in ${left} leg${left === 1 ? '' : 's'} • clears used ${clears}/${maxC}</div>
+    <button class="pr-tap" ${prDis(why)} onclick="prTap()">${icon}</button>
+    <div class="pr-ring">${_prTaps}/${PR_TAP_GOAL} taps</div>
+    <div class="pr-muted" style="font-size:12px">${why ? prEsc(why) : `Tap ${PR_TAP_GOAL}× to smash it. ${cost} 🪙 is charged on the last tap.`}</div></div></div>`;
+}
+
+function prDiceCard(me){
+  const s = _pr, c = s.settings || {}, my = s.me || {}, tier = my.diceTier || 'mid';
+  const faces = {lead:[-1,0,0,0,1,1], mid:[-1,0,0,1,1,2], under:[0,0,1,1,2,2]}[tier];
+  const avg = (faces.reduce((a, b) => a + b, 0) / 6).toFixed(2), price = Number(c.dicePrice || 10), per = Number(c.dicePerShift || 1);
+  const why = !prCanPlay() ? 'Locked' : !prRunning() ? 'Race not running' : me.dnf ? 'DNF' : me.blocked ? 'Blocked' : Number(my.diceUsed || 0) >= per ? 'Used this shift'
+    : me.walletUsed + price > Number(c.walletCap || 60) ? 'Wallet cap' : Number(_myTokenBalance || 0) < price ? 'Not enough tokens' : '';
+  const name = {lead:'Leader dice', mid:'Mid-pack dice', under:'Underdog dice'}[tier];
+  const show = _prDice ? (_prDice.face > 0 ? '+' + _prDice.face : _prDice.face) : '🎲';
+  return `<div class="gp-card"><div class="gp-hdr"><h3>🎲 Lucky Dice</h3><span class="pr-chip y">${name}</span></div>
+    <div class="pr-dice"><div class="pr-die" id="prDie">${show}</div><div style="flex:1;min-width:150px">
+      <div class="pr-faces">${faces.map(f => `<span class="${f < 0 ? 'neg' : f > 0 ? 'pos' : ''}">${f > 0 ? '+' : ''}${f}</span>`).join('')}</div>
+      <div class="pr-muted" style="font-size:12px;margin-top:5px">Average ${avg > 0 ? '+' : ''}${avg} laps • ${Number(my.diceUsed || 0)}/${per} this shift • counts to wallet</div></div>
+      <button class="pr-btn" ${prDis(why)} onclick="prRoll()">Roll ${price} 🪙${why ? `<small>${prEsc(why)}</small>` : ''}</button></div></div>`;
+}
+
+function prShopCard(me){
+  const s = _pr, c = s.settings || {}, my = s.me || {}, r = s.race, items = c.items || {}, nl = r.lastLeg + 1, bal = Number(_myTokenBalance || 0), wc = Number(c.walletCap || 60);
+  const desc = {water:'+{p}% next leg', kape:'+{p}% next leg • 12–3 AM legs only', saging:'No stumble for 1 leg', gatorade:'+{p}% next leg + no stumble',
+    shoes:'+{p}% every remaining leg • once per race', rocket:'+{p}% next leg • 15% backfire (25% if 1st)', wings:'+{p}% on the final leg only'};
+  const wingsClose = (r.legTimes || [])[23] - Number(c.wingsCloseMin || 15) * 60000;
+  const cards = Object.keys(desc).filter(k => items[k] && items[k].on !== false).map(k => {
+    const it = items[k], price = Number(it.price);
+    let why = !prCanPlay() ? 'Locked' : !prRunning() ? 'Race not running' : me.dnf ? 'DNF' : me.blocked ? 'Blocked' : '';
+    if(!why && k === 'shoes' && me.shoes) why = 'Owned';
+    if(!why && k !== 'shoes' && my.pendingItem) why = 'Slot used';
+    if(!why && k === 'kape' && ![3,4,5,6].includes((nl - 1) % 8)) why = '12–3 AM only';
+    if(!why && k === 'wings' && nl !== 24) why = 'Final leg only';
+    if(!why && k === 'wings' && prNow() > wingsClose) why = 'Sale closed';
+    if(!why && me.walletUsed + price > wc) why = 'Wallet cap';
+    if(!why && bal < price) why = 'Not enough tokens';
+    return `<div class="pr-item"><div class="t"><span>${it.emoji || ''} ${prEsc(it.name)}</span><span class="pr-mono">${price}🪙</span></div>
+      <div class="d">${desc[k].replace('{p}', Number(it.pct || 0))}</div>
+      <button class="pr-btn" ${prDis(why)} onclick="prBuy('${k}',${price})">${why ? prEsc(why) : 'Buy'}</button></div>`;
+  }).join('');
+  return `<div class="gp-card"><div class="gp-hdr"><h3>🛍️ Boost Shop</h3><span class="gp-badge">1 consumable per leg • leg cap +${Number(c.legCap || 35)}%</span></div><div class="pr-shop">${cards}</div></div>`;
+}
+
+function prStandingsCard(){
+  const s = _pr, c = s.settings || {}, list = s.entries || [], run = prRunning(), wc = Number(c.walletCap || 60);
+  if(!list.length) return `<div class="gp-card"><div class="gp-hdr"><h3>📊 Standings</h3></div><div class="empty-state">No racers yet.</div></div>`;
+  const canCheer = c.cheersOn !== false && run && prCanPlay();
+  const rows = list.map((e, i) => {
+    const mine = currentPlayer && e.playerId === currentPlayer.id;
+    const st = e.dnf ? '<span class="pr-chip b">DNF</span>' : e.blocked ? '<span class="pr-chip w">Blocked</span>' : e.lastEvent === 'backfire' ? '<span class="pr-chip b">Spun out</span>'
+      : e.lastEvent === 'stumble' ? '<span class="pr-chip w">Stumbled</span>' : (e.lastBoost || 0) >= 12 ? '<span class="pr-chip y">🔥 Boost</span>' : '<span class="pr-chip g">Running</span>';
+    const cheer = canCheer && !mine && !e.dnf ? `<button class="pr-btn ghost" style="padding:3px 8px;font-size:11px" ${prDis((e.pendingCheer || 0) >= Number(c.cheerMax || 5) && 'Max cheers this leg')} onclick="prCheer(${e.id},'${prEsc(e.petName)}')">📣 ${Number(c.cheerPrice || 1)}</button>` : '';
+    return `<tr class="${mine ? 'me' : ''}"><td>${e.place || (e.dnf ? '–' : i + 1)}</td><td><b>${prEsc(e.petName)}</b>${e.swerte ? ' 🍀' : ''}<div class="pr-muted" style="font-size:11px">${prEsc(e.playerName)}</div></td>
+      <td class="n">${Number(e.laps).toFixed(2)}</td><td class="n">${e.health ?? '—'}</td><td class="n">${e.walletUsed}/${wc}</td><td>${st}</td><td>${cheer}</td></tr>`;
+  }).join('');
+  return `<div class="gp-card"><div class="gp-hdr"><h3>📊 Standings</h3><span class="gp-badge">laps • speed health • wallet</span></div>
+    <div class="pr-tbl"><table><thead><tr><th>#</th><th>Racer</th><th class="n">Laps</th><th class="n">Health</th><th class="n">Wallet</th><th>Status</th><th></th></tr></thead><tbody>${rows}</tbody></table></div></div>`;
+}
+function prFeedCard(){
+  const f = (_pr.feed || []);
+  return `<div class="gp-card"><div class="gp-hdr"><h3>📰 Race feed</h3></div><div class="pr-log">${f.length ? f.map(x => `<div><span class="t">${new Date(x.at).toLocaleTimeString('en-PH',{timeZone:'Asia/Manila',hour:'numeric',minute:'2-digit'})}</span>${prEsc(x.msg)}</div>`).join('') : '<div>Quiet pa. 🌙</div>'}</div></div>`;
+}
+function prResultsCard(){
+  const s = _pr, lr = s.race.status === 'finished' ? {entries: s.entries, legRows: s.lastLegRows} : s.lastResult, prizes = (s.settings || {}).prizes || [];
+  const top = ((lr && lr.entries) || []).filter(e => e.place && e.place <= 3 && !e.dnf).sort((a, b) => a.place - b.place);
+  let h = '';
+  if(top.length){
+    const pod = p => { const e = top.find(x => x.place === p); return e ? `<div class="pr-pod p${p}"><div class="pr-portrait" style="margin:0 auto">${prPetImg(e.species)}</div><div class="r">${['🥇','🥈','🥉'][p-1]}</div><b>${prEsc(e.petName)}</b><div class="pr-muted" style="font-size:12px">${prEsc(e.playerName)} • ${Number(e.laps).toFixed(2)} laps</div><div style="color:var(--gold);font-weight:700">₱${Number(prizes[p-1] || 0)}</div></div>` : '<div></div>'; };
+    h += `<div class="gp-card"><div class="gp-hdr"><h3>🏆 ${s.race.status === 'finished' ? 'Podium' : 'Last race podium'}</h3><button class="pr-btn ghost" onclick="prReplayLast()">▶ Replay Final Stretch</button></div><div class="pr-podium">${pod(2)}${pod(1)}${pod(3)}</div><div id="prLastTrack" style="margin-top:12px"></div></div>`;
+  }
+  if(s.race.status === 'cancelled'){
+    h += `<div class="gp-card"><div class="empty-state">This race was cancelled (${prEsc(s.race.cancelReason || '')}). All tokens were refunded.</div></div>`;
+  }
+  const hof = s.hallOfFame || [];
+  if(hof.length) h += `<div class="gp-card"><div class="gp-hdr"><h3>🏛️ Hall of Fame</h3></div><div class="pr-log">${hof.map(x => `<div>🥇 <b>${prEsc(x.petName)}</b> (${prEsc(x.playerName)}) — week of ${prEsc(x.day1)}</div>`).join('')}</div></div>`;
+  return h;
+}
+function prRulesCard(){
+  const c = (_pr && _pr.settings) || {};
+  return `<details class="gp-card"><summary style="cursor:pointer;font-weight:700;color:var(--white)">📘 How the race works</summary><div style="font-size:13px;line-height:1.6;margin-top:8px" class="pr-muted">
+    • Register one hatched pet (${Number(c.entryFee || 20)} 🪙) before the Tuesday shift ends. Minimum ${Number(c.minRacers || 5)} racers or the race is cancelled and refunded.<br>
+    • 24 hourly legs over the Wed, Thu and Fri shifts. Each leg your pet runs about ${(Number(c.totalLaps || 42) / 24).toFixed(2)} laps × health speed × luck × boosts.<br>
+    • Speed health = lowest pet meter or ⚡ Stamina, whichever is lower. 90+ full speed • 70–89 ×0.9 • 50–69 ×0.75 • 20–49 ×0.5 and may stumble • real pet below 20 or gone = DNF.<br>
+    • Race wallet cap ${Number(c.walletCap || 60)} 🪙 for boosts + dice, so tokens can't buy the win. Care beats spending.<br>
+    • Most laps after leg 24 wins. Ties: higher health, then earlier registration. Prizes are paid in PHP by the admin.</div></details>`;
+}
+
+// track: rebuild when the field changes, otherwise move runners in place so CSS transitions animate
+function prDrawTrack(force){
+  const host = document.getElementById('prTrack'); if(!host || !_pr) return;
+  const s = _pr, c = s.settings || {}, list = s.entries || [], total = Number(c.totalLaps || 42);
+  if(!list.length){ host.innerHTML = '<div class="pr-track"><div class="pr-lane grass"><span class="tag">Waiting for racers…</span><div class="pr-finish"></div></div></div>'; return; }
+  const maxL = Math.max(total, ...list.map(e => Number(e.laps)));
+  const x = l => 4 + Math.min(1, Number(l) / maxL) * 89;
+  const ob = s.race && s.race.obstacle;
+  const key = list.map(e => e.id).sort().join(',') + '|' + (ob ? ob.lap : '');
+  let tr = host.querySelector('.pr-track');
+  if(!tr || tr.dataset.key !== key){
+    host.innerHTML = `<div class="pr-track" data-key="${key}">${list.map(e => `<div class="pr-lane ${prLane(e.species)} ${currentPlayer && e.playerId === currentPlayer.id ? 'me' : ''}" data-id="${e.id}">
+      <span class="tag">${prEsc(e.petName)} • ${prEsc(e.playerName)}</span><div class="pr-finish"></div>
+      ${ob ? `<span class="pr-ob" style="left:${x(ob.lap)}%">${{grass:'🪨', sky:'🌩️', water:'🕸️'}[prLane(e.species)]}</span>` : ''}
+      <div class="pr-runner" style="left:${x(_prPrevL[e.id] ?? e.laps)}%" data-l="${e.laps}"><span class="fx">🔥</span>${prPetImg(e.species)}</div></div>`).join('')}</div>`;
+    tr = host.querySelector('.pr-track');
+  }
+  void tr.offsetWidth;
+  list.forEach(e => { _prPrevL[e.id] = Number(e.laps); });
+  requestAnimationFrame(() => list.forEach(e => {
+    const rn = tr.querySelector(`[data-id="${e.id}"] .pr-runner`); if(!rn) return;
+    rn.style.left = x(e.laps) + '%'; rn.dataset.l = e.laps;
+    rn.classList.toggle('boost', (e.lastBoost || 0) >= 12 && !e.dnf);
+    rn.classList.toggle('dnf', !!e.dnf);
+    rn.classList.toggle('blocked', !!e.blocked);
+    rn.classList.toggle('spin', e.lastEvent === 'backfire' || e.lastEvent === 'stumble');
+    let b = rn.querySelector('.bub'); if(e.blocked && !b){ b = document.createElement('span'); b.className = 'bub'; b.textContent = '!'; rn.appendChild(b); } else if(!e.blocked && b) b.remove();
+  }));
+}
+function prReplayLast(auto){
+  const host = document.getElementById('prLastTrack'); if(!host || !_pr) return;
+  const lr = _pr.race.status === 'finished' ? {entries: _pr.entries, legRows: _pr.lastLegRows} : _pr.lastResult; if(!lr) return;
+  const list = (lr.entries || []).slice().sort((a, b) => (a.place || 99) - (b.place || 99)), rows = lr.legRows || [], total = Number((_pr.settings || {}).totalLaps || 42);
+  const reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const maxL = Math.max(total, ...list.map(e => Number(e.laps)));
+  const x = l => 4 + Math.min(1, Number(l) / maxL) * 89;
+  const start = e => { const r = rows.find(z => z.entryId === e.id); return r ? Number(r.lapsAfter) - Number(r.gain) : Number(e.laps); };
+  host.innerHTML = `<div class="pr-track">${list.map(e => `<div class="pr-lane ${prLane(e.species)} ${currentPlayer && e.playerId === currentPlayer.id ? 'me' : ''}" data-id="${e.id}">
+    <span class="tag">${e.place || ''}. ${prEsc(e.petName)} • ${prEsc(e.playerName)}</span><div class="pr-finish"></div>
+    <div class="pr-runner ${e.dnf ? 'dnf' : ''}" style="transition:none;left:${x(start(e))}%">${prPetImg(e.species)}</div></div>`).join('')}</div>`;
+  const tr = host.querySelector('.pr-track'), win = list.find(e => e.place === 1);
+  const ov = document.createElement('div'); ov.className = 'pr-overlay'; ov.textContent = 'FINAL STRETCH!'; tr.appendChild(ov);
+  setTimeout(() => {
+    ov.style.background = 'rgba(11,24,40,.2)'; ov.textContent = '';
+    void tr.offsetWidth;
+    list.forEach(e => { const rn = tr.querySelector(`[data-id="${e.id}"] .pr-runner`); if(rn){ rn.style.transition = reduce ? 'none' : 'left 4.5s linear'; rn.style.left = x(e.laps) + '%'; } });
+    setTimeout(() => {
+      ov.style.background = 'rgba(11,24,40,.65)';
+      ov.innerHTML = win ? `🏆 ${prEsc(win.petName)} wins!<div style="font-size:15px;color:#fff">${prEsc(win.playerName)} • ${Number(win.laps).toFixed(2)} laps</div>` : 'Race over!';
+      setTimeout(() => ov.remove(), 3500);
+    }, reduce ? 300 : 4600);
+  }, reduce ? 300 : 1500);
+}
+// auto-play the final once per finished race per browser
+function prAutoReplay(){
+  const lr = _pr && (_pr.race.status === 'finished' ? _pr.race : _pr.lastResult); if(!lr) return;
+  const id = lr.id || lr.raceId, k = 'prSeenFinal';
+  try { if(localStorage.getItem(k) === String(id)) return; localStorage.setItem(k, String(id)); } catch(e){ if(_prShownFinal === id) return; }
+  _prShownFinal = id; setTimeout(prReplayLast, 300);
+}
+// actions
+async function prAct(action, extra){
+  if(_prBusy || !currentPlayer) return null;
+  _prBusy = true;
+  try {
+    const j = await prCall(Object.assign({action, playerId: currentPlayer.id}, extra || {}));
+    if(!j.ok){ alert(j.error || 'Hindi na-process — try ulit.'); }
+    else {
+      if(j.tokens !== undefined && j.tokens !== null) _myTokenBalance = j.tokens;
+      if(j.msg && typeof playerLog === 'function') playerLog('🏁 ' + j.msg, 'ok');
+      if(typeof refreshTokenBalance === 'function') refreshTokenBalance();
+    }
+    return j;
+  } catch(e){ alert('Hindi na-process — try ulit.'); return null; }
+  finally { _prBusy = false; await prFetch(); }
+}
+async function prBuy(item, price){
+  const it = ((_pr.settings || {}).items || {})[item] || {};
+  if(price >= 25 && !confirm(`Buy ${it.name || item} for ${price} SMB Tokens?`)) return;
+  await prAct('buy', {item});
+}
+async function prCheer(entryId, name){ await prAct('cheer', {entryId}); }
+async function prRoll(){
+  const price = Number((_pr.settings || {}).dicePrice || 10);
+  if(price >= 25 && !confirm(`Roll the dice for ${price} SMB Tokens?`)) return;
+  const die = document.getElementById('prDie'); if(die){ die.classList.add('rolling'); die.textContent = '🎲'; }
+  const j = await prAct('dice');
+  if(j && j.ok){ _prDice = {face: j.face}; prRender(); setTimeout(() => { _prDice = null; }, 15000); }
+}
+async function prTap(){
+  if(_prBusy) return;
+  _prTaps++;
+  if(_prTaps < PR_TAP_GOAL){ const r = document.querySelector('#gpv-race .pr-ring'); if(r) r.textContent = `${_prTaps}/${PR_TAP_GOAL} taps`; return; }
+  _prTaps = 0;
+  await prAct('clear');
+}
+async function prCare(type){
+  const me = prMyEntry(); if(!me || !prCanPlay()) return;
+  const id = _pr.me && _pr.me.petId;
+  if(!id){ alert('Pet not found.'); return; }
+  await petAction('care', id, type);
+  await prFetch();
+}
+
+// ═════ ADMIN: Pet Race tab ═════
+const PRA_FIELDS = [
+  ['Launch', [['mode','Race mode','select:off,preview,live','Off = hidden • Preview = visible, locked • Live = playable'],['previewText','Preview banner text','text','']]],
+  ['Prizes (PHP)', [['prizes.0','1st place ₱','num',''],['prizes.1','2nd place ₱','num',''],['prizes.2','3rd place ₱','num',''],['prizeNote','Prize note','text','shown on the race banner']]],
+  ['Race', [['entryFee','Entry fee 🪙','num','refunded if cancelled'],['minRacers','Minimum racers','num','checked when registration closes'],['totalLaps','Total laps','num','base pace = laps ÷ 24 per leg'],
+    ['luckMin','Luck min','dec','0.80 = −20%'],['luckMax','Luck max','dec','1.20 = +20%'],['stumblePct','Stumble chance % (sick)','num','']]],
+  ['Fairness', [['walletCap','Race wallet cap 🪙','num','boosts + dice only'],['legCap','Per-leg boost cap %','num','boosts + shoes + cheers'],['dicePrice','Dice price 🪙','num',''],['dicePerShift','Dice rolls per shift','num',''],
+    ['positionDice','Position-based dice','bool','off = everyone uses mid-pack dice'],['rocketBackfire','Rocket backfire %','num',''],['rocketBackfireLeader','Rocket backfire % (leader)','num',''],['wingsCloseMin','Wings sale closes (min before final)','num','']]],
+  ['Stamina', [['staminaPerLeg','Stamina lost per leg','num',''],['restPrice','Rest price 🪙','num','outside wallet'],['restGain','Stamina per rest','num',''],['restsPerShift','Rests per shift','num','']]],
+  ['Cheers', [['cheersOn','Cheers on','bool',''],['cheerPrice','Cheer price 🪙','num',''],['cheerPct','Cheer boost %','num',''],['cheerMax','Max cheers per racer per leg','num','']]],
+  ['Obstacles', [['obstacleOn','Obstacles on','bool',''],['obstacleMode','Placement','select:ahead,fixed','ahead = 1–4 laps ahead of leader • fixed = lap ranges'],['obstacleCost','Clear cost 🪙','num','outside wallet'],
+    ['obstacleAutoclear','Auto-clear after N legs','num',''],['obstacleMaxClears','Max paid clears per race','num','']]],
+];
+function praGet(o, path){ return path.split('.').reduce((a, k) => a == null ? a : a[k], o); }
+async function praCall(adminAction, payload){
+  if(!_adminPinSession){ alert('Please log in to admin again.'); return {ok:false}; }
+  return prCall({action:'admin', pin:_adminPinSession, adminAction, payload: payload || {}});
+}
+async function prAdminLoad(){
+  const el = document.getElementById('prAdminRoot'); if(!el) return;
+  if(!_prAdmin) el.innerHTML = '<div class="empty-state">Loading Pet Race…</div>';
+  try {
+    const j = await praCall('get');
+    if(!j.ok){ el.innerHTML = `<div class="empty-state">${prEsc(j.error || 'Could not load')}</div>`; return; }
+    _prAdmin = j; prAdminRender();
+  } catch(e){ el.innerHTML = '<div class="empty-state">Pet Race backend unavailable — try ulit.</div>'; }
+}
+function prAdminSub(s){ _prAdminSub = s; prAdminRender(); }
+function prAdminRender(){
+  const el = document.getElementById('prAdminRoot'); if(!el || !_prAdmin) return;
+  const a = _prAdmin, st = a.state || {}, r = st.race || {}, c = a.settings || {};
+  const subs = [['set','⚙️ Settings'],['items','🛍️ Boost items'],['ent',`👥 Entrants (${(st.entries || []).length})`],['pay','💸 Payouts'],['audit','🔎 Audit'],['slack','💬 Slack']];
+  let h = `<div class="info-box" style="margin-bottom:12px">Race #${r.id || '—'} • <b>${prEsc(r.status || 'none')}</b> • mode <b>${prEsc(c.mode)}</b> • leg ${r.lastLeg || 0}/24${r.regOpenAt ? ` • registration ${new Date(r.regOpenAt).toLocaleString('en-PH',{timeZone:'Asia/Manila'})} → ${new Date(r.regCloseAt).toLocaleString('en-PH',{timeZone:'Asia/Manila'})}` : ''}. Changes during a race apply to the next race, except prizes.</div>`;
+  h += `<div class="pra-sub">${subs.map(s => `<button class="${_prAdminSub === s[0] ? 'on' : ''}" onclick="prAdminSub('${s[0]}')">${s[1]}</button>`).join('')}</div>`;
+  if(_prAdminSub === 'set'){
+    h += PRA_FIELDS.map(([sec, fs]) => `<div class="pra-sec">${sec}</div><div class="pra-form">${fs.map(([k, lab, t, help]) => {
+      const v = praGet(c, k); let inp;
+      if(t.startsWith('select:')) inp = `<select data-k="${k}" data-t="text">${t.slice(7).split(',').map(o => `<option ${o === v ? 'selected' : ''}>${o}</option>`).join('')}</select>`;
+      else if(t === 'bool') inp = `<select data-k="${k}" data-t="bool"><option value="true" ${v ? 'selected' : ''}>On</option><option value="false" ${!v ? 'selected' : ''}>Off</option></select>`;
+      else inp = `<input data-k="${k}" data-t="${t}" type="${t === 'text' ? 'text' : 'number'}" ${t === 'dec' ? 'step="0.01"' : ''} value="${prEsc(v ?? '')}">`;
+      return `<div class="pra-f"><label>${lab}<small>${help}</small></label>${inp}</div>`; }).join('')}</div>`).join('');
+    h += `<div class="pra-sec">Obstacle lap ranges (fixed mode)</div><div class="pra-form">${[0,1,2].map(i => `<div class="pra-f"><label>Day ${i+1} laps<small>from – to</small></label><div style="display:flex;gap:6px"><input type="number" data-k="obstacleRanges.${i}.0" data-t="num" value="${praGet(c,`obstacleRanges.${i}.0`)}"><input type="number" data-k="obstacleRanges.${i}.1" data-t="num" value="${praGet(c,`obstacleRanges.${i}.1`)}"></div></div>`).join('')}</div>`;
+  } else if(_prAdminSub === 'items'){
+    const items = c.items || {};
+    h += `<div class="pr-tbl"><table class="roster-table"><thead><tr><th>Item</th><th>Price 🪙</th><th>Boost %</th><th>On</th></tr></thead><tbody>${Object.keys(items).map(k => `<tr><td>${items[k].emoji || ''} ${prEsc(items[k].name)}</td>
+      <td><input type="number" style="width:90px;margin:0" data-k="items.${k}.price" data-t="num" value="${items[k].price}"></td>
+      <td><input type="number" style="width:90px;margin:0" data-k="items.${k}.pct" data-t="num" value="${items[k].pct}" ${k === 'saging' ? 'disabled' : ''}></td>
+      <td><select style="margin:0" data-k="items.${k}.on" data-t="bool"><option value="true" ${items[k].on ? 'selected' : ''}>On</option><option value="false" ${!items[k].on ? 'selected' : ''}>Off</option></select></td></tr>`).join('')}</tbody></table></div>
+      <div class="pr-muted" style="font-size:12px;margin-top:8px">Economy check: full wallet (${c.walletCap} 🪙) ≈ +${praEcon(c).toFixed(1)} laps vs ~4.2 laps lost per health tier. ${praEcon(c) > 4.2 ? '<b style="color:var(--danger)">⚠ Spending now beats care — lower prices/boosts or the wallet cap.</b>' : '<b style="color:var(--success)">✓ Care still beats spending.</b>'}</div>`;
+  } else if(_prAdminSub === 'slack'){
+    const sl = c.slack || {};
+    h += `<div class="pra-form">${[['regOpen','Registration open'],['reminder','Tuesday closing reminder'],['lineup','Lineup / cancelled notice'],['obstacle','Obstacle alert at shift start'],['leader','Leader update after Day 1 and Day 2'],['winner','Winner + podium']].map(([k, l]) =>
+      `<div class="pra-f"><label>${l}</label><select data-k="slack.${k}" data-t="bool"><option value="true" ${sl[k] !== false ? 'selected' : ''}>On</option><option value="false" ${sl[k] === false ? 'selected' : ''}>Off</option></select></div>`).join('')}</div>
+      <div class="pr-muted" style="font-size:12px;margin-top:8px">Posts go to the BINGO Slack channel using the webhook saved in ⚙️ Settings.</div>`;
+  } else if(_prAdminSub === 'ent'){
+    const ents = st.entries || [];
+    h += ents.length ? `<div class="pr-tbl"><table class="roster-table"><thead><tr><th>#</th><th>Player</th><th>Pet</th><th>Laps</th><th>Health</th><th>Stamina</th><th>Wallet</th><th>Status</th><th></th></tr></thead><tbody>${ents.map((e, i) => `<tr><td>${e.place || i + 1}</td><td>${prEsc(e.playerName)}</td><td>${prEsc(e.petName)}</td><td>${Number(e.laps).toFixed(2)}</td><td>${e.health ?? '—'}</td><td>${e.stamina}</td><td>${e.walletUsed}/${c.walletCap}</td><td>${e.dnf ? 'DNF ' + prEsc(e.dnfReason || '') : e.blocked ? 'Blocked' : 'Racing'}</td>
+      <td>${['registration','locked','racing'].includes(r.status) ? `<button class="btn btn-outline btn-sm" onclick="praRefund(${e.id},'${prEsc(e.playerName)}')">Refund</button>` : ''}</td></tr>`).join('')}</tbody></table></div>` : '<div class="empty-state">No entrants yet.</div>';
+    if(['registration','locked','racing'].includes(r.status)) h += `<div class="panel" style="margin-top:14px;border-color:var(--danger)"><div class="panel-title">❌ Cancel race & refund everything</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><input id="praCancelTxt" placeholder="Type CANCEL" style="max-width:180px;margin:0"><button class="btn btn-danger btn-sm" onclick="praCancel()">Cancel race</button></div>
+      <div class="pr-muted" style="font-size:12px;margin-top:6px">Refunds every entry fee and race purchase. Next week's registration opens right after.</div></div>`;
+  } else if(_prAdminSub === 'pay'){
+    const ps = a.payoutsAll || [];
+    h += ps.length ? `<div class="pr-tbl"><table class="roster-table"><thead><tr><th>Race</th><th>Place</th><th>Player</th><th>Pet</th><th>Prize</th><th>Status</th><th></th></tr></thead><tbody>${ps.map(p => `<tr><td>#${p.raceId}</td><td>${['🥇','🥈','🥉'][p.place-1] || p.place}</td><td>${prEsc(p.playerName)}</td><td>${prEsc(p.petName)}</td><td>₱${p.prize}</td><td>${p.paid ? `✅ Paid ${p.paidAt ? new Date(p.paidAt).toLocaleDateString('en-PH',{timeZone:'Asia/Manila'}) : ''}` : 'Unpaid'}</td>
+      <td><button class="btn btn-outline btn-sm" onclick="praPaid(${p.id},${!p.paid})">${p.paid ? 'Undo' : 'Mark paid'}</button></td></tr>`).join('')}</tbody></table></div>` : '<div class="empty-state">No payouts yet — they appear when a race finishes.</div>';
+    h += '<div class="pr-muted" style="font-size:12px;margin-top:8px">No betting. Prizes are PHP, paid by admin (GCash), then marked paid here.</div>';
+  } else if(_prAdminSub === 'audit'){
+    const legs = (a.legs || []).slice(0, 150), pur = (a.purchases || []).slice(0, 150), nm = id => { const e = (st.entries || []).find(x => x.id === id); return e ? `${e.petName} (${e.playerName})` : '#' + id; };
+    h += `<div class="pra-sec">Leg rolls (latest first)</div>${legs.length ? `<div class="pr-tbl" style="max-height:340px;overflow:auto"><table class="roster-table"><thead><tr><th>Leg</th><th>Racer</th><th>Health</th><th>×</th><th>Luck</th><th>Boost</th><th>Item</th><th>Event</th><th>Gain</th><th>Laps</th></tr></thead><tbody>${legs.map(l => `<tr><td>${l.leg_no}</td><td>${prEsc(nm(l.entry_id))}</td><td>${l.health ?? '—'}</td><td>${l.multiplier ?? ''}</td><td>${l.luck ?? ''}</td><td>${l.boost_pct ?? 0}%</td><td>${prEsc(l.item || '')}</td><td>${prEsc(l.event)}</td><td>${l.laps_gain}</td><td>${l.laps_after}</td></tr>`).join('')}</tbody></table></div>` : '<div class="empty-state">No legs yet.</div>'}`;
+    h += `<div class="pra-sec">Purchases</div>${pur.length ? `<div class="pr-tbl" style="max-height:340px;overflow:auto"><table class="roster-table"><thead><tr><th>When</th><th>Player</th><th>Kind</th><th>Item</th><th>Cost</th><th>Wallet</th><th>Refunded</th></tr></thead><tbody>${pur.map(p => `<tr><td>${new Date(p.at).toLocaleString('en-PH',{timeZone:'Asia/Manila',month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})}</td><td>${prEsc(typeof playerNameById === 'function' ? playerNameById(p.playerId) : p.playerId)}</td><td>${prEsc(p.kind)}</td><td>${prEsc(p.item || (p.detail && p.detail.face !== undefined ? 'rolled ' + p.detail.face : ''))}</td><td>${p.cost}</td><td>${p.inWallet ? 'yes' : ''}</td><td>${p.refunded ? '↩️' : ''}</td></tr>`).join('')}</tbody></table></div>` : '<div class="empty-state">No purchases yet.</div>'}`;
+  }
+  if(['set','items','slack'].includes(_prAdminSub)) h += `<div class="pra-save"><span class="pra-msg" id="praMsg"></span><span><button class="btn btn-outline btn-sm" onclick="prAdminLoad()">Reload</button> <button class="btn btn-gold" onclick="praSave()">💾 Save Pet Race settings</button></span></div>`;
+  el.innerHTML = h;
+}
+function praEcon(c){
+  const it = c.items || {}, cap = Number(c.walletCap || 60), base = Number(c.totalLaps || 42) / 24;
+  const shoes = it.shoes && it.shoes.on ? Math.min(Number(it.shoes.pct) || 0, Number(c.legCap || 35)) / 100 * base * 24 : 0;
+  const left = cap - (it.shoes && it.shoes.on ? Number(it.shoes.price) : 0), dice = Math.max(0, Math.min(3 * Number(c.dicePerShift || 1), Math.floor(left / Math.max(1, Number(c.dicePrice || 10))))) * 0.5;
+  return (it.shoes && it.shoes.on && Number(it.shoes.price) <= cap ? shoes : 0) + dice;
+}
+function praCollect(){
+  const out = {}, c = _prAdmin.settings;
+  document.querySelectorAll('#prAdminRoot [data-k]').forEach(inp => {
+    const path = inp.dataset.k.split('.'), t = inp.dataset.t;
+    let v = inp.value;
+    if(t === 'num') v = Math.round(Number(v)); else if(t === 'dec') v = Number(v); else if(t === 'bool') v = v === 'true';
+    if((t === 'num' || t === 'dec') && !isFinite(v)) return;
+    const top = path[0];
+    if(top === 'prizes' || top === 'obstacleRanges'){ if(!out[top]) out[top] = JSON.parse(JSON.stringify(c[top])); let o = out[top]; for(let i = 1; i < path.length - 1; i++) o = o[path[i]]; o[path[path.length - 1]] = v; }
+    else if(top === 'items' || top === 'slack'){ out[top] = out[top] || {}; if(top === 'items'){ out.items[path[1]] = out.items[path[1]] || {}; out.items[path[1]][path[2]] = v; } else out.slack[path[1]] = v; }
+    else out[top] = v;
+  });
+  return out;
+}
+async function praSave(){
+  const payload = praCollect(), msg = document.getElementById('praMsg');
+  if(payload.mode === 'live' && _prAdmin.settings.mode !== 'live' && !confirm('Switch Pet Race to LIVE? Staff will be able to register and spend tokens.')) return;
+  const j = await praCall('save', payload);
+  if(!j.ok){ if(msg){ msg.textContent = '⚠ ' + (j.error || 'Save failed'); msg.style.color = 'var(--danger)'; } return; }
+  _prAdmin.settings = j.settings; prAdminRender();
+  const m2 = document.getElementById('praMsg'); if(m2){ m2.textContent = '✅ ' + (j.note || 'Saved'); m2.style.color = 'var(--success)'; }
+  if(typeof adminLog === 'function') adminLog('Pet Race settings saved.', 'info');
+}
+async function praRefund(entryId, name){
+  if(!confirm(`Refund ${name}'s entry fee and every race purchase? Their pet leaves the race.`)) return;
+  const j = await praCall('refund', {entryId}); if(!j.ok) alert(j.error || 'Refund failed'); await prAdminLoad();
+}
+async function praCancel(){
+  const t = (document.getElementById('praCancelTxt') || {}).value || '';
+  if(t !== 'CANCEL'){ alert('Type CANCEL to confirm.'); return; }
+  const j = await praCall('cancel', {confirm:'CANCEL'}); if(!j.ok) alert(j.error || 'Cancel failed'); await prAdminLoad();
+}
+async function praPaid(payoutId, paid){ const j = await praCall('mark_paid', {payoutId, paid}); if(!j.ok) alert(j.error || 'Failed'); await prAdminLoad(); }
+let _prBooted = null;
+function prBoot(){ if(currentPlayer && _prBooted !== currentPlayer.id){ _prBooted = currentPlayer.id; _pr = null; _prPrevL = {}; prFetch(); } }
+
 </script>
 </body>
 </html>
