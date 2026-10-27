@@ -687,6 +687,68 @@ table.blh th{color:var(--muted);font-weight:600;font-size:11px;text-transform:up
 .pet-evo-hint{font-size:10px;color:var(--muted);text-align:center;margin-top:5px}
 
 </style>
+<style>
+/* ═════ R14 Beat Sir Rendy · Lucky 9 ═════ */
+#gpv-l9{--l9r:#E2685F}
+.l9-bounty{background:linear-gradient(135deg,#2a1d07,#151824 60%);border:1px solid rgba(227,166,62,.45);border-radius:16px;padding:16px 20px;display:flex;align-items:center;gap:22px;margin-bottom:16px;flex-wrap:wrap}
+.l9-pot{font-family:'Bebas Neue',sans-serif;font-size:54px;color:var(--gold);line-height:1;margin-top:4px;white-space:nowrap}
+.l9-pot small{font-size:30px;vertical-align:8px}
+.l9-lbl{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);font-weight:700}
+.l9-streak{display:flex;gap:5px;margin-top:6px;flex-wrap:wrap}.l9-streak i{width:20px;height:20px;border-radius:6px;background:#2a2f40;display:inline-block}.l9-streak i.on{background:var(--l9r)}
+.l9-pill{display:inline-block;padding:5px 12px;border-radius:99px;font-size:12px;font-weight:700;background:#2a2f40;color:var(--muted)}
+.l9-pill.armed{background:rgba(226,104,95,.18);color:#ff8f86;border:1px solid rgba(226,104,95,.5)}
+.l9-grid{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:16px;align-items:start}
+@media(max-width:980px){.l9-grid{grid-template-columns:1fr}}
+.l9-felt{background:radial-gradient(ellipse at center,#123a33 0%,#0c211d 70%);border:2px solid #6b4c16;border-radius:120px/60px;padding:26px 24px;text-align:center;position:relative;min-height:440px}
+@media(max-width:600px){.l9-felt{border-radius:28px;padding:18px 10px}}
+.l9-seat .nm{font-weight:700;font-size:15px}.l9-seat .sc{font-family:'Bebas Neue',sans-serif;font-size:30px;color:var(--gold);min-height:34px}
+.l9-av{width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#E3A63E,#8a5a10);display:inline-flex;align-items:center;justify-content:center;font-size:26px;border:2px solid #fef08a}
+.l9-cards{display:flex;gap:10px;justify-content:center;margin:10px 0;min-height:108px}
+.l9-c{width:74px;height:104px;border-radius:9px;background:linear-gradient(135deg,#fef08a 0%,#facc15 50%,#ca8a04 100%);border:2px solid #eab308;box-shadow:inset 0 1px 0 rgba(255,255,255,.7),inset 0 -2px 4px rgba(120,80,0,.35),0 6px 14px rgba(0,0,0,.5);position:relative;color:#3b2a05;font-family:'Bebas Neue',sans-serif;flex:0 0 auto}
+@media(max-width:600px){.l9-c{width:58px;height:82px}.l9-c .mid{font-size:30px!important}}
+.l9-c .tl{position:absolute;top:5px;left:7px;font-size:21px;line-height:.9;text-align:center}.l9-c .br{position:absolute;bottom:5px;right:7px;font-size:21px;line-height:.9;transform:rotate(180deg);text-align:center}
+.l9-c .mid{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:40px}
+.l9-c.red{color:#9f1d12}
+.l9-c.back{background:repeating-linear-gradient(45deg,#16181d 0 4px,#1f2229 4px 8px);border:2px solid #eab308}
+.l9-c.back .mid span{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#fef08a,#ca8a04);color:#2a1d05;font:700 11px 'Space Grotesk',sans-serif;display:flex;align-items:center;justify-content:center;border:2px solid #fff3b0}
+.l9-c.ghost{opacity:.18}
+.l9-c.anim{animation:l9in .38s cubic-bezier(.2,.8,.3,1.2) both}
+.l9-c.flip{animation:l9flip .45s ease both}
+@keyframes l9in{from{opacity:0;transform:translateY(-40px) rotate(-8deg) scale(.8)}to{opacity:1;transform:none}}
+@keyframes l9flip{0%{transform:rotateY(90deg)}100%{transform:rotateY(0)}}
+.l9-vs{font-family:'Bebas Neue',sans-serif;font-size:24px;color:var(--muted);margin:2px 0}
+.l9-act{margin-top:14px;display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+.l9-btn{border:0;border-radius:11px;padding:13px 26px;font:700 15px 'Space Grotesk',sans-serif;cursor:pointer}
+.l9-btn:disabled{opacity:.5;cursor:not-allowed}
+.l9-gold{background:var(--gold);color:#151515}.l9-teal{background:var(--teal);color:#081512}.l9-ghost{background:transparent;border:1px solid var(--line);color:var(--muted)}
+.l9-hint{color:var(--muted);font-size:12px;margin-top:8px}
+.l9-modal{display:inline-block;max-width:440px;background:#151824;border:2px solid var(--gold);border-radius:18px;padding:22px 24px;box-shadow:0 0 60px rgba(227,166,62,.25);margin-top:14px}
+.l9-res{font-family:'Bebas Neue',sans-serif;font-size:36px;letter-spacing:.04em;line-height:1}
+.l9-res.win{color:#4ecb84}.l9-res.loss{color:#ff8f86}.l9-res.push{color:var(--muted)}.l9-res.boss{color:var(--gold)}
+.l9-meter{display:flex;gap:6px;margin-top:8px}.l9-meter b{flex:1;height:10px;border-radius:5px;background:#2a2f40}.l9-meter b.u{background:var(--gold)}
+.l9-t{width:100%;border-collapse:collapse;font-size:13px}.l9-t td,.l9-t th{padding:6px 5px;border-bottom:1px solid var(--line);text-align:left}.l9-t th{color:var(--muted);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase}
+.l9-win{color:#4ecb84;font-weight:700}.l9-loss{color:#ff8f86;font-weight:700}
+.l9-rules{font-size:13px;color:var(--muted);line-height:1.55}.l9-rules b{color:var(--white)}
+.l9-msg{min-height:18px;font-size:13px;margin-top:8px;color:#ff8f86}
+/* admin */
+.l9a-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px 16px}
+.l9a-stats{display:flex;gap:22px;flex-wrap:wrap;margin:6px 0 14px}.l9a-stats .v{font-family:'Bebas Neue',sans-serif;font-size:32px}
+.l9a-pot{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}.l9a-pot span{background:var(--deep);border:1px solid var(--line);border-radius:8px;padding:4px 8px;font-size:12px}
+.l9a-pot span.armed{border-color:rgba(227,166,62,.6);color:var(--gold)}
+.l9-seats{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:6px}
+.l9-seat2{background:rgba(0,0,0,.22);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:10px 10px 8px;min-width:150px}
+.l9-seat2.me{border-color:var(--gold);box-shadow:0 0 0 1px rgba(227,166,62,.35)}
+.l9-seat2.empty{opacity:.55;border-style:dashed;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:150px}
+.l9-seat2 .nm{font-weight:700;font-size:13.5px}.l9-seat2 .sc{font-family:'Bebas Neue',sans-serif;font-size:24px;color:var(--gold);min-height:26px}
+.l9-av.sm{width:38px;height:38px;font-size:18px;background:#2a2f40;border-color:#444a5c}
+.l9-cards.sm{gap:6px;min-height:76px;margin:6px 0 2px}
+.l9-c.sm{width:50px;height:72px;border-radius:7px}.l9-c.sm .tl,.l9-c.sm .br{font-size:15px}.l9-c.sm .mid{font-size:26px}
+.l9-c.sm.back .mid span{width:26px;height:26px;font-size:8px}
+.l9-badge{display:inline-block;font-size:11px;font-weight:700;padding:3px 9px;border-radius:99px;background:#2a2f40;color:var(--muted)}
+.l9-badge.win{background:rgba(78,203,132,.16);color:#4ecb84}.l9-badge.loss{background:rgba(226,104,95,.16);color:#ff8f86}.l9-badge.turn{background:rgba(63,191,174,.16);color:var(--teal)}
+@media(max-width:600px){.l9-seats{gap:6px}.l9-seat2{min-width:0;flex:1 1 30%;padding:8px 3px}.l9-cards.sm{gap:2px;min-height:52px}.l9-c.sm{width:29px;height:44px;border-radius:5px}.l9-c.sm .tl,.l9-c.sm .br{font-size:10px;top:2px;left:3px}.l9-c.sm .br{display:none}.l9-c.sm .mid{font-size:15px!important}.l9-c.sm.back .mid span{width:18px;height:18px;font-size:6px}}
+
+</style>
 </head>
 <body>
 
@@ -762,6 +824,7 @@ table.blh th{color:var(--muted);font-weight:600;font-size:11px;text-transform:up
       <button class="tab-btn" data-tab="spin" onclick="switchAdminTab('spin')">🎡 Spin the Wheel</button>
       <button class="tab-btn" data-tab="highlow" onclick="switchAdminTab('highlow')">📈 Higher or Lower</button>
       <button class="tab-btn" data-tab="rps" onclick="switchAdminTab('rps')">✊ RPS Duel</button>
+      <button class="tab-btn" data-tab="lucky9" onclick="switchAdminTab('lucky9')">🃏 Lucky 9 <span class="adm-chip">NEW</span></button>
       <div class="adm-grp">Economy</div>
       <button class="tab-btn" data-tab="blessings" onclick="switchAdminTab('blessings')">🙏 Ganzo's Blessings <span class="adm-chip">NEW</span></button>
       <button class="tab-btn" data-tab="pets" onclick="switchAdminTab('pets')">🐾 Pets</button>
@@ -1107,6 +1170,11 @@ table.blh th{color:var(--muted);font-weight:600;font-size:11px;text-transform:up
         <div id="gaRoot-highlow"><div class="empty-state">Loading...</div></div>
       </div>
     </div>
+    <div class="tab-content" id="tab-lucky9">
+      <div class="panel" style="margin-bottom:16px"><div class="panel-title" style="margin-bottom:4px">🃏 Beat Sir Rendy · Lucky 9</div>
+        <div style="font-size:12px;color:var(--muted)">Staff buy a Shift Pass and play hands against you on autopilot. The server deals, enforces every value and pays the bounty; this page only displays.</div></div>
+      <div id="l9AdminRoot"><div class="empty-state">Loading...</div></div>
+    </div>
     <div class="tab-content" id="tab-rps">
       <div class="panel">
         <div class="panel-title">✊ RPS Duel</div>
@@ -1155,6 +1223,7 @@ table.blh th{color:var(--muted);font-weight:600;font-size:11px;text-transform:up
       <button class="sub" data-v="hl" onclick="gpGo('hl')">📈 Higher or Lower <span class="gp-cnt" id="gpCntHl"></span></button>
       <button class="sub" data-v="rps" onclick="gpGo('rps')">✊ RPS Duel <span class="gp-cnt" id="gpCntRps"></span></button>
       <button class="sub" data-v="race" onclick="gpGo('race')">🏁 Pet Race Frenzy <span class="gp-cnt" id="gpCntRace"></span></button>
+      <button class="sub" data-v="l9" onclick="gpGo('l9')">🃏 Beat Sir Rendy <span class="gp-cnt" id="gpCntL9"></span></button>
       <div class="gp-grp">Store</div>
       <button class="sub" data-v="shop" onclick="gpGo('shop')">🛒 Shop</button>
       <button class="sub" data-v="avatar" onclick="gpGo('avatar')">🧑 Avatar Studio</button>
@@ -1371,6 +1440,7 @@ table.blh th{color:var(--muted);font-weight:600;font-size:11px;text-transform:up
     </details></div>
       <div class="gp-card"><div class="gp-hdr"><h3>✊ RPS Leaderboard</h3><span class="gp-badge">All-time • completed duels</span></div><div class="gp-rpsboard gp-mini">Loading…</div></div></section>
     <section class="gp-view" id="gpv-race"><div class="pr-wrap" id="prRoot"><div class="gp-card"><div class="empty-state">Loading Pet Race…</div></div></div></section>
+    <section class="gp-view" id="gpv-l9"><div id="l9Root"><div class="gp-card"><div class="empty-state">Loading Beat Sir Rendy…</div></div></div></section>
 
 
     <!-- ═══ SHOP ═══ -->
@@ -2090,6 +2160,7 @@ function switchAdminTab(name) {
   if(name==='topics') refreshWeeklyTopicsTab();
   if(name==='petrace') prAdminLoad();
   if(name==='blessings') blAdminLoad();
+  if(name==='lucky9') l9AdminLoad();
   if(['spin','highlow','rps','pets','shop'].includes(name)) gaAdminLoad(name);
   if(name==='pets'){ evoChartRender(); adminPetsRender(); }
 }
@@ -5895,6 +5966,7 @@ const TOKEN_EVENT_LABELS = {
   race_spend: '🏁 Pet Race', race_refund: '↩️ Pet Race Refund', race_loot: '🎒 Pet Race Loot', race_clash: '⚔️ Pet Clash Win',
   ganzo_blessing: "🙏 Ganzo's Blessing",
   pet_evolve: '👑 Pet Evolve', pet_trade_fee: '🔁 Pet Trade Fee', pet_trade_fee_in: '🔁 Trade Fee to Admin',
+  l9_pass: '🃏 Lucky 9 Shift Pass', l9_bounty: '👑 Lucky 9 Boss Bounty',
 };
 function playerNameById(id){ const p=DB.players.find(x=>x.id===id); return p?p.name:(id||'—'); }
 
@@ -5951,6 +6023,8 @@ function renderTokenLog(){
       else if(e.type === 'race_spend') detail = `${playerNameById(e.playerId)} spent ${e.amount} 🪙 — ${e.itemName||'Pet Race'}`;
       else if(e.type === 'race_loot' || e.type === 'race_clash') detail = `${playerNameById(e.playerId)} got ${e.amount} 🪙 — ${e.itemName||'Pet Race'}`;
       else if(e.type === 'race_refund') detail = `${playerNameById(e.playerId)} refunded ${e.amount} 🪙 — ${e.itemName||'Pet Race'} (${e.reason||'refund'})`;
+      else if(e.type === 'l9_pass') detail = `${playerNameById(e.playerId)} bought a Lucky 9 Shift Pass (${e.amount} 🪙, ${e.hands || 5} hands)`;
+      else if(e.type === 'l9_bounty') detail = `${playerNameById(e.playerId)} beat Sir Rendy and claimed the ${e.amount} 🪙 Boss Bounty (broke a ${e.streak}-win streak)`;
       else if(e.type === 'ganzo_blessing') detail = `${playerNameById(e.playerId)} received ${e.amount} 🪙 — "${String(e.message||'').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}"`;
       else if(e.type === 'avatar_gender_switch') detail = `${playerNameById(e.playerId)} switched avatar gender for ${e.amount} 🪙`;
       return `<tr><td>${when}</td><td>${label}</td><td>${detail}</td></tr>`;
@@ -6384,7 +6458,7 @@ function setCardsView(mode){
 
 <script>
 // ═════ SMB GAME PORTAL (R2): sidebar views. Display only — no token writes. ═════
-const GP_TITLES = {player:'Player', bingo:'BINGO', spin:'Spin the Wheel', hl:'Higher or Lower', rps:'RPS Duel', race:'Pet Race Frenzy', shop:'Shop', avatar:'Avatar Studio', lb:'Leaderboards'};
+const GP_TITLES = {player:'Player', bingo:'BINGO', spin:'Spin the Wheel', hl:'Higher or Lower', rps:'RPS Duel', race:'Pet Race Frenzy', l9:'Beat Sir Rendy · Lucky 9', shop:'Shop', avatar:'Avatar Studio', lb:'Leaderboards'};
 let _gpView = 'player', _gpSub = 'play';
 function gpGo(v){
   if(!GP_TITLES[v]) v = 'player';
@@ -6402,6 +6476,7 @@ function gpGo(v){
   gpRefresh();
   if(v === 'lb' || v === 'rps') gpLoadRpsBoard();
   if(v === 'race'){ if(_pr) prRender(); prFetch(); prLoop(); }
+  if(v === 'l9') l9Open();
 }
 const GP_RPS_BOARD_URL = 'https://ebeggngsggwnxufovkco.supabase.co/functions/v1/bingo-rps-board';
 let _gpRpsBoardAt = 0, _gpRpsBoard = null;
@@ -6432,8 +6507,8 @@ function gpSub(s){
 function gpEsc(x){ return String(x == null ? '' : x).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 function gpGameLive(){ const g = DB && DB.game; return !!(g && g.active && !g.ended); }
 // Signed token effect of one tokenLog entry for player id (display only).
-const GP_SPEND = ['buy_card','shop_purchase','cosmetic_purchase','title_purchase','pet_care','pet_egg','pet_rename','rps_stake','team_battle_entry','race_spend','pet_evolve','pet_trade_fee'];
-const GP_GAIN  = ['cash_in','ganzo_blessing','daily_pet_token_grant','rps_payout','rps_refund','team_battle_payout','team_battle_refund','race_refund','race_loot','race_clash','pet_trade_fee_in'];
+const GP_SPEND = ['buy_card','shop_purchase','cosmetic_purchase','title_purchase','pet_care','pet_egg','pet_rename','rps_stake','team_battle_entry','race_spend','pet_evolve','pet_trade_fee','l9_pass'];
+const GP_GAIN  = ['cash_in','ganzo_blessing','daily_pet_token_grant','rps_payout','rps_refund','team_battle_payout','team_battle_refund','race_refund','race_loot','race_clash','pet_trade_fee_in','l9_bounty'];
 function gpDelta(e, id){
   const a = Number(e.amount) || 0;
   if(e.type === 'give') return e.toPlayerId === id ? a : (e.fromPlayerId === id ? -a : null);
@@ -6467,6 +6542,8 @@ function gpLabel(e, id){
     case 'race_refund': return `🏁 ${gpEsc(e.itemName || 'Pet Race refund')}`;
     case 'race_loot': return `🎒 ${gpEsc(e.itemName || 'Pet Race loot')}`;
     case 'race_clash': return `⚔️ ${gpEsc(e.itemName || 'Pet Clash')}`;
+    case 'l9_pass': return '🃏 Lucky 9 Shift Pass';
+    case 'l9_bounty': return `👑 Lucky 9 Boss Bounty${e.streak ? ` (broke a ${e.streak}-win streak)` : ''}`;
     case 'ganzo_blessing': return `🙏 Ganzo's Blessing${e.message ? ' — ' + gpEsc(e.message) : ''}`;
     case 'pet_evolve': return `👑 Evolved ${gpEsc(e.itemName || 'a pet')}`;
     case 'pet_trade_fee': return `🔁 Trade fee — ${gpEsc(e.itemName || 'pet trade')}`;
@@ -6502,6 +6579,7 @@ function gpRenderWinners(){
 function gpRefresh(){
   if(!currentPlayer || typeof DB === 'undefined') return;
   try { if(typeof prBoot === 'function') prBoot(); } catch(e){}
+  try { if(typeof l9Tick === 'function') l9Tick(); } catch(e){}
   try {
     const id = currentPlayer.id, shift = shiftStartMsClient(), g = DB.game;
     const live = gpGameLive();
@@ -7839,6 +7917,307 @@ async function evoChartRender(reload){
         ${st('race', `<img src="${adultSrc}" alt="${evoEsc(form)}" loading="lazy" onerror="evoRaceMissing(this,'${sp}')">`, '✨ Race Form', evoEsc(form))}
       </div></div>`;
   }).join('');
+}
+
+
+// ═════ R14: BEAT SIR RENDY · LUCKY 9 ═════
+// Deals, shuffling, Shift Pass, streak, bounty and tokens all live server-side (Supabase edge fn bingo-lucky9).
+// The page only displays. Sir Rendy's cards stay on the server until the hand is finished.
+const L9_URL = 'https://ebeggngsggwnxufovkco.supabase.co/functions/v1/bingo-lucky9';
+let _l9 = null, _l9At = 0, _l9Busy = false, _l9Timer = null, _l9Err = '', _l9Key = '', _l9Fx = '', _l9CdT = null;
+const L9_SUIT = { s: ['♠', 0], h: ['♥', 1], d: ['♦', 1], c: ['♣', 0] };
+function l9Esc(x){ return typeof gpEsc === 'function' ? gpEsc(x) : String(x == null ? '' : x); }
+function l9Card(code, cls){
+  if(!code || code === '??') return `<div class="l9-c back ${cls || ''}"><div class="mid"><span>SMB</span></div></div>`;
+  const r = code.slice(0, -1), s = L9_SUIT[code.slice(-1)] || ['?', 0];
+  return `<div class="l9-c ${s[1] ? 'red' : ''} ${cls || ''}"><div class="tl">${r}<br>${s[0]}</div><div class="mid">${s[0]}</div><div class="br">${r}<br>${s[0]}</div></div>`;
+}
+function l9Ago(ms){
+  const m = Math.max(0, Math.round((Date.now() - ms) / 60000));
+  return m < 1 ? 'just now' : m < 60 ? `${m}m ago` : m < 1440 ? `${Math.round(m / 60)}h ago` : `${Math.round(m / 1440)}d ago`;
+}
+function l9Name(id, fb){ try { const n = playerNameById(id); return n && n !== id && n !== '—' ? n : (fb || id); } catch(e){ return fb || id; } }
+function l9IsBanker(){ return currentPlayer && currentPlayer.id === 'default_25'; }
+function l9Seated(){ return !!(_l9 && _l9.myTable); }
+
+async function l9Fetch(){
+  if(!currentPlayer) return;
+  try {
+    const r = await fetch(L9_URL + '?playerId=' + encodeURIComponent(currentPlayer.id));
+    const j = await r.json();
+    if(!j || !j.ok) throw new Error('bad');
+    _l9 = j; _l9At = Date.now(); if(_l9Err && !_l9Busy) _l9Err = '';
+  } catch(e){ if(!_l9) _l9Err = 'Beat Sir Rendy is unavailable right now — try ulit in a bit.'; }
+  l9Nav();
+  if(typeof _gpView !== 'undefined' && _gpView === 'l9' && !_l9Busy) l9Render();
+}
+function l9Nav(){
+  const c = document.getElementById('gpCntL9'); if(!c || !_l9) return;
+  const b = _l9.boss || {}, ot = _l9.openTable, need = _l9.config.seatsToDeal;
+  if(_l9.myTable && _l9.myTable.status === 'choice'){ c.textContent = 'GO!'; c.classList.add('live'); }
+  else if(ot && ot.seats.length){ c.textContent = `🪑${ot.seats.length}/${need}`; c.classList.add('live'); }
+  else if(b.armed){ c.textContent = `🎯${b.pot}`; c.classList.add('live'); }
+  else { c.classList.remove('live'); c.textContent = _l9.pass ? `${_l9.pass.left}/${_l9.config.handsPerShift}` : ''; }
+}
+function l9Schedule(){
+  clearTimeout(_l9Timer);
+  if(typeof _gpView === 'undefined' || _gpView !== 'l9') return;
+  const fast = l9Seated() || (_l9 && _l9.openTable && _l9.openTable.seats.length);
+  _l9Timer = setTimeout(async () => { await l9Fetch(); l9Schedule(); }, l9Seated() ? 3000 : fast ? 8000 : 20000);
+}
+async function l9Open(){ l9Render(); await l9Fetch(); l9Schedule(); }
+function l9Tick(){ if(!_l9 || Date.now() - _l9At > 60000) l9Fetch(); }
+
+function l9BountyHtml(){
+  const b = _l9.boss, c = _l9.config, ls = _l9.lastSlayer;
+  const sq = Array.from({ length: Math.max(10, b.streak) }, (_, i) => `<i class="${i < b.streak ? 'on' : ''}"></i>`).join('');
+  const pill = b.armed ? '<span class="l9-pill armed">🎯 BOUNTY ARMED — beat him to take it all</span>'
+    : `<span class="l9-pill">Arms at a ${c.armAt}-win streak (${b.toArm} to go)</span>`;
+  const last = ls ? `<div style="font-weight:700;margin-top:4px">${l9Esc((ls.names || []).join(' & '))} · beat ${ls.bankerScore}</div><div style="color:var(--muted);font-size:12px">claimed 🪙 ${ls.pot}${ls.winners > 1 ? ` (split ${ls.winners} ways)` : ''} · ${l9Ago(ls.at)}</div>`
+    : '<div style="color:var(--muted);font-size:13px;margin-top:4px">Nobody yet — be the first!</div>';
+  return `<div class="l9-bounty"><div><div class="l9-lbl">Boss Bounty</div><div class="l9-pot"><small>🪙</small> ${b.armed ? b.pot : b.potIfArmed}</div>${b.armed ? '' : '<div style="font-size:11px;color:var(--muted)">once armed</div>'}</div>
+    <div style="flex:1;min-width:220px"><div class="l9-lbl">Sir Rendy's win streak: <span style="color:var(--l9r)">${b.streak}</span> <span style="text-transform:none;letter-spacing:0;font-weight:500">· best ${b.best}</span></div><div class="l9-streak">${sq}</div><div style="margin-top:10px">${pill}</div></div>
+    <div style="text-align:right"><div class="l9-lbl">Last slayer</div>${last}</div></div>`;
+}
+function l9SideHtml(){
+  const c = _l9.config, p = _l9.pass, t = _l9.today || {}, per = c.handsPerShift, used = p ? p.used : 0;
+  const meter = Array.from({ length: per }, (_, i) => `<b class="${i < used ? 'u' : ''}"></b>`).join('');
+  const medal = ['🥇', '🥈', '🥉', '4.', '5.'];
+  const sl = (_l9.slayers || []).length ? '<table class="l9-t">' + _l9.slayers.map((x, i) =>
+      `<tr><td>${medal[i]} ${l9Esc(l9Name(x.playerId, x.name))}</td><td style="text-align:right">${x.claims} 🎯 · 🪙 ${x.tokens}</td><td style="text-align:right;color:var(--muted)">${x.wins}W</td></tr>`).join('') + '</table>'
+    : '<div style="color:var(--muted);font-size:13px;margin-top:6px">No wins yet this month.</div>';
+  const feed = (_l9.feed || []).length ? '<table class="l9-t">' + _l9.feed.map(f => {
+      const pl = (f.players || []).map(x => `<span class="${x.outcome === 'PLAYER_WIN' ? 'l9-win' : x.outcome === 'PM_WIN' ? 'l9-loss' : ''}">${l9Esc(x.name)} ${x.score}</span>`).join(', ');
+      return `<tr><td>${pl}</td><td style="white-space:nowrap">vs ${f.bs}${f.pot ? ` · 🪙${f.pot}` : ''}</td></tr>`; }).join('') + '</table>'
+    : '<div style="color:var(--muted);font-size:13px;margin-top:6px">No rounds yet.</div>';
+  return `<div class="gp-card"><div class="l9-lbl">My Shift Pass</div>
+      <div style="font-size:20px;font-weight:700;margin:6px 0">${p ? `Challenges left: ${p.left} / ${per}` : 'No pass yet this shift'}</div><div class="l9-meter">${meter}</div>
+      <div class="l9-lbl" style="margin-top:16px">This shift vs Sir Rendy</div>
+      <div style="margin-top:6px;font-size:14px"><span class="l9-win">${t.w || 0}W</span> · <span class="l9-loss">${t.l || 0}L</span> · ${t.p || 0} push${t.bounty ? ` · 🪙 ${t.bounty} won` : ''}</div></div>
+    <div class="gp-card"><div class="l9-lbl">Top Slayers (this month)</div>${sl}</div>
+    <div class="gp-card"><div class="l9-lbl">Latest rounds</div>${feed}</div>`;
+}
+function l9SeatHtml(x, fx, done){
+  if(!x) return `<div class="l9-seat2 empty"><div class="l9-av sm">🪑</div><div class="nm">Open seat</div><div class="l9-hint" style="margin-top:2px">waiting…</div></div>`;
+  const cards = x.cards.length ? x.cards.map(cd => l9Card(cd, 'sm ' + fx)).join('') : `${l9Card('??', 'sm ghost')}${l9Card('??', 'sm ghost')}`;
+  let badge = '';
+  if(done){
+    badge = x.outcome === 'PLAYER_WIN' ? `<span class="l9-badge win">WIN${x.bounty ? ` +🪙${x.bounty}` : ''}</span>` : x.outcome === 'PM_WIN' ? '<span class="l9-badge loss">LOSS</span>' : '<span class="l9-badge">PUSH</span>';
+  } else if(x.status === 'choice') badge = '<span class="l9-badge turn">deciding…</span>';
+  else if(x.status === 'stood' && x.choice) badge = `<span class="l9-badge">${x.choice === 'hit' ? 'HIT' : 'STAND'}</span>`;
+  return `<div class="l9-seat2 ${x.me ? 'me' : ''}"><div class="nm">${x.me ? 'You' : l9Esc(l9Name(x.playerId, x.name))}</div>
+    <div class="l9-cards sm">${cards}</div><div class="sc">${x.score == null ? '' : x.score}${x.natural ? ' · NAT' : ''}</div>${badge}</div>`;
+}
+function l9TableHtml(){
+  const c = _l9.config, p = _l9.pass, per = c.handsPerShift, need = c.seatsToDeal;
+  const t = _l9.myTable || _l9.lastTable || null;
+  const showing = _l9.myTable ? _l9.myTable : (_l9.openTable && !_l9.lastTable ? _l9.openTable : (_l9.lastTable || _l9.openTable));
+  const tb = showing, done = tb && tb.status === 'done';
+  const key = tb ? tb.id + ':' + tb.status : '';
+  let fxCards = '', fxBank = '';
+  if(key && key !== _l9Key){
+    if(tb.status === 'choice' || (done && _l9Key.split(':')[0] !== String(tb.id))) fxCards = 'anim';
+    if(done) fxBank = 'flip';
+  }
+  _l9Key = key;
+  const seats = tb ? tb.seats.slice() : [];
+  const nSeats = Math.max(need, seats.length);
+  const seatHtml = Array.from({ length: nSeats }, (_, i) => l9SeatHtml(seats[i], fxCards, done)).join('');
+  const bank = tb && tb.bankerCards.length ? tb.bankerCards.map(cd => l9Card(cd, fxBank || fxCards)).join('') : `${l9Card('??', 'ghost')}${l9Card('??', 'ghost')}`;
+  const bs = done ? `${tb.bankerScore}${tb.bankerNatural ? ' · NATURAL' : ''}` : (tb && tb.status === 'choice' ? '?' : '');
+  let act = '';
+  const mine = _l9.myTable && _l9.myTable.seats.find(x => x.me);
+  if(l9IsBanker()){
+    act = `<div class="l9-modal"><div style="font-size:28px">😎</div><div style="font-weight:700;font-size:17px">You're the banker, Sir!</div><div class="l9-hint">Staff take seats here; when ${need} are seated you deal automatically (stand on 6–9, draw on 0–5). Settings: Admin → 🃏 Lucky 9.</div></div>`;
+  } else if(!c.on){
+    act = `<div class="l9-modal"><div style="font-weight:700">Beat Sir Rendy is closed right now.</div><div class="l9-hint">Check back later!</div></div>`;
+  } else if(_l9.myTable && _l9.myTable.status === 'open'){
+    const n = _l9.myTable.seats.length;
+    act = `<div class="l9-modal"><div style="font-size:26px">🪑</div><div style="font-weight:700;font-size:17px">You're seated — ${n}/${need}</div><div class="l9-hint">Sir Rendy deals when ${need - n} more player${need - n === 1 ? '' : 's'} sit${need - n === 1 ? 's' : ''} down. Tell your teammates! 📣</div>
+      <div class="l9-act"><button class="l9-btn l9-ghost" onclick="l9Leave()" ${_l9Busy ? 'disabled' : ''}>Leave seat (get the hand back)</button></div></div>`;
+  } else if(_l9.myTable && _l9.myTable.status === 'choice'){
+    const left = Math.max(0, Math.ceil(((_l9.myTable.deadline || 0) - (_l9.myTable.now || Date.now())) / 1000 - (Date.now() - _l9At) / 1000));
+    if(mine && mine.status === 'choice'){
+      act = `<div class="l9-act"><button class="l9-btn l9-teal" onclick="l9Move('hit')" ${_l9Busy ? 'disabled' : ''}>HIT (+Card)</button><button class="l9-btn l9-gold" onclick="l9Move('stand')" ${_l9Busy ? 'disabled' : ''}>STAND</button></div>
+        <div class="l9-hint">You have 5 — your call. Auto-STAND in <b id="l9Cd">${left}</b>s</div>`;
+    } else {
+      act = `<div class="l9-modal"><div style="font-weight:700">Waiting for the others to choose HIT or STAND…</div><div class="l9-hint">Sir Rendy reveals in <b id="l9Cd">${left}</b>s or sooner</div></div>`;
+    }
+  } else {
+    let res = '';
+    const lt = _l9.lastTable, me = lt && lt.seats.find(x => x.me);
+    if(lt && me && tb === lt && Date.now() - (lt.finishedAt || 0) < 30 * 60000){
+      if(me.bounty > 0) res = `<div style="font-size:30px">👑🚨</div><div class="l9-res boss">SIR RENDY DETHRONED!</div><div style="font-size:16px;margin-top:4px">You claimed <b style="color:var(--gold)">🪙 ${me.bounty}</b>${lt.winners > 1 ? ` (bounty split ${lt.winners} ways)` : ' — the whole Boss Bounty'}</div><div class="l9-hint">${lt.streakBefore}-win streak reset to 0</div>`;
+      else if(me.outcome === 'PLAYER_WIN') res = `<div class="l9-res win">YOU WIN!</div><div class="l9-hint">${lt.streakBefore > 0 ? `Sir Rendy's ${lt.streakBefore}-win streak is broken. ` : ''}The bounty arms at a ${c.armAt}-win streak — no tokens this round, but it counts on the leaderboard.</div>`;
+      else if(me.outcome === 'PM_WIN') res = `<div class="l9-res loss">SIR RENDY WINS</div><div class="l9-hint">${lt.winners ? 'A teammate beat him, so his streak reset.' : `His streak is now ${lt.streakAfter}${lt.streakAfter >= c.armAt ? ' — the bounty is armed! 🎯' : '.'}`}</div>`;
+      else res = `<div class="l9-res push">PUSH</div><div class="l9-hint">Tie with Sir Rendy. Streak: ${lt.streakAfter}.</div>`;
+    }
+    const ot = _l9.openTable, waitTxt = ot && ot.seats.length ? `<div class="l9-hint" style="margin-top:0">🪑 ${ot.seats.length}/${need} seated: ${ot.seats.map(x => l9Esc(l9Name(x.playerId, x.name))).join(', ')}</div>` : `<div class="l9-hint" style="margin-top:0">Sir Rendy deals when ${need} player${need === 1 ? ' is' : 's are'} seated.</div>`;
+    let btn;
+    if(!p) btn = `<div style="font-size:28px">🎟️</div><div style="font-size:18px;font-weight:700;margin:6px 0">Unlock Shift Pass for 🪙 ${c.passPrice}?</div><div class="l9-hint" style="margin-top:0">${per} challenges included · resets next shift</div>${waitTxt}
+        <div class="l9-act"><button class="l9-btn l9-gold" onclick="l9Sit(true)" ${_l9Busy ? 'disabled' : ''}>Unlock &amp; Take a Seat</button></div>`;
+    else if(p.left <= 0) btn = `<div class="l9-act"><button class="l9-btn l9-ghost" disabled title="Shift limit reached (${per}/${per}). Resets on next shift!">Shift limit reached (${per}/${per})</button></div><div class="l9-hint">Resets on next shift!</div>`;
+    else btn = `${waitTxt}<div class="l9-act"><button class="l9-btn l9-gold" onclick="l9Sit(false)" ${_l9Busy ? 'disabled' : ''}>🪑 ${res ? 'Sit again' : 'Take a seat'} (${p.left} left)</button></div>`;
+    act = `<div class="l9-modal">${res}${res ? '<div style="height:10px"></div>' : ''}${btn}</div>`;
+  }
+  return `<div class="l9-felt">
+    <div class="l9-seat"><div class="l9-av">${done && tb.winners && tb.pot ? '😵' : '😎'}</div><div class="nm" style="margin-top:6px">Sir Rendy <span style="color:var(--muted);font-weight:500">· Banker</span></div><div class="sc">${bs}</div></div>
+    <div class="l9-cards">${bank}</div><div class="l9-vs">VS</div>
+    <div class="l9-seats">${seatHtml}</div>
+    ${act}<div class="l9-msg" id="l9Msg">${l9Esc(_l9Err)}</div></div>`;
+}
+function l9Countdown(){
+  clearInterval(_l9CdT);
+  if(!_l9 || !_l9.myTable || _l9.myTable.status !== 'choice') return;
+  _l9CdT = setInterval(() => {
+    const el = document.getElementById('l9Cd'); if(!el || !_l9 || !_l9.myTable){ clearInterval(_l9CdT); return; }
+    const left = Math.max(0, Math.ceil(((_l9.myTable.deadline || 0) - (_l9.myTable.now || Date.now())) / 1000 - (Date.now() - _l9At) / 1000));
+    el.textContent = left;
+  }, 500);
+}
+function l9Render(){
+  const root = document.getElementById('l9Root'); if(!root) return;
+  if(!_l9){ root.innerHTML = `<div class="gp-card"><div class="empty-state">${_l9Err ? l9Esc(_l9Err) : 'Loading Beat Sir Rendy…'}</div></div>`; return; }
+  const c = _l9.config;
+  root.innerHTML = l9BountyHtml() + `<div class="l9-grid"><div>${l9TableHtml()}
+    <details class="gp-card" style="margin-top:16px"><summary style="cursor:pointer;font-weight:700">📖 How to play</summary><div class="l9-rules" style="margin-top:10px">
+      Buy a <b>Shift Pass for 🪙 ${c.passPrice}</b> → <b>${c.handsPerShift} hands</b> vs Sir Rendy this shift. Each seat you take uses 1 hand (leave before the deal and you get it back).<br>
+      <b>Sir Rendy deals when ${c.seatsToDeal} player${c.seatsToDeal === 1 ? ' is' : 's are'} seated.</b> Everyone plays against the same banker hand.<br>
+      Cards: <b>Ace = 1</b>, 2–9 = face value, <b>10/J/Q/K = 0</b>. Only the last digit counts (7 + 6 = 3). Closest to 9 wins.<br>
+      <b>Natural 8 or 9</b> on the first two cards = instant showdown (natural 9 beats natural 8). If Sir Rendy has a natural, nobody draws.<br>
+      Your hand: 0–4 draws a 3rd card automatically · <b>5 = you choose HIT or STAND</b> (${c.choiceSeconds}s, then auto-STAND) · 6–7 stands.<br>
+      Sir Rendy (autopilot): draws on 0–5, stands on 6–9.<br>
+      <b>Boss Bounty:</b> his streak grows by 1 each round nobody at the table beats him. At a <b>${c.armAt}-win streak</b> the bounty arms: 🪙 ${c.baseBounty} + ${c.perStreak} per streak win (max ${c.bountyCap}). Whoever beats him next takes it (several winners split it) and the streak resets. Any win resets the streak, even before it's armed.<br>
+      Cards are shuffled on the server, and Sir Rendy's cards stay hidden there until the round is done.
+    </div></details></div><div>${l9SideHtml()}</div></div>`;
+  l9Countdown();
+}
+function l9Msg(t){ _l9Err = t || ''; const m = document.getElementById('l9Msg'); if(m) m.textContent = _l9Err; }
+async function l9Post(body){
+  const r = await fetch(L9_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+  return await r.json();
+}
+async function l9After(j){
+  if(j.tokens !== null && j.tokens !== undefined) _myTokenBalance = j.tokens;
+  try { await refreshTokenBalance(); } catch(e){}
+}
+async function l9Run(body){
+  if(_l9Busy || !currentPlayer) return;
+  _l9Busy = true; _l9Err = ''; l9Render();
+  try {
+    const j = await l9Post(Object.assign({ playerId: currentPlayer.id }, body));
+    if(!j.ok) _l9Err = j.error || 'Hindi na-process — try ulit.';
+    else await l9After(j);
+  } catch(e){ _l9Err = 'Hindi na-process — try ulit.'; }
+  _l9Busy = false;
+  await l9Fetch(); l9Render(); l9Schedule();
+}
+function l9Sit(buy){ return l9Run({ action: 'sit', playerName: currentPlayer && currentPlayer.name, buy: !!buy }); }
+function l9Leave(){ return l9Run({ action: 'leave' }); }
+function l9Move(move){
+  const mine = _l9 && _l9.myTable && _l9.myTable.seats.find(x => x.me); if(!mine) return;
+  return l9Run({ action: 'act', handId: mine.handId, move });
+}
+
+// ───── Admin tab ─────
+let _l9a = null;
+async function l9AdminCall(adminAction, payload){
+  if(!_adminPinSession){ alert('Please log in to admin again.'); return { ok: false }; }
+  try { return await l9Post({ action: 'admin', pin: _adminPinSession, adminAction, payload: payload || {} }); }
+  catch(e){ return { ok: false, error: 'Network error — try ulit.' }; }
+}
+async function l9AdminLoad(){
+  const root = document.getElementById('l9AdminRoot'); if(!root) return;
+  if(!_l9a) root.innerHTML = '<div class="empty-state">Loading…</div>';
+  const j = await l9AdminCall('get');
+  if(!j.ok){ root.innerHTML = `<div class="empty-state">${l9Esc(j.error || 'Could not load.')}</div>`; return; }
+  _l9a = j; l9AdminRender();
+}
+function l9PotRow(s){
+  const out = [];
+  for(let k = 0; k <= 10; k++){
+    const armed = k >= s.armAt, pot = armed ? Math.min(s.bountyCap, s.baseBounty + s.perStreak * k) : 0;
+    out.push(`<span class="${armed ? 'armed' : ''}">streak ${k}: ${armed ? '🪙 ' + pot : '—'}</span>`);
+  }
+  return out.join('');
+}
+function l9AdminRender(){
+  const root = document.getElementById('l9AdminRoot'); if(!root || !_l9a) return;
+  const s = _l9a.settings, b = _l9a.boss, t = _l9a.today, hk = _l9a.hook;
+  const num = (k, label, hint) => `<div><label>${label}</label><input type="number" id="l9a_${k}" value="${s[k]}" min="0" step="1" oninput="l9aPreview()"><small style="display:block;min-height:14px;color:var(--muted);font-size:11px">${hint || ''}</small></div>`;
+  const hookTxt = hk.own ? '✅ Lucky 9 webhook set (hidden)' : hk.fallback === 'games' ? 'Not set — posting to the Mini Games channel for now' : hk.fallback === 'bingo' ? 'Not set — posting to the BINGO channel for now' : 'Not set — no Slack posts';
+  const rows = (_l9a.recent || []).map(r => {
+    const d = new Date(r.at);
+    const pl = (r.players || []).map(x => {
+      const o = x.outcome === 'PLAYER_WIN' ? `<span class="l9-win">WIN${x.bounty ? ` +🪙${x.bounty}` : ''}</span>` : x.outcome === 'PM_WIN' ? '<span class="l9-loss">LOSS</span>' : 'PUSH';
+      return `<div><b>${l9Esc(x.name)}</b> ${l9Esc(x.cards)} = ${x.score}${x.natural ? ' (nat)' : ''}${x.choice ? ` <span style="color:var(--muted)">(${x.choice} at 5)</span>` : ''} · ${o}</div>`; }).join('');
+    return `<tr><td style="white-space:nowrap;color:var(--muted)">${d.toLocaleString('en-US', { timeZone: 'Asia/Manila', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}</td><td>${pl}</td><td style="white-space:nowrap">${l9Esc(r.banker)} = ${r.bs}${r.bn ? ' (nat)' : ''}</td><td>${r.streakBefore} → ${r.streakAfter}${r.pot ? `<br><span style="color:var(--gold)">🪙${r.pot} paid</span>` : ''}</td></tr>`;
+  }).join('');
+  const net = (t.passTokens || 0) - (t.bounty || 0);
+  root.innerHTML = `<div style="display:grid;grid-template-columns:minmax(0,440px) minmax(0,1fr);gap:16px;align-items:start" class="l9a-wrap">
+   <div class="panel"><div class="panel-title">⚙️ Settings</div>
+    <label style="display:flex;align-items:center;gap:8px;text-transform:none;letter-spacing:0"><input type="checkbox" id="l9a_on" ${s.on ? 'checked' : ''} style="width:auto"> Game open to players</label>
+    <div class="l9a-grid" style="margin-top:8px">
+      ${num('seatsToDeal', 'Seats to deal (1–6)', '1 = instant solo play')}
+      ${num('choiceSeconds', 'HIT/STAND timer (sec)', '15–300, then auto-STAND')}
+      ${num('passPrice', 'Shift Pass price (🪙)')}
+      ${num('handsPerShift', 'Challenges per shift', '1–20')}
+      ${num('armAt', 'Bounty arms at streak')}
+      ${num('baseBounty', 'Base bounty (🪙)')}
+      ${num('perStreak', '+ per streak win (🪙)')}
+      ${num('bountyCap', 'Bounty cap (🪙)')}
+      <div><label>Streak milestones (Slack)</label><input type="text" id="l9a_milestones" value="${(s.milestones || []).join(', ')}"></div>
+    </div>
+    <label style="display:flex;align-items:center;gap:8px;text-transform:none;letter-spacing:0;margin-top:8px"><input type="checkbox" id="l9a_slack" ${s.slack ? 'checked' : ''} style="width:auto"> Slack alerts (milestones + dethroned)</label>
+    <label style="display:flex;align-items:center;gap:8px;text-transform:none;letter-spacing:0;margin-top:4px"><input type="checkbox" id="l9a_nudge" ${s.nudge ? 'checked' : ''} style="width:auto"> "1 more player and he deals!" nudge (max 1 per 30 min)</label>
+    <div style="font-size:12px;color:var(--muted);margin-top:10px">Bounty by Sir Rendy's streak:</div><div class="l9a-pot" id="l9aPot">${l9PotRow(s)}</div>
+    <div style="font-size:12px;color:var(--muted);margin-top:10px;opacity:.6">Live-banker mode (you play your own hands): Phase 2. Autopilot deals for now.</div>
+    <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap"><button class="btn btn-gold" onclick="l9aSave()">💾 Save</button><button class="btn btn-outline" onclick="l9aReset()">↺ Reset streak</button></div>
+    <div class="pra-msg" id="l9aMsg" style="margin-top:8px"></div>
+    <div class="panel-title" style="margin-top:18px">🔔 Lucky 9 Slack webhook</div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:6px">${hookTxt}. Stored on the server, never shown again. Paste a new one to replace it; Save empty to go back to the Mini Games channel.</div>
+    <div style="display:flex;gap:8px"><input type="password" id="l9a_hook" placeholder="https://hooks.slack.com/services/…" autocomplete="off" style="flex:1;background:var(--deep,#151824);color:var(--white,#fff);border:1px solid var(--line,#333);border-radius:8px;padding:8px 10px"><button class="btn btn-outline btn-sm" onclick="l9aHook()">Save</button><button class="btn btn-outline btn-sm" onclick="l9aTest()">Test</button></div>
+   </div>
+   <div class="panel"><div style="display:flex;justify-content:space-between;align-items:center"><div class="panel-title" style="margin-bottom:0">📡 Live table (this shift)</div><button class="btn btn-outline btn-sm" onclick="l9AdminLoad()">🔄 Refresh</button></div>
+    <div class="l9a-stats"><div><div class="l9-lbl">Streak</div><div class="v" style="color:var(--l9r,#E2685F)">${b.streak}</div></div><div><div class="l9-lbl">Pot now</div><div class="v" style="color:var(--gold)">🪙 ${b.pot}</div></div>
+      <div><div class="l9-lbl">Best streak</div><div class="v">${b.best}</div></div><div><div class="l9-lbl">Passes</div><div class="v">${t.passes}</div></div><div><div class="l9-lbl">Rounds</div><div class="v">${t.rounds}</div></div><div><div class="l9-lbl">Hands</div><div class="v">${t.hands}</div></div>
+      <div><div class="l9-lbl">W / L / Push</div><div class="v">${t.w}/${t.l}/${t.p}</div></div><div><div class="l9-lbl">Net tokens</div><div class="v" style="color:${net >= 0 ? 'var(--teal)' : '#ff8f86'}">${net >= 0 ? '+' : ''}${net}</div></div></div>
+    <div style="font-size:11px;color:var(--muted);margin:-8px 0 10px">Net = pass fees taken (${t.passTokens}) − bounties paid (${t.bounty}).</div>
+    <div style="font-size:13px;margin-bottom:12px">🪑 Waiting at the table: ${(_l9a.waiting || []).length ? (_l9a.waiting).map(l9Esc).join(', ') + ` (${_l9a.waiting.length}/${s.seatsToDeal})` : '<span style="color:var(--muted)">nobody</span>'}</div>
+    <div class="panel-title">🧾 Recent rounds (audit)</div>
+    ${rows ? `<div style="overflow-x:auto"><table class="l9-t"><tr><th>When (PHT)</th><th>Players</th><th>Sir Rendy</th><th>Streak</th></tr>${rows}</table></div>` : '<div class="empty-state">No rounds yet.</div>'}
+   </div></div>`;
+}
+function l9aVals(){
+  const v = k => Math.floor(Number(document.getElementById('l9a_' + k).value));
+  return { on: document.getElementById('l9a_on').checked, slack: document.getElementById('l9a_slack').checked, nudge: document.getElementById('l9a_nudge').checked,
+    seatsToDeal: v('seatsToDeal'), choiceSeconds: v('choiceSeconds'),
+    passPrice: v('passPrice'), handsPerShift: v('handsPerShift'), armAt: v('armAt'), baseBounty: v('baseBounty'), perStreak: v('perStreak'), bountyCap: v('bountyCap'),
+    milestones: document.getElementById('l9a_milestones').value.split(/[^0-9]+/).filter(Boolean).map(Number) };
+}
+function l9aPreview(){ const el = document.getElementById('l9aPot'); if(el) el.innerHTML = l9PotRow(l9aVals()); }
+function l9aOut(t, ok){ const m = document.getElementById('l9aMsg'); if(m){ m.textContent = t; m.style.color = ok ? 'var(--teal)' : '#ff8f86'; } }
+async function l9aSave(){
+  const j = await l9AdminCall('save', l9aVals());
+  if(!j.ok) return l9aOut(j.error || 'Not saved.');
+  _l9a.settings = j.settings; l9AdminRender(); l9aOut('✅ Saved', true); _l9At = 0;
+}
+async function l9aReset(){
+  if(!confirm("Reset Sir Rendy's win streak to 0? The current pot goes away (nobody gets it).")) return;
+  const j = await l9AdminCall('reset_streak');
+  if(!j.ok) return l9aOut(j.error || 'Not reset.');
+  await l9AdminLoad(); l9aOut('✅ Streak reset to 0', true);
+}
+async function l9aHook(){
+  const url = document.getElementById('l9a_hook').value.trim();
+  if(!url && !confirm('Clear the Lucky 9 webhook? Posts go back to the Mini Games channel.')) return;
+  const j = await l9AdminCall('hook', { url });
+  if(!j.ok) return l9aOut(j.error || 'Not saved.');
+  await l9AdminLoad(); l9aOut(j.own ? '✅ Webhook saved — tap Test to check it' : '✅ Webhook cleared', true);
+}
+async function l9aTest(){
+  const j = await l9AdminCall('test_hook');
+  l9aOut(j.ok ? '✅ Test post sent — check the channel' : (j.error || 'Test failed'), j.ok);
 }
 
 </script>
