@@ -613,6 +613,79 @@ table.blh th{color:var(--muted);font-weight:600;font-size:11px;text-transform:up
 .ppop .bsep{border-top:1px solid var(--line);margin:10px 0}
 @media(max-width:860px){.bl-grid,.bl-two{grid-template-columns:1fr}}
 
+/* R10 Pet Evolution Chart */
+.evo-legend{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;font-size:11px}
+.evo-legend span{background:rgba(0,0,0,.2);border:1px solid rgba(255,255,255,.08);border-radius:99px;padding:3px 10px;color:var(--muted)}
+.evo-legend b{color:#fff}
+.evo-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(440px,1fr));gap:12px}
+.evo-card{background:rgba(0,0,0,.18);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:12px}
+.evo-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px}
+.evo-head h4{font-size:14px;margin:0}
+.evo-head small{font-size:11px;color:var(--muted)}
+.evo-row{display:grid;grid-template-columns:1fr auto 1fr auto 1fr auto 1fr;align-items:end;gap:4px}
+.evo-arrow{color:var(--muted);font-size:16px;padding-bottom:44px}
+.evo-arrow.zap{color:#f5c842}
+.evo-st{text-align:center;min-width:0}
+.evo-pic{height:96px;display:flex;align-items:flex-end;justify-content:center;position:relative}
+.evo-pic img{object-fit:contain;image-rendering:auto}
+.evo-st.egg img{width:52px;height:52px}
+.evo-st.baby img{width:66px;height:66px}
+.evo-st.adult img{width:96px;height:96px}
+.evo-st.race img{width:96px;height:96px;filter:drop-shadow(0 0 6px #f5c842) drop-shadow(0 0 12px #ec7fa5);animation:evofloat 1.2s ease-in-out infinite alternate}
+.evo-st.race .evo-pic::before{content:'';position:absolute;bottom:2px;left:50%;width:84px;height:84px;transform:translateX(-50%);border-radius:50%;background:radial-gradient(circle,rgba(245,200,66,.35),rgba(236,127,165,.15) 55%,transparent 70%);animation:evopulse 1s ease-in-out infinite alternate}
+.evo-st.race .evo-pic::after{content:'✨';position:absolute;top:2px;right:6px;font-size:14px;animation:prflick .35s infinite alternate}
+@keyframes evofloat{from{transform:translateY(0)}to{transform:translateY(-4px)}}
+@keyframes evopulse{from{opacity:.55;transform:translateX(-50%) scale(.92)}to{opacity:1;transform:translateX(-50%) scale(1.06)}}
+.evo-miss{width:84px;height:84px;border:2px dashed rgba(255,255,255,.18);border-radius:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:30px;opacity:.75}
+.evo-miss small{font-size:9px;color:var(--muted);margin-top:2px;font-weight:700;letter-spacing:.3px}
+.evo-lbl{font-size:11px;font-weight:800;margin-top:6px}
+.evo-sub{font-size:10px;color:var(--muted);line-height:1.3}
+.evo-st.adult .evo-lbl{color:#f5c842}
+.evo-st.race .evo-lbl{color:#f5a3c7}
+.evo-chip{font-size:10px;font-weight:800;border-radius:99px;padding:2px 8px;white-space:nowrap}
+.evo-chip.ok{background:rgba(80,200,120,.18);color:#7fe0a0}
+.evo-chip.wait{background:rgba(245,200,66,.15);color:#f5c842}
+@media(max-width:560px){.evo-grid{grid-template-columns:1fr}.evo-st.adult img,.evo-st.race img{width:72px;height:72px}}
+.pet-evo-btn{width:100%;justify-content:center;margin-top:8px;background:linear-gradient(90deg,#f5c842,#ec7fa5)!important;color:#1a1530!important;font-weight:800;animation:evopulse2 1.4s ease-in-out infinite alternate}
+@keyframes evopulse2{from{box-shadow:0 0 0 0 rgba(245,200,66,.0)}to{box-shadow:0 0 14px 2px rgba(245,200,66,.55)}}
+.pet-evo-back{width:100%;justify-content:center;margin-top:8px}
+.pet-champ{display:inline-block;font-size:.78em;font-weight:800;color:#1a1530;background:linear-gradient(90deg,#f5c842,#ffde7a);border-radius:999px;padding:0 6px;margin-left:3px;vertical-align:middle;line-height:1.5}
+.trd-rules{font-size:12px;color:var(--muted);margin-bottom:8px;line-height:1.45}
+.trd-offer{border:1px solid rgba(245,200,66,.35);background:rgba(245,200,66,.06);border-radius:10px;padding:8px 10px;margin:6px 0;font-size:12.5px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between}
+.trd-offer.out{border-color:rgba(255,255,255,.12);background:rgba(255,255,255,.03)}
+.trd-btns{display:flex;gap:6px;flex-wrap:wrap}
+.trd-pet{display:inline-flex;align-items:center;gap:4px;vertical-align:middle}
+.trd-pet img{width:30px;height:30px;object-fit:contain}
+.trd-new{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:8px}
+.trd-new select{margin:0;flex:1;min-width:180px}
+.trd-x{font-size:18px;color:#f5c842}
+.trd-recent{font-size:12px;line-height:1.6}
+.ap-tools{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px}
+.ap-tools input{margin:0;max-width:260px}
+.ap-tot{font-size:12px;color:#f5c842;font-weight:700;margin-bottom:8px}
+.ap-row{display:flex;gap:12px;padding:10px 0;border-top:1px solid rgba(255,255,255,.07);align-items:flex-start}
+.ap-who{width:130px;flex:0 0 130px;display:flex;flex-direction:column;gap:2px}
+.ap-who small{font-size:11px;color:var(--muted)}
+.ap-pets{display:flex;gap:8px;flex-wrap:wrap;flex:1}
+.ap-pet{width:118px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:6px;text-align:center}
+.ap-pet.adult{border-color:rgba(245,200,66,.5);box-shadow:0 0 10px rgba(245,200,66,.15)}
+.ap-img img{width:64px;height:64px;object-fit:contain}
+.ap-nm{font-size:12px;font-weight:700;margin-top:2px;word-break:break-word}
+.ap-sub{font-size:10px;color:var(--muted);line-height:1.35}
+@media(max-width:600px){.ap-row{flex-direction:column}.ap-who{width:auto;flex:none}}
+
+.pet-evo-perk{font-size:10.5px;text-align:center;margin-top:8px;color:#f5c842;font-weight:700}
+.pet-letter{font-size:10.5px;font-style:italic;color:#f3d6e4;background:rgba(236,127,165,.12);border:1px solid rgba(236,127,165,.35);border-radius:8px;padding:5px 7px;margin-top:6px;cursor:pointer;line-height:1.35}
+.pet-modal-bg{position:fixed;inset:0;background:rgba(8,6,20,.72);z-index:99999;display:flex;align-items:center;justify-content:center;padding:16px}
+.pet-modal{background:linear-gradient(160deg,#2a2150,#1a1530);border:2px solid #f5c842;border-radius:18px;max-width:360px;width:100%;padding:18px 18px 16px;text-align:center;box-shadow:0 0 40px rgba(245,200,66,.35);animation:petpop .35s ease-out}
+.pet-modal-art img{width:150px;height:150px;object-fit:contain}
+.pet-modal-title{font-size:18px;font-weight:800;color:#f5c842;margin:6px 0 8px}
+.pet-modal-text{font-size:14px;line-height:1.5;color:#fff;margin-bottom:8px}
+.pet-modal-sub{font-size:11px;color:var(--muted);margin-bottom:12px}
+.pet-modal .btn{justify-content:center;width:100%}
+@keyframes petpop{from{transform:scale(.8);opacity:0}to{transform:scale(1);opacity:1}}
+.pet-evo-hint{font-size:10px;color:var(--muted);text-align:center;margin-top:5px}
+
 </style>
 </head>
 <body>
@@ -1043,6 +1116,17 @@ table.blh th{color:var(--muted);font-weight:600;font-size:11px;text-transform:up
     </div>
     <div class="tab-content" id="tab-pets">
       <div class="panel">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:6px"><div class="panel-title" style="margin-bottom:0">🧬 Pet Evolution Chart</div><button class="btn btn-outline btn-sm" onclick="evoChartRender(true)">🔄 Reload art</button></div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:10px">Egg → Baby → Adult → Race Form. Adult art is read from <b>adult_&lt;species&gt;.gif</b> in the repo, so replacing that file updates this chart (no code change). Race Form is temporary, only during a race.</div>
+        <div class="evo-legend" id="evoLegend"></div>
+        <div class="evo-grid" id="evoChart"><div class="empty-state">Loading...</div></div>
+      </div>
+      <div class="panel">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:6px"><div class="panel-title" style="margin-bottom:0">👀 Every Player's Pets</div><button class="btn btn-outline btn-sm" onclick="adminPetsRender()">🔄 Refresh</button></div>
+        <div class="ap-tools"><input id="apSearch" placeholder="Search player, pet or species…" oninput="adminPetsRender()"><span class="pr-muted" style="font-size:11px">🏆 = race wins (champions only) · 🏁 = in a race (can't trade) · 🔁 = traded</span></div>
+        <div id="adminAllPets"><div class="empty-state">Loading...</div></div>
+      </div>
+      <div class="panel">
         <div class="panel-title">🐾 Pets</div>
         <div style="font-size:12px;color:var(--muted);margin-bottom:12px;">Egg, care and rename prices, and how many pets each player can keep. The server enforces every value; the page only displays.</div>
         <div id="gaRoot-pets"><div class="empty-state">Loading...</div></div>
@@ -1146,6 +1230,10 @@ table.blh th{color:var(--muted);font-weight:600;font-size:11px;text-transform:up
           <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;color:var(--teal);text-transform:uppercase;margin-bottom:6px;">🐾 My Bingo Pets</div>
           <div style="font-size:12px;color:var(--muted);margin-bottom:10px;">Buy an egg for 5 🪙, care for it 3 times to hatch it, then keep it healthy. Feed, Play, and Bath cost 1 🪙 each. Neglected pets can be gone forever.</div>
           <div id="bingoPetsPanelContent">Loading your pets...</div>
+        </div>
+        <div class="panel" id="petTradePanel" style="display:none;">
+          <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;color:var(--teal);text-transform:uppercase;margin-bottom:6px;">🔁 Trade Adult Pets</div>
+          <div id="petTradeContent">Loading trades…</div>
         </div>
       </div>
     </details></div>
@@ -2003,6 +2091,7 @@ function switchAdminTab(name) {
   if(name==='petrace') prAdminLoad();
   if(name==='blessings') blAdminLoad();
   if(['spin','highlow','rps','pets','shop'].includes(name)) gaAdminLoad(name);
+  if(name==='pets'){ evoChartRender(); adminPetsRender(); }
 }
 
 // ════════════════════════════════════════════════════════════
@@ -3828,7 +3917,7 @@ function petHealth(pet){
   const m=pet.meters||{}, min=Math.min(m.hunger??100,m.fun??100,m.clean??100);
   return min<=20?'Critical':min<=40?'Sick':min<=60?'Needs Care':'Happy';
 }
-function petStage(pet){ return pet.status==='dead'?'Gone':pet.status==='egg'?'Egg':petStageOf(pet.level); }
+function petStage(pet){ return pet.status==='dead'?'Gone':pet.status==='egg'?'Egg':petStageOf(pet.level,pet); }
 function petPercent(value){ return Math.max(0,Math.min(100,Number(value??100))); }
 function petMeter(label, value){
   const pct=petPercent(value);
@@ -3839,7 +3928,7 @@ function petCard(pet){
   const health=petHealth(pet), stage=petStage(pet), isDead=pet.status==='dead', isEgg=pet.status==='egg';
   const min=Math.min(pet.meters?.hunger??100,pet.meters?.fun??100,pet.meters?.clean??100);
   const stateClass=isDead?'pet-dead':min<=20?'pet-critical':min<=40?'pet-sick':min<=60?'pet-warning':'';
-  const portraitClass=`${isDead?'pet-dead ':''}${isEgg?'pet-egg':''}${!isDead&&!isEgg?' stg-p-'+petStageOf(pet.level).toLowerCase():''}`;
+  const portraitClass=`${isDead?'pet-dead ':''}${isEgg?'pet-egg':''}${!isDead&&!isEgg?' stg-p-'+petStageOf(pet.level,pet).toLowerCase():''}`;
   const safeName=escapeHtml(pet.name||`Baby ${petSpecies(pet.species)[1]}`);
   const meters = petMeter('🍖',pet.meters?.hunger)+petMeter('🎾',pet.meters?.fun)+petMeter('🫧',pet.meters?.clean);
   const actions=isDead ? `<div style="text-align:center;color:#ff9c9c;font-size:11px;margin-top:10px;">This pet is gone.</div>` :
@@ -3850,16 +3939,18 @@ function petCard(pet){
     </div><button class="btn btn-outline btn-sm" style="width:100%;justify-content:center;margin-top:6px;" onclick="renamePet('${pet.id}')">✏️ Rename${Number(pet.renameCount||0)===0&&PET_FIRST_FREE?' — First Free':` — ${PET_RENAME_PRICE} 🪙`}</button>`;
   const hatch=isEgg ? `<div class="pet-hatch">🥚 ${Math.min(3,pet.hatchCareCount||0)}/3 care actions to hatch</div>` : '';
   return `<div class="pet-card ${stateClass}">
-    <div class="pet-portrait ${portraitClass}">${isDead?'💤':isEgg?`<img class="pet-egg-img" src="${COSMETICS_BACKEND_URL}/pets/egg.gif" alt="Twitching pet egg" onerror="this.replaceWith(document.createTextNode('🥚'))">`:`<img src="${COSMETICS_BACKEND_URL}/pets/${pet.species}.gif" alt="Animated ${petSpecies(pet.species)[1]}" onerror="this.replaceWith(document.createTextNode('${emoji}'))">`}</div>
-    <div class="pet-name">${safeName}</div>
-    ${!isEgg&&!isDead?`<div class="pet-stage-row">${petStageBadge(pet.level)}</div>`:''}
+    <div class="pet-portrait ${portraitClass}">${isDead?'💤':isEgg?`<img class="pet-egg-img" src="${COSMETICS_BACKEND_URL}/pets/egg.gif" alt="Twitching pet egg" onerror="this.replaceWith(document.createTextNode('🥚'))">`:(petIsAdult(pet)?petAdultImg(pet.species,'Adult '+petSpecies(pet.species)[1]):`<img src="${petBabySrc(pet.species)}" alt="Animated ${petSpecies(pet.species)[1]}" onerror="this.replaceWith(document.createTextNode('${emoji}'))">`)}</div>
+    <div class="pet-name">${safeName}${petChampTag(pet)}</div>
+    ${!isEgg&&!isDead?`<div class="pet-stage-row">${petStageBadge(pet.level,pet)}</div>`:''}
     <div class="pet-meta">${isEgg||isDead?stage+' · ':''}${health}${!isEgg&&!isDead?` · Lv ${pet.level||1}`:''}</div>
-    ${meters}${hatch}${actions}
+    ${meters}${hatch}${petEvolveRow(pet)}${actions}
   </div>`;
 }
 function renderBingoPetsPanel(){
   const panel=document.getElementById('bingoPetsPanel'), content=document.getElementById('bingoPetsPanelContent');
   if(!panel||!content||!currentPlayer) return;
+  try{ petLetterCheck(); }catch(e){}
+  try{ trdLoad(false); }catch(e){}
   panel.style.display='block';
   if(_petBusy || Date.now()<_petResultUntil) return;
   // Polling rebuilds this panel every 5 seconds. Capture the live choice first
@@ -3907,9 +3998,11 @@ async function petAction(action,petId='',careType='',species='',name=''){
     const msg=j.event==='egg_bought'?`🐣 ${petDisplayName}'s egg is ready — care for it 3 times!`:
       j.event==='hatched'?`✨ ${petDisplayName} hatched! Keep your new pet healthy.`:
       j.event==='level_up'?`🌟 ${petDisplayName} reached Level ${j.pet.level}!`:
+      j.event==='evolved'?`👑 ${petDisplayName} evolved into an Adult! ${j.evolveCost||PET_EVOLVE_PRICE} tokens used.`:
       j.event==='renamed'?`✏️ Your pet is now ${petDisplayName}${j.renameCost===0?' — first rename free!':` — ${j.renameCost} tokens used.`}`:
       `🐾 You cared for ${petDisplayName}.`;
     playerLog(msg,'ok');
+    if(j.event==='evolved'&&j.pet) petModal(j.pet,'👑 I\'m an Adult now!',j.thankYou||'Salamat sa pag-alaga sa akin!','Adult '+petSpecies(j.pet.species)[1]);
     await refreshTokenBalance();
     _petResultUntil=Date.now()+2500;
     setTimeout(renderBingoPetsPanel,2500);
@@ -5801,6 +5894,7 @@ const TOKEN_EVENT_LABELS = {
   rps_stake: '✊ RPS Stake', rps_payout: '🏆 RPS Win', rps_refund: '↩️ RPS Refund',
   race_spend: '🏁 Pet Race', race_refund: '↩️ Pet Race Refund', race_loot: '🎒 Pet Race Loot', race_clash: '⚔️ Pet Clash Win',
   ganzo_blessing: "🙏 Ganzo's Blessing",
+  pet_evolve: '👑 Pet Evolve', pet_trade_fee: '🔁 Pet Trade Fee', pet_trade_fee_in: '🔁 Trade Fee to Admin',
 };
 function playerNameById(id){ const p=DB.players.find(x=>x.id===id); return p?p.name:(id||'—'); }
 
@@ -6338,8 +6432,8 @@ function gpSub(s){
 function gpEsc(x){ return String(x == null ? '' : x).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 function gpGameLive(){ const g = DB && DB.game; return !!(g && g.active && !g.ended); }
 // Signed token effect of one tokenLog entry for player id (display only).
-const GP_SPEND = ['buy_card','shop_purchase','cosmetic_purchase','title_purchase','pet_care','pet_egg','pet_rename','rps_stake','team_battle_entry','race_spend'];
-const GP_GAIN  = ['cash_in','ganzo_blessing','daily_pet_token_grant','rps_payout','rps_refund','team_battle_payout','team_battle_refund','race_refund','race_loot','race_clash'];
+const GP_SPEND = ['buy_card','shop_purchase','cosmetic_purchase','title_purchase','pet_care','pet_egg','pet_rename','rps_stake','team_battle_entry','race_spend','pet_evolve','pet_trade_fee'];
+const GP_GAIN  = ['cash_in','ganzo_blessing','daily_pet_token_grant','rps_payout','rps_refund','team_battle_payout','team_battle_refund','race_refund','race_loot','race_clash','pet_trade_fee_in'];
 function gpDelta(e, id){
   const a = Number(e.amount) || 0;
   if(e.type === 'give') return e.toPlayerId === id ? a : (e.fromPlayerId === id ? -a : null);
@@ -6374,6 +6468,9 @@ function gpLabel(e, id){
     case 'race_loot': return `🎒 ${gpEsc(e.itemName || 'Pet Race loot')}`;
     case 'race_clash': return `⚔️ ${gpEsc(e.itemName || 'Pet Clash')}`;
     case 'ganzo_blessing': return `🙏 Ganzo's Blessing${e.message ? ' — ' + gpEsc(e.message) : ''}`;
+    case 'pet_evolve': return `👑 Evolved ${gpEsc(e.itemName || 'a pet')}`;
+    case 'pet_trade_fee': return `🔁 Trade fee — ${gpEsc(e.itemName || 'pet trade')}`;
+    case 'pet_trade_fee_in': return `🔁 ${gpEsc(e.itemName || 'Trade fee')}`;
     case 'admin_adjust': return `🛠️ Admin adjustment${e.reason ? ' — ' + gpEsc(e.reason) : ''}`;
     default: return gpEsc(e.type);
   }
@@ -6467,7 +6564,7 @@ function prNow(){ return Date.now() + _prSkew; }
 function prEsc(x){ return (typeof escapeHtml === 'function') ? escapeHtml(String(x == null ? '' : x)) : String(x == null ? '' : x).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 function prLane(sp){ return sp === 'parrot' ? 'sky' : (sp === 'arowana' || sp === 'goldfish') ? 'water' : 'grass'; }
 function prEmoji(sp){ try { return petSpecies(sp)[2]; } catch(e){ return '🐾'; } }
-function prPetImg(sp){ const em = prEmoji(sp); return `<img src="${COSMETICS_BACKEND_URL}/pets/${encodeURIComponent(sp)}.gif" alt="" onerror="this.outerHTML='<span class=&quot;emo&quot;>${em}</span>'">`; }
+function prPetImg(sp, o){ const em = prEmoji(sp); if(o && petIsAdult(o)) return petAdultImg(sp, ''); return `<img src="${petBabySrc(encodeURIComponent(sp))}" alt="" onerror="this.outerHTML='<span class=&quot;emo&quot;>${em}</span>'">`; }
 function prFmtDur(ms){
   if(ms <= 0) return 'now';
   const s = Math.floor(ms / 1000), d = Math.floor(s / 86400), h = Math.floor(s % 86400 / 3600), m = Math.floor(s % 3600 / 60), ss = s % 60;
@@ -6584,7 +6681,7 @@ function prRegCard(){
     else {
       if(!_prSel || !pets.find(p => p.id === _prSel)) _prSel = (pets.find(p => (p.health || 0) >= 20) || {}).id || null;
       body = `<div class="pr-pick">${pets.map(p => { const ok = (p.health || 0) >= 20; return `<label class="${p.id === _prSel ? 'on' : ''} ${ok ? '' : 'no'}" ${ok ? `onclick="_prSel='${prEsc(p.id)}';prRender()"` : ''}>
-          <div class="pr-portrait">${prPetImg(p.species)}</div><b>${prEsc(p.name || 'Pet')}</b><span class="pr-muted" style="font-size:12px">${petStageOf(p.level)} • Lv ${p.level || 1} • health ${p.health}</span>
+          <div class="pr-portrait">${prPetImg(p.species,p)}</div><b>${prEsc(p.name || 'Pet')}</b><span class="pr-muted" style="font-size:12px">${petStageOf(p.level,p)} • Lv ${p.level || 1} • health ${p.health}</span>
           ${ok ? '' : '<span class="pr-chip b">Alagaan muna (health < 20)</span>'}</label>`; }).join('')}</div>
         <div class="pr-hl"><span>Entry fee <b>${fee} 🪙</b> • one pet per player • withdraw anytime before close for a full refund</span>
         <button class="pr-btn" ${prDis(!can ? (s.mode !== 'live' ? 'Locked until launch' : 'Registration not open') : !_prSel ? 'Pick a pet' : bal < fee ? 'Not enough tokens' : '')} onclick="prAct('register',{petId:_prSel})">Register (${fee} 🪙)</button></div>`;
@@ -6605,7 +6702,7 @@ function prMyCard(me){
   const wc = Number(c.walletCap || 60);
   const hcol = me.health >= 90 ? 'g' : me.health >= 70 ? 'y' : me.health >= 50 ? 'w' : 'b';
   return `<div class="gp-card"><div class="gp-hdr"><h3>🐾 My racer</h3>${me.dnf ? `<span class="pr-chip b">DNF — ${prEsc(me.dnfReason || '')}</span>` : `<span class="pr-chip ${hcol}">Speed health ${me.health ?? '—'}</span>`}</div>
-    <div class="pr-row"><div class="pr-portrait">${prPetImg(me.species)}</div><div class="pr-stats">
+    <div class="pr-row"><div class="pr-portrait">${prPetImg(me.species,me)}</div><div class="pr-stats">
       ${meter('🍖','hunger','feed')}${meter('🎾','fun','play')}${meter('🫧','clean','bath')}
       <div class="pr-stat"><span>⚡</span><div class="pr-bar"><i class="s" style="width:${st}%"></i></div><span class="pr-mono">${st}</span>
         <button class="pr-btn" ${prDis(restWhy)} onclick="prAct('rest')">Rest ${Number(c.restPrice || 1)}🪙</button></div></div></div>
@@ -6677,7 +6774,7 @@ function prStandingsCard(){
     const st = e.dnf ? '<span class="pr-chip b">DNF</span>' : Number(e.evoLegs || 0) > 0 ? `<span class="pr-chip y">✨ ${prEsc(e.form || 'Evolved')}</span>` : e.blocked ? '<span class="pr-chip w">Blocked</span>' : e.lastEvent === 'backfire' ? '<span class="pr-chip b">Spun out</span>'
       : e.lastEvent === 'stumble' ? '<span class="pr-chip w">Stumbled</span>' : (e.lastBoost || 0) >= 12 ? '<span class="pr-chip y">🔥 Boost</span>' : '<span class="pr-chip g">Running</span>';
     const cheer = canCheer && !mine && !e.dnf ? `<button class="pr-btn ghost" style="padding:3px 8px;font-size:11px" ${prDis((e.pendingCheer || 0) >= Number(c.cheerMax || 5) && 'Max cheers this leg')} onclick="prCheer(${e.id},'${prEsc(e.petName)}')">📣 ${Number(c.cheerPrice || 1)}</button>` : '';
-    return `<tr class="${mine ? 'me' : ''}"><td>${e.place || (e.dnf ? '–' : i + 1)}</td><td><b>${prEsc(e.petName)}</b>${e.swerte ? ' 🍀' : ''}<div class="pr-muted" style="font-size:11px">${prEsc(e.playerName)}${e.level ? ` • ${petStageOf(e.level)}` : ''}${prxEvoCfg().on && e.evoMeter !== undefined && !e.dnf ? ` • ⚡${Number(e.evoMeter)}` : ''}</div></td>
+    return `<tr class="${mine ? 'me' : ''}"><td>${e.place || (e.dnf ? '–' : i + 1)}</td><td><b>${prEsc(e.petName)}</b>${petChampTag(e)}${e.swerte ? ' 🍀' : ''}<div class="pr-muted" style="font-size:11px">${prEsc(e.playerName)}${e.level ? ` • ${petStageOf(e.level,e)}` : ''}${prxEvoCfg().on && e.evoMeter !== undefined && !e.dnf ? ` • ⚡${Number(e.evoMeter)}` : ''}</div></td>
       <td class="n">${Number(e.laps).toFixed(2)}</td><td class="n">${e.health ?? '—'}</td><td class="n">${e.walletUsed}/${wc}</td><td>${st}</td><td>${cheer}</td></tr>`;
   }).join('');
   return `<div class="gp-card"><div class="gp-hdr"><h3>📊 Standings</h3><span class="gp-badge">laps • speed health • wallet</span></div>
@@ -6692,7 +6789,7 @@ function prResultsCard(){
   const top = ((lr && lr.entries) || []).filter(e => e.place && e.place <= 3 && !e.dnf).sort((a, b) => a.place - b.place);
   let h = '';
   if(top.length){
-    const pod = p => { const e = top.find(x => x.place === p); return e ? `<div class="pr-pod p${p}"><div class="pr-portrait" style="margin:0 auto">${prPetImg(e.species)}</div><div class="r">${['🥇','🥈','🥉'][p-1]}</div><b>${prEsc(e.petName)}</b><div class="pr-muted" style="font-size:12px">${prEsc(e.playerName)} • ${Number(e.laps).toFixed(2)} laps</div><div style="color:var(--gold);font-weight:700">₱${Number(prizes[p-1] || 0)}</div></div>` : '<div></div>'; };
+    const pod = p => { const e = top.find(x => x.place === p); return e ? `<div class="pr-pod p${p}"><div class="pr-portrait" style="margin:0 auto">${prPetImg(e.species,e)}</div><div class="r">${['🥇','🥈','🥉'][p-1]}</div><b>${prEsc(e.petName)}</b>${petChampTag(e)}<div class="pr-muted" style="font-size:12px">${prEsc(e.playerName)} • ${Number(e.laps).toFixed(2)} laps</div><div style="color:var(--gold);font-weight:700">₱${Number(prizes[p-1] || 0)}</div></div>` : '<div></div>'; };
     h += `<div class="gp-card"><div class="gp-hdr"><h3>🏆 ${s.race.status === 'finished' ? 'Podium' : 'Last race podium'}</h3><button class="pr-btn ghost" onclick="prReplayLast()">▶ Replay Final Stretch</button></div><div class="pr-podium">${pod(2)}${pod(1)}${pod(3)}</div><div id="prLastTrack" style="margin-top:12px"></div></div>`;
   }
   if(s.race.status === 'cancelled'){
@@ -6727,7 +6824,7 @@ function prDrawTrack(force){
     host.innerHTML = `<div class="pr-track" data-key="${key}">${list.map(e => `<div class="pr-lane ${prLane(e.species)} ${currentPlayer && e.playerId === currentPlayer.id ? 'me' : ''}" data-id="${e.id}">
       <span class="tag">${prEsc(e.petName)} • ${prEsc(e.playerName)}</span><div class="pr-finish"></div>
       ${ob ? `<span class="pr-ob" style="left:${x(ob.lap)}%">${{grass:'🪨', sky:'🌩️', water:'🕸️'}[prLane(e.species)]}</span>` : ''}
-      <div class="pr-runner st-${petStageOf(e.level).toLowerCase()}" style="left:${x(_prPrevL[e.id] ?? e.laps)}%" data-l="${e.laps}"><span class="fx">🔥</span>${prPetImg(e.species)}</div></div>`).join('')}</div>`;
+      <div class="pr-runner st-${petStageOf(e.level,e).toLowerCase()}" style="left:${x(_prPrevL[e.id] ?? e.laps)}%" data-l="${e.laps}"><span class="fx">🔥</span>${prPetImg(e.species,e)}</div></div>`).join('')}</div>`;
     tr = host.querySelector('.pr-track');
   }
   void tr.offsetWidth;
@@ -6754,7 +6851,7 @@ function prReplayLast(auto){
   const start = e => { const r = rows.find(z => z.entryId === e.id); return r ? Number(r.lapsAfter) - Number(r.gain) : Number(e.laps); };
   host.innerHTML = `<div class="pr-track">${list.map(e => `<div class="pr-lane ${prLane(e.species)} ${currentPlayer && e.playerId === currentPlayer.id ? 'me' : ''}" data-id="${e.id}">
     <span class="tag">${e.place || ''}. ${prEsc(e.petName)} • ${prEsc(e.playerName)}</span><div class="pr-finish"></div>
-    <div class="pr-runner ${e.dnf ? 'dnf' : ''}" style="transition:none;left:${x(start(e))}%">${prPetImg(e.species)}</div></div>`).join('')}</div>`;
+    <div class="pr-runner ${e.dnf ? 'dnf' : ''}" style="transition:none;left:${x(start(e))}%">${prPetImg(e.species,e)}</div></div>`).join('')}</div>`;
   const tr = host.querySelector('.pr-track'), win = list.find(e => e.place === 1);
   const ov = document.createElement('div'); ov.className = 'pr-overlay'; ov.textContent = 'FINAL STRETCH!'; tr.appendChild(ov);
   setTimeout(() => {
@@ -6990,7 +7087,8 @@ function applyGamesConfig(cfg){
     if(typeof _rpsNew !== 'undefined' && !RPS_STAKES.includes(_rpsNew.stake)) _rpsNew.stake = RPS_STAKES[0];
   }
   if(pe.eggPrice !== undefined){ PET_EGG_PRICE = pe.eggPrice; PET_CARE_PRICE = pe.carePrice; PET_RENAME_PRICE = pe.renamePrice;
-    PET_FIRST_FREE = pe.firstRenameFree !== false; PET_MAX = pe.maxPets; }
+    PET_FIRST_FREE = pe.firstRenameFree !== false; PET_MAX = pe.maxPets;
+    if(pe.evolvePrice !== undefined) PET_EVOLVE_PRICE = pe.evolvePrice; if(pe.adultDropCap) PET_ADULT_DROP_CAP = pe.adultDropCap; if(pe.babyDropCap) PET_BABY_DROP_CAP = pe.babyDropCap; }
   if(sh.items){
     const apply = (list, cat) => (list || []).forEach(it => { const s = sh.items[cat] && sh.items[cat][it.id]; if(s){ it.price = s.price; it.off = s.on === false; } });
     apply(MARKER_THEMES, 'markerTheme'); apply(CARD_SKINS, 'cardSkin'); apply(TITLES_CATALOG, 'title');
@@ -7206,7 +7304,7 @@ function prxClashCard(){
         <button class="pr-btn" style="width:100%;margin-top:10px" ${prDis(!ready && 'Pick all 3 rounds')} onclick="prxLock(${x.id})">⚔️ Lock picks</button>`;
     }
     return `<div class="gp-card prx-clash"><div class="gp-hdr"><h3>⚔️ PET CLASH!</h3><span class="pr-chip w">ends in <b class="pr-mono" data-pr-cd="${x.expiresAt}">${prFmtDur(x.expiresAt - prNow())}</b></span></div>
-      <div class="prx-vs"><div>${prPetImg(me.species)}<b>${prEsc(me.petName)}</b><small>You</small></div><span>VS</span><div>${prPetImg(op.species)}<b>${prEsc(op.petName)}</b><small>${prEsc(op.playerName)} ${op.picked ? '• picked ✅' : '• picking…'}</small></div></div>
+      <div class="prx-vs"><div>${prPetImg(me.species,me)}<b>${prEsc(me.petName)}</b><small>You</small></div><span>VS</span><div>${prPetImg(op.species,op)}<b>${prEsc(op.petName)}</b><small>${prEsc(op.playerName)} ${op.picked ? '• picked ✅' : '• picking…'}</small></div></div>
       <div class="pr-muted" style="font-size:12px;margin:6px 0 8px">Best of 3. Winner +${Number(C.win || 0)} 🪙 • tie +${Number(C.tie || 0)} each • no tokens lost. Kung ikaw lang ang pumili, panalo ka.</div>
       ${body}</div>`;
   }).join('');
@@ -7365,11 +7463,169 @@ async function praxTest(){
 
 </script>
 <script>
+// ── R12: Adult pet trades (swap only) + 🏆 champion wins + admin "Every player's pets" ──
+let _trd = null, _trdBusy = false, _trdAt = 0;
+function petWins(o){ const p = o && (o.winRaces ? o : petFindOwned(o)); return p && Array.isArray(p.winRaces) ? p.winRaces.length : 0; }
+function petChampTag(o){ const n = petWins(o); return n ? ` <span class="pet-champ" title="Won ${n} race${n > 1 ? 's' : ''}">🏆${n}</span>` : ''; }
+async function trdCall(petAction, a, b, c){
+  const pid = currentPlayer ? currentPlayer.id : '_admin';
+  const r = await fetch(GAMES_URL, { method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ action:'pet', petAction, playerId: pid, playerName: currentPlayer ? currentPlayer.name : 'Admin', petId: a || '', species: b || '', name: c || '' }) });
+  return await r.json();
+}
+function trdPetLabel(p, owner){ const sp = petSpecies(p.species); return `${sp[2]} ${p.name} (Lv ${p.level || 1})${petWins(p) ? ' 🏆' + petWins(p) : ''}${owner ? ' — ' + owner : ''}`; }
+function trdPetMini(sp, name, wins){ const s = petSpecies(sp); return `<span class="trd-pet">${petAdultImg(sp, s[1])}<b>${escapeHtml(name || s[1])}</b>${wins ? ` <span class="pet-champ">🏆${wins}</span>` : ''}</span>`; }
+function trdFindPet(owner, id){ return ((DB.pets || {})[owner] || []).find(x => x && x.id === id) || null; }
+async function trdLoad(force){
+  if(!currentPlayer) return;
+  if(!force && _trd && Date.now() - _trdAt < 60000) return trdRender();
+  try { const j = await trdCall('trade_list'); if(j.ok){ _trd = j; _trdAt = Date.now(); } } catch(e){}
+  trdRender();
+}
+function trdRender(){
+  const el = document.getElementById('petTradeContent'); if(!el || !currentPlayer) return;
+  const pnl = document.getElementById('petTradePanel'); if(pnl) pnl.style.display = 'block';
+  if(!_trd){ el.innerHTML = '<div class="pr-muted">Loading trades…</div>'; return; }
+  const me = currentPlayer.id, racing = new Set(_trd.racing || []), fee = _trd.feeEach || 10;
+  const ok = p => p && p.status === 'alive' && p.evolved && !racing.has(p.id);
+  const mine = ((DB.pets || {})[me] || []).filter(ok);
+  const theirs = []; (DB.players || []).filter(p => p.id !== me && p.active !== false).forEach(pl => ((DB.pets || {})[pl.id] || []).filter(ok).forEach(p => theirs.push([pl, p])));
+  const sel1 = document.getElementById('trdMine'), sel2 = document.getElementById('trdTheirs');
+  const v1 = sel1 ? sel1.value : '', v2 = sel2 ? sel2.value : '';
+  let h = `<div class="trd-rules">🔁 Swap one 👑 Adult pet for another player's 👑 Adult pet. Fee <b>${fee} 🪙 each</b> (${fee * 2} total to admin) • <b>1 trade per month</b> • pets in a race can't be traded • offers expire in 48h.</div>`;
+  (_trd.incoming || []).forEach(t => { h += `<div class="trd-offer in"><div><b>${escapeHtml(t.from_name)}</b> offers ${trdPetMini(t.from_species, t.from_pet_name, petWins(trdFindPet(t.from_player, t.from_pet)))} for your ${trdPetMini(t.to_species, t.to_pet_name, petWins(trdFindPet(me, t.to_pet)))}</div>
+    <div class="trd-btns"><button class="btn btn-gold btn-sm" ${_trdBusy ? 'disabled' : ''} onclick="trdAct('trade_accept',${t.id})">✅ Accept — ${fee} 🪙</button><button class="btn btn-outline btn-sm" ${_trdBusy ? 'disabled' : ''} onclick="trdAct('trade_decline',${t.id})">✖ Decline</button></div></div>`; });
+  (_trd.outgoing || []).forEach(t => { h += `<div class="trd-offer out"><div>⏳ Waiting for <b>${escapeHtml(t.to_name)}</b>: your ${trdPetMini(t.from_species, t.from_pet_name)} ⇄ their ${trdPetMini(t.to_species, t.to_pet_name)}</div>
+    <div class="trd-btns"><button class="btn btn-outline btn-sm" ${_trdBusy ? 'disabled' : ''} onclick="trdAct('trade_cancel',${t.id})">Cancel offer</button></div></div>`; });
+  if(_trd.tradedThisMonth) h += `<div class="pr-muted" style="margin:8px 0">✅ You already traded this month. Next trade on the 1st.</div>`;
+  else if((_trd.outgoing || []).length) {}
+  else if(!mine.length) h += `<div class="pr-muted" style="margin:8px 0">Evolve a pet to 👑 Adult to trade it.${((DB.pets || {})[me] || []).some(p => p.evolved && racing.has(p.id)) ? ' (Your Adult is in a race right now.)' : ''}</div>`;
+  else if(!theirs.length) h += `<div class="pr-muted" style="margin:8px 0">No other player has a tradable 👑 Adult pet yet.</div>`;
+  else h += `<div class="trd-new"><select id="trdMine">${mine.map(p => `<option value="${p.id}" ${p.id === v1 ? 'selected' : ''}>Give: ${escapeHtml(trdPetLabel(p))}</option>`).join('')}</select>
+    <span class="trd-x">⇄</span><select id="trdTheirs">${theirs.map(([pl, p]) => `<option value="${pl.id}|${p.id}" ${pl.id + '|' + p.id === v2 ? 'selected' : ''}>Get: ${escapeHtml(trdPetLabel(p, pl.name))}</option>`).join('')}</select>
+    <button class="btn btn-teal btn-sm" ${_trdBusy ? 'disabled' : ''} onclick="trdOffer()">📨 Send offer</button></div>`;
+  if((_trd.recent || []).length) h += `<div class="trd-recent"><div class="pr-muted" style="font-size:11px;margin:10px 0 4px">Recent trades</div>${_trd.recent.map(t => `<div>🔁 ${escapeHtml(t.from_name)}'s ${escapeHtml(t.from_pet_name)} ⇄ ${escapeHtml(t.to_name)}'s ${escapeHtml(t.to_pet_name)} <span class="pr-muted">· ${new Date(t.resolved_at).toLocaleDateString()}</span></div>`).join('')}</div>`;
+  el.innerHTML = h;
+}
+async function trdOffer(){
+  const a = (document.getElementById('trdMine') || {}).value, bc = ((document.getElementById('trdTheirs') || {}).value || '').split('|');
+  if(!a || bc.length < 2) return;
+  const p1 = trdFindPet(currentPlayer.id, a), p2 = trdFindPet(bc[0], bc[1]), who = (DB.players || []).find(p => p.id === bc[0]);
+  if(!confirm(`Offer a swap?\n\nYou give: ${p1 ? p1.name : a}\nYou get: ${p2 ? p2.name : ''} from ${who ? who.name : ''}\n\nIf they accept, you each pay ${(_trd && _trd.feeEach) || 10} tokens and you can't trade again this month.`)) return;
+  await trdAct('trade_offer', a, bc[0], bc[1]);
+}
+async function trdAct(action, a, b, c){
+  if(_trdBusy) return;
+  if(action === 'trade_accept' && !confirm(`Accept this swap? You pay ${(_trd && _trd.feeEach) || 10} tokens and it uses your 1 trade this month. Pets don't come back unless you trade again next month.`)) return;
+  _trdBusy = true; trdRender();
+  try {
+    const j = await trdCall(action, String(a), b, c);
+    if(!j.ok) alert(j.error || 'Trade failed.');
+    else {
+      if(j.pets){ DB.pets[currentPlayer.id] = j.pets; }
+      if(j.tokens !== null && j.tokens !== undefined) _myTokenBalance = j.tokens;
+      const msg = { trade_offered:'📨 Trade offer sent!', trade_cancelled:'Offer cancelled.', trade_declined:'Offer declined.', trade_done:`🔁 Trade done! Welcome home, ${j.got ? j.got.name : 'your new pet'}!` }[j.event];
+      if(msg) playerLog(msg, 'ok');
+      if(j.event === 'trade_done'){ if(typeof refreshTokenBalance === 'function') refreshTokenBalance(); if(j.got) petModal(j.got, '🔁 New home!', `Hi ${String(currentPlayer.name || '').split(' ')[0]}! Ako na ang bago mong kasama. Alagaan mo ako ha, babawi ako sa daily drops! 💛`, 'Adult ' + petSpecies(j.got.species)[1]); }
+    }
+  } catch(e){ alert('Network error — try again.'); }
+  _trdBusy = false; _trdAt = 0; await trdLoad(true); renderBingoPetsPanel();
+}
+
+// ── Admin: every player's pets ──
+let _apSort = 'name';
+async function adminPetsRender(){
+  const root = document.getElementById('adminAllPets'); if(!root) return;
+  let racing = new Set(), recent = [];
+  try { const r = await fetch(GAMES_URL, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ action:'pet', petAction:'trade_list', playerId:'_admin' }) });
+        const j = await r.json(); if(j.ok){ racing = new Set(j.racing || []); recent = j.recent || []; } } catch(e){}
+  const q = ((document.getElementById('apSearch') || {}).value || '').toLowerCase();
+  const players = (DB.players || []).slice().sort((a, b) => String(a.name).localeCompare(String(b.name)));
+  const drop = p => p.status !== 'alive' ? 0 : Math.min(Number(p.level || 0), p.evolved ? PET_ADULT_DROP_CAP : PET_BABY_DROP_CAP);
+  let tot = { pets:0, adults:0, drop:0 }; const none = [];
+  const rows = players.map(pl => {
+    const pets = ((DB.pets || {})[pl.id] || []).filter(p => p && p.status !== 'dead');
+    if(q && !String(pl.name).toLowerCase().includes(q) && !pets.some(p => String(p.name).toLowerCase().includes(q) || p.species.includes(q))) return '';
+    if(!pets.length && !q){ none.push(pl.name); return ''; }
+    const d = pets.reduce((s, p) => s + drop(p), 0); tot.pets += pets.length; tot.adults += pets.filter(p => p.evolved).length; tot.drop += d;
+    const cards = pets.length ? pets.map(p => {
+      const sp = petSpecies(p.species), egg = p.status === 'egg', adult = petIsAdult(p);
+      const img = egg ? `<img src="${COSMETICS_BACKEND_URL}/pets/egg.gif" alt="egg">` : adult ? petAdultImg(p.species, sp[1]) : `<img src="${petBabySrc(p.species)}" alt="${sp[1]}" onerror="this.replaceWith(document.createTextNode('${sp[2]}'))">`;
+      const tags = [egg ? '🥚 Egg' : adult ? '👑 Adult' : '🐣 Baby', racing.has(p.id) ? '🏁 Racing' : '', p.tradeCount ? '🔁 Traded' : ''].filter(Boolean).join(' · ');
+      return `<div class="ap-pet ${adult ? 'adult' : ''}"><div class="ap-img">${img}</div><div class="ap-nm">${escapeHtml(p.name || sp[1])}${petChampTag(p)}</div>
+        <div class="ap-sub">${sp[1]}${egg ? ` · ${Math.min(3, p.hatchCareCount || 0)}/3` : ` · Lv ${p.level || 1}`} · ${petHealth(p)}</div><div class="ap-sub">${tags}${!egg ? ` · ${drop(p)} 🪙/day` : ''}</div></div>`;
+    }).join('') : '<div class="pr-muted" style="font-size:12px">No pets</div>';
+    return `<div class="ap-row"><div class="ap-who"><b>${escapeHtml(pl.name)}</b><small>${pets.length} pet${pets.length === 1 ? '' : 's'} · ${d} 🪙/day</small></div><div class="ap-pets">${cards}</div></div>`;
+  }).join('');
+  root.innerHTML = `<div class="ap-tot">${tot.pets} pets · ${tot.adults} 👑 Adults · ${tot.drop} 🪙 daily drop total</div>` + (rows || '<div class="empty-state">No match.</div>') +
+    (none.length ? `<div class="pr-muted" style="font-size:12px;margin-top:8px">No pets yet (${none.length}): ${none.map(escapeHtml).join(', ')}</div>` : '') +
+    (recent.length ? `<div class="pr-muted" style="font-size:12px;margin-top:10px">Recent trades: ${recent.map(t => `${escapeHtml(t.from_name)}'s ${escapeHtml(t.from_pet_name)} ⇄ ${escapeHtml(t.to_name)}'s ${escapeHtml(t.to_pet_name)}`).join(' • ')}</div>` : '');
+}
+
+// ── R10/R11: Egg → Baby → Adult (player chooses to evolve at Lv 15 for 50 tokens; permanent; weekly letter) ──
+const PET_ADULT_LEVEL = 15;
+let PET_EVOLVE_PRICE = 50, PET_ADULT_DROP_CAP = 20, PET_BABY_DROP_CAP = 10;
+function petEvolveConfirm(id){
+  const p = ((DB.pets || {})[currentPlayer && currentPlayer.id] || []).find(x => x.id === id); if(!p) return;
+  if(!confirm(`Evolve ${p.name} to Adult for ${PET_EVOLVE_PRICE} tokens?\n\n• Daily drops go up to ${PET_ADULT_DROP_CAP} tokens (Lv ${PET_ADULT_LEVEL} = ${PET_ADULT_LEVEL}/day)\n• Weekly love letter from your pet\n\nThis is permanent — no going back to Baby.`)) return;
+  petAction('evolve', id);
+}
+function petModal(pet, title, text, sub){
+  const old = document.getElementById('petModal'); if(old) old.remove();
+  const sp = petSpecies(pet.species);
+  const d = document.createElement('div'); d.id = 'petModal'; d.className = 'pet-modal-bg';
+  d.innerHTML = `<div class="pet-modal"><div class="pet-modal-art">${petAdultImg(pet.species, 'Adult ' + sp[1])}</div>
+    <div class="pet-modal-title">${title}</div><div class="pet-modal-text">“${escapeHtml(text)}”</div>
+    <div class="pet-modal-sub">— ${escapeHtml(pet.name || sp[1])} ${sp[2]}${sub ? ' · ' + sub : ''}</div>
+    <button class="btn btn-gold" onclick="document.getElementById('petModal').remove()">💛 Aww, salamat!</button></div>`;
+  d.addEventListener('click', ev => { if(ev.target === d) d.remove(); });
+  document.body.appendChild(d);
+}
+function petShowLetter(id){
+  const p = ((DB.pets || {})[currentPlayer && currentPlayer.id] || []).find(x => x.id === id);
+  if(p && p.letter && p.letter.text) petModal(p, '💌 Weekly Love Letter', p.letter.text, new Date(p.letter.at).toLocaleDateString());
+}
+function petLetterCheck(){
+  if(!currentPlayer || document.getElementById('petModal')) return;
+  const key = 'smbPetLetterSeen_' + currentPlayer.id; let seen = {};
+  try { seen = JSON.parse(localStorage.getItem(key) || '{}'); } catch(e){}
+  const p = ((DB.pets || {})[currentPlayer.id] || []).find(x => x && x.evolved && x.letter && x.letter.at && seen[x.id] !== x.letter.at && Date.now() - x.letter.at < 7 * 864e5);
+  if(!p) return;
+  seen[p.id] = p.letter.at; try { localStorage.setItem(key, JSON.stringify(seen)); } catch(e){}
+  petModal(p, '💌 Weekly Love Letter', p.letter.text, 'this week');
+}
+function petAdultSrc(sp){ return `adult_${encodeURIComponent(sp)}.gif`; }
+function petBabySrc(sp){ return 'baby_' + encodeURIComponent(sp) + '.gif'; }
+function petAdultImg(sp, alt){ return `<img src="${petAdultSrc(sp)}" alt="${alt || ''}" onerror="this.onerror=null;this.src='${petBabySrc(encodeURIComponent(sp))}'">`; }
+function petFindOwned(o){
+  if(!o) return null;
+  const owner = o.playerId || (typeof currentPlayer !== 'undefined' && currentPlayer && currentPlayer.id);
+  const list = ((typeof DB !== 'undefined' && DB && DB.pets) || {})[owner] || [];
+  const id = o.petId || o.id;
+  return list.find(x => x && x.id === id) || list.find(x => x && x.species === o.species && x.name === (o.petName || o.name)) || null;
+}
+function petIsAdult(o){
+  if(!o || Number(o.level || 1) < PET_ADULT_LEVEL) return false;
+  if(o.evolved !== undefined) return !!o.evolved;
+  const p = petFindOwned(o); return !!(p && p.evolved);
+}
+function petEvolveRow(pet){
+  if(!pet || pet.status !== 'alive') return '';
+  const lvl = Number(pet.level || 1);
+  if(pet.evolved){
+    const L = pet.letter && pet.letter.text ? `<div class="pet-letter" onclick="petShowLetter('${pet.id}')">💌 “${escapeHtml(pet.letter.text.length > 70 ? pet.letter.text.slice(0, 68) + '…' : pet.letter.text)}”</div>` : '';
+    return `<div class="pet-evo-perk">👑 Adult · drops up to ${PET_ADULT_DROP_CAP} 🪙/day · 💌 weekly letter</div>${L}`;
+  }
+  if(lvl < PET_ADULT_LEVEL) return `<div class="pet-evo-hint">👑 Adult form at Lv ${PET_ADULT_LEVEL} (${lvl}/${PET_ADULT_LEVEL})</div>`;
+  const poor = Number(_myTokenBalance || 0) < PET_EVOLVE_PRICE;
+  return `<button class="btn btn-gold pet-evo-btn" ${_petBusy || poor ? 'disabled' : ''} onclick="petEvolveConfirm('${pet.id}')">👑 Evolve to Adult — ${PET_EVOLVE_PRICE} 🪙</button><div class="pet-evo-hint">${poor ? `Need ${PET_EVOLVE_PRICE} tokens. ` : ''}Adults drop up to ${PET_ADULT_DROP_CAP} 🪙/day (Baby max ${PET_BABY_DROP_CAP}) + send a weekly 💌 letter. Permanent.</div>`;
+}
+
 // ═════ R7: RACE EVOLUTION (temporary, race-only) + Kwintas + pet growth stages. Server owns every rule. ═════
 function prxEvoCfg(){ return ((_pr && _pr.settings) || {}).evolve || {}; }
-function petStageOf(level){ const l = Number(level || 1); return l >= 10 ? 'Adult' : l >= 5 ? 'Teen' : 'Baby'; }
+function petStageOf(level, o){ return Number(level || 1) >= PET_ADULT_LEVEL && petIsAdult(o) ? 'Adult' : 'Baby'; }
 const PET_STAGE_ICON = {Baby:'🐣', Teen:'🌱', Adult:'👑'};
-function petStageBadge(level){ const s = petStageOf(level); return `<span class="stg-badge stg-${s.toLowerCase()}">${PET_STAGE_ICON[s]} ${s}</span>`; }
+function petStageBadge(level, o){ const s = petStageOf(level, o); return `<span class="stg-badge stg-${s.toLowerCase()}">${PET_STAGE_ICON[s]} ${s}</span>`; }
 
 function prxEvoCard(me){
   const E = prxEvoCfg();
@@ -7380,7 +7636,7 @@ function prxEvoCard(me){
   const why = !prCanPlay() ? 'Locked' : !run ? 'Race not running' : me.dnf ? 'DNF' : legsLeft > 0 ? 'Evolved na!' : meter < 100 ? `${meter}/100` : usedToday ? 'Bukas ulit' : '';
   let top;
   if(legsLeft > 0){
-    top = `<div class="evo-live"><div class="pr-portrait evo-glow">${prPetImg(me.species)}</div><div><b class="evo-form">✨ ${prEsc(form)}</b>
+    top = `<div class="evo-live"><div class="pr-portrait evo-glow">${prPetImg(me.species,me)}</div><div><b class="evo-form">✨ ${prEsc(form)}</b>
       <div class="pr-muted" style="font-size:12px">${legsLeft} evolved leg${legsLeft === 1 ? '' : 's'} left • +${Number(E.pct || 0)}% speed${E.noStumble !== false ? ' • no stumbles' : ''}${my.evoJump ? ' • 🦘 obstacle jump ready' : ''}</div></div></div>`;
   } else {
     top = `<div class="pr-hl" style="display:block"><div style="display:flex;justify-content:space-between;align-items:center"><span>⚡ Evolve meter</span><b class="pr-mono">${meter}/100</b></div>
@@ -7526,6 +7782,63 @@ function blAck(){
   try { if(_blShowing) localStorage.setItem(blSeenKey(), String(_blShowing)); } catch(e){}
   document.getElementById('blessOverlay').classList.remove('show');
   if(typeof refreshTokenBalance === 'function') refreshTokenBalance();
+}
+
+</script>
+<script>
+// ═════ R10: PET EVOLUTION CHART (admin Pets tab). Display only — no tokens, no server writes. ═════
+// Stages: Egg (hatch after 3 care) → Baby (Lv 1–14) → Adult (Lv 15+) → Race Form (temporary, race only).
+// Adult art = adult_<species>.gif in the repo root. Missing file → "Art pending" box. Race Form = the pet's current look + glow.
+const EVO_ADULT_ART = sp => petAdultSrc(sp);
+const EVO_FORMS_DEFAULT = {dog:'Super Askal',cat:'Pusang Gala Prime',parrot:'Agila ng Pilipinas',arowana:'Golden Dragon Arowana',goldfish:'Koi King',rabbit:'Kuneho Flash',chicken:'Manok Panabong',goat:'Kambing Beast Mode',cow:'Kalabaw Turbo',hamster:'Hamster Wheel God',turtle:'Pawikan Ninja',snake:'Sawa Supreme',spider:'Gagambang Panlaban',frog:'Palakang Ninja',gecko:'Tuko Tokay'};
+let _evoForms = null, _evoBust = '';
+function evoEsc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+async function evoLoadForms(){
+  const local = ((typeof _prAdmin !== 'undefined' && _prAdmin && _prAdmin.settings) || (typeof _pr !== 'undefined' && _pr && _pr.settings) || {}).evolve;
+  if(local && local.forms) return local.forms;
+  try { const r = await fetch(PR_URL + '?playerId=_evochart'); const j = await r.json(); const f = j && j.settings && j.settings.evolve && j.settings.evolve.forms; if(f) return f; } catch(e) {}
+  return EVO_FORMS_DEFAULT;
+}
+function evoCounts(){
+  const out = {}; const all = (typeof DB !== 'undefined' && DB && DB.pets) || {};
+  Object.values(all).forEach(list => (Array.isArray(list) ? list : [list]).forEach(p => {
+    if(!p || !p.species || p.status === 'dead') return;
+    const c = out[p.species] = out[p.species] || {egg:0, baby:0, adult:0, ready:0};
+    if(p.status === 'egg') c.egg++; else if(petIsAdult(p)) c.adult++; else { c.baby++; if(Number(p.level || 1) >= PET_ADULT_LEVEL) c.ready++; }
+  }));
+  return out;
+}
+function evoAdultLoaded(img){ const card = img.closest('.evo-card'); if(!card) return; const chip = card.querySelector('.evo-chip'); if(chip){ chip.className = 'evo-chip ok'; chip.textContent = '✅ Adult art'; } }
+function evoAdultMissing(img, sp){
+  const em = petSpecies(sp)[2];
+  img.outerHTML = `<div class="evo-miss">${em}<small>ART PENDING</small></div>`;
+}
+function evoRaceMissing(img, sp){ img.onerror = null; img.src = `${petBabySrc(encodeURIComponent(sp))}`; }
+async function evoChartRender(reload){
+  const root = document.getElementById('evoChart'); if(!root) return;
+  if(reload || !_evoBust) _evoBust = String(Date.now());
+  if(!_evoForms || reload) _evoForms = await evoLoadForms();
+  const cnt = evoCounts(), E = (((typeof _prAdmin !== 'undefined' && _prAdmin && _prAdmin.settings) || {}).evolve) || {};
+  const legs = Number(E.legs || 2);
+  const lg = document.getElementById('evoLegend');
+  if(lg) lg.innerHTML = `<span>🥚 <b>Egg</b> hatches after 3 care</span><span>🐣 <b>Baby</b> Lv 1–${PET_ADULT_LEVEL - 1}</span><span>👑 <b>Adult</b> from Lv ${PET_ADULT_LEVEL} (${(PET_ADULT_LEVEL - 1) * 10} care), player pays ${PET_EVOLVE_PRICE} 🪙 to Evolve (permanent) or keeps the Baby. Adults drop up to ${PET_ADULT_DROP_CAP} 🪙/day, Babies ${PET_BABY_DROP_CAP}</span><span style="color:#f5a3c7">✨ <b>Race Form</b> full ⚡ meter in a race, lasts ${legs} legs</span><span>Looks only. Level never changes race speed.</span>`;
+  const st = (cls, pic, lbl, sub) => `<div class="evo-st ${cls}"><div class="evo-pic">${pic}</div><div class="evo-lbl">${lbl}</div><div class="evo-sub">${sub}</div></div>`;
+  root.innerHTML = PET_SPECIES.map(([sp, name, em]) => {
+    const c = cnt[sp] || {egg:0, baby:0, adult:0, ready:0}, form = (_evoForms || {})[sp] || EVO_FORMS_DEFAULT[sp] || 'Race Form';
+    const adultSrc = `${EVO_ADULT_ART(sp)}?v=${_evoBust}`, babySrc = `${petBabySrc(encodeURIComponent(sp))}`;
+    const owned = c.egg + c.baby + c.adult;
+    return `<div class="evo-card" data-sp="${sp}">
+      <div class="evo-head"><div><h4>${em} ${evoEsc(name)}</h4><small>${owned ? `${owned} owned: ${c.egg} egg • ${c.baby} baby${c.ready ? ` (${c.ready} can evolve)` : ''} • ${c.adult} adult` : 'Nobody owns one yet'}</small></div><span class="evo-chip wait">⏳ Adult art</span></div>
+      <div class="evo-row">
+        ${st('egg', `<img src="${COSMETICS_BACKEND_URL}/pets/egg.gif" alt="Egg" loading="lazy" onerror="this.replaceWith(document.createTextNode('🥚'))">`, '🥚 Egg', '3 care')}
+        <span class="evo-arrow">›</span>
+        ${st('baby', `<img src="${babySrc}" alt="Baby ${evoEsc(name)}" loading="lazy" onerror="this.replaceWith(document.createTextNode('${em}'))">`, '🐣 Baby', `Lv 1–${PET_ADULT_LEVEL - 1}`)}
+        <span class="evo-arrow">›</span>
+        ${st('adult', `<img src="${adultSrc}" alt="Adult ${evoEsc(name)}" loading="lazy" onload="evoAdultLoaded(this)" onerror="evoAdultMissing(this,'${sp}')">`, '👑 Adult', `Lv ${PET_ADULT_LEVEL}+, if chosen`)}
+        <span class="evo-arrow zap">⚡</span>
+        ${st('race', `<img src="${adultSrc}" alt="${evoEsc(form)}" loading="lazy" onerror="evoRaceMissing(this,'${sp}')">`, '✨ Race Form', evoEsc(form))}
+      </div></div>`;
+  }).join('');
 }
 
 </script>
