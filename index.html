@@ -581,6 +581,39 @@ body::before{display:none}
 .pra-msg{font-size:12.5px}
 
 </style>
+<style>
+/* R9: BINGO subtabs + Ganzo's Blessings */
+.sub-row{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap}
+.sub-row button{background:transparent;border:1px solid var(--line);color:var(--muted);border-radius:99px;padding:8px 16px;font-weight:700;font-size:13px;cursor:pointer}
+.sub-row button.on{background:var(--gold);color:#151515;border-color:var(--gold)}
+.bl-grid{display:grid;grid-template-columns:1.25fr 1fr;gap:18px}
+.bl-two{display:grid;grid-template-columns:170px 1fr;gap:12px;margin-top:14px}
+.bl-hint{display:block;color:var(--muted);font-size:11px;margin-top:-8px;margin-bottom:8px}
+.ms{border:1px solid var(--line);border-radius:12px;background:rgba(0,0,0,.18);padding:10px}
+.ms-top{display:flex;gap:6px;align-items:center;margin-bottom:8px;flex-wrap:wrap}
+.ms-top input{flex:1;min-width:140px;margin:0!important}
+.ms-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:4px 8px;max-height:220px;overflow-y:auto;font-size:13px}
+.ms-list label{display:flex;gap:7px;align-items:center;padding:5px 6px;border-radius:7px;color:var(--white);font-weight:500;margin:0;cursor:pointer;text-transform:none;letter-spacing:0;font-size:13px}
+.ms-list label.on{background:rgba(227,166,62,.14)}
+.ms-list .ck{width:15px;height:15px;flex:none;border-radius:4px;border:1.5px solid var(--muted);display:inline-flex;align-items:center;justify-content:center;font-size:10px;color:#151515}
+.ms-list label.on .ck{background:var(--gold);border-color:var(--gold)}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.chips span{background:rgba(227,166,62,.16);color:var(--gold);border-radius:99px;padding:3px 10px;font-size:12px;font-weight:700;cursor:pointer}
+.slackp{background:#1a1d21;border:1px solid #333;border-radius:10px;padding:12px;font-size:13px;line-height:1.5;color:#d1d2d3;word-break:break-word}
+.slackp b{color:#fff}.slackp .m{color:#1d9bd1;background:rgba(29,155,209,.12);padding:0 3px;border-radius:3px}
+.slackp .q{border-left:3px solid #555;padding-left:8px;margin-top:4px;display:block}
+.sumrow{display:flex;justify-content:space-between;font-size:13px;padding:6px 0;border-bottom:1px solid var(--line)}
+table.blh{width:100%;border-collapse:collapse;font-size:12.5px}
+table.blh td,table.blh th{padding:7px 6px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+table.blh th{color:var(--muted);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.06em}
+.ppop{background:linear-gradient(160deg,#2a2140,#151824)!important;border:1px solid var(--gold)!important;border-radius:16px;text-align:center;max-width:340px}
+.ppop .big{font-size:32px;font-weight:800;color:var(--gold);margin-top:6px}
+.ppop .bmsg{font-size:14px;margin:8px 0;color:var(--white)}
+.ppop .bsub{font-size:11px;color:var(--muted)}
+.ppop .bsep{border-top:1px solid var(--line);margin:10px 0}
+@media(max-width:860px){.bl-grid,.bl-two{grid-template-columns:1fr}}
+
+</style>
 </head>
 <body>
 
@@ -649,23 +682,21 @@ body::before{display:none}
     </div>
 
     <div class="tab-bar">
-      <div class="adm-grp">Overview</div>
-      <button class="tab-btn" data-tab="dashboard" onclick="switchAdminTab('dashboard')">📊 Live Dashboard</button>
       <div class="adm-grp">BINGO</div>
-      <button class="tab-btn" data-tab="game" onclick="switchAdminTab('game')">🎱 Game Control</button>
+      <button class="tab-btn" data-tab="game" onclick="switchAdminTab('game')">🎱 BINGO Game</button>
       <div class="adm-grp">Games</div>
       <button class="tab-btn" data-tab="petrace" onclick="switchAdminTab('petrace')">🏁 Pet Race <span class="adm-chip">NEW</span></button>
       <button class="tab-btn" data-tab="spin" onclick="switchAdminTab('spin')">🎡 Spin the Wheel</button>
       <button class="tab-btn" data-tab="highlow" onclick="switchAdminTab('highlow')">📈 Higher or Lower</button>
       <button class="tab-btn" data-tab="rps" onclick="switchAdminTab('rps')">✊ RPS Duel</button>
       <div class="adm-grp">Economy</div>
+      <button class="tab-btn" data-tab="blessings" onclick="switchAdminTab('blessings')">🙏 Ganzo's Blessings <span class="adm-chip">NEW</span></button>
       <button class="tab-btn" data-tab="pets" onclick="switchAdminTab('pets')">🐾 Pets</button>
       <button class="tab-btn" data-tab="shop" onclick="switchAdminTab('shop')">🛒 Shop & Cosmetics</button>
       <button class="tab-btn" data-tab="history" onclick="switchAdminTab('history')">🪙 Transaction History</button>
       <div class="adm-grp">People</div>
       <button class="tab-btn active" data-tab="roster" onclick="switchAdminTab('roster')">👥 Player Roster</button>
       <div class="adm-grp">System</div>
-      <button class="tab-btn" data-tab="settings" onclick="switchAdminTab('settings')">⚙️ Settings</button>
       <button class="tab-btn" data-tab="topics" onclick="switchAdminTab('topics')">🗓️ Weekly Topics</button>
     </div>
 
@@ -721,6 +752,7 @@ body::before{display:none}
 
     <!-- TAB: GAME -->
     <div class="tab-content" id="tab-game">
+      <div class="sub-row bingo-sub"><button class="on" data-sub="game" onclick="switchAdminTab('game')">🎱 Game Control</button><button class="" data-sub="dashboard" onclick="switchAdminTab('dashboard')">📊 Live Dashboard</button><button class="" data-sub="settings" onclick="switchAdminTab('settings')">⚙️ Settings</button></div>
       <!-- Draw History & Activity Log — pinned to top so timestamps + BINGO claims are visible at a glance -->
       <div class="panel" style="margin-bottom:14px;">
         <div class="panel-title">📜 Draw History &amp; Activity Log</div>
@@ -830,10 +862,11 @@ body::before{display:none}
 
     <!-- TAB: DASHBOARD -->
     <div class="tab-content" id="tab-dashboard">
+      <div class="sub-row bingo-sub"><button class="" data-sub="game" onclick="switchAdminTab('game')">🎱 Game Control</button><button class="on" data-sub="dashboard" onclick="switchAdminTab('dashboard')">📊 Live Dashboard</button><button class="" data-sub="settings" onclick="switchAdminTab('settings')">⚙️ Settings</button></div>
       <div class="panel">
         <div class="panel-title">📊 Live Game Dashboard</div>
         <div id="dashboardContent">
-          <div class="empty-state">No active game. Start a game from the Game Control tab.</div>
+          <div class="empty-state">No active game. Start a game from the Game Control sub-tab.</div>
         </div>
       </div>
       <div class="panel">
@@ -854,6 +887,7 @@ body::before{display:none}
 
     <!-- TAB: SETTINGS -->
     <div class="tab-content" id="tab-settings">
+      <div class="sub-row bingo-sub"><button class="" data-sub="game" onclick="switchAdminTab('game')">🎱 Game Control</button><button class="" data-sub="dashboard" onclick="switchAdminTab('dashboard')">📊 Live Dashboard</button><button class="on" data-sub="settings" onclick="switchAdminTab('settings')">⚙️ Settings</button></div>
 
       <!-- CLOSING MESSAGE PREVIEW -->
       <div class="panel" id="closingMsgPanel">
@@ -944,6 +978,37 @@ body::before{display:none}
         <button class="btn btn-gold btn-sm" style="margin-top:10px;" onclick="saveWeeklyTopics()">Save Week</button>
         <div id="weeklyTopicsSaved" style="color:var(--success);font-size:12px;margin-top:6px;"></div>
         <div id="weeklyTopicsError" style="color:var(--danger);font-size:12px;margin-top:6px;"></div>
+      </div>
+    </div>
+
+<div class="tab-content" id="tab-blessings">
+      <div class="panel">
+        <div class="panel-title">🙏 Ganzo's Blessings</div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:14px">Give tokens to one or more players with a message from the PM. Tokens come from the admin pool, so nobody's balance goes down. Everyone picked gets theirs in one step: either all of them get it or none do.</div>
+        <div class="bl-grid"><div>
+          <label>Players <span style="text-transform:none;letter-spacing:0;font-weight:400">(pick one or more)</span></label>
+          <div class="ms"><div class="ms-top"><input type="text" id="blSearch" placeholder="🔎 Search name…" oninput="blRenderList()" autocomplete="off">
+            <button class="btn btn-outline btn-sm" onclick="blSelectAll(true)">Select all</button><button class="btn btn-outline btn-sm" onclick="blSelectAll(false)">Clear</button><button class="btn btn-outline btn-sm" onclick="blPickRacers()">🏁 Racers</button></div>
+            <div class="ms-list" id="blList"></div></div>
+          <div class="chips" id="blChips"></div>
+          <div class="bl-two">
+            <div><label>Tokens per player</label><input type="number" id="blAmount" min="1" max="500" step="1" value="10" oninput="blUpdate()"><small class="bl-hint">1 to 500</small></div>
+            <div><label>Message from the PM</label><textarea id="blMsg" rows="3" maxlength="200" placeholder="e.g. Salamat sa pag-cover ng extra shift kagabi! 🙏" oninput="blUpdate()"></textarea><small class="bl-hint"><span id="blCount">0</span>/200. Required. Players see it in the portal and Slack.</small></div>
+          </div>
+          <label style="margin-top:4px">Post to Slack</label>
+          <select id="blChannel" onchange="blUpdate()"><option value="bingo">BINGO channel</option><option value="games">Mini Games channel</option><option value="both">Both channels</option><option value="none">Don't post</option></select>
+        </div><div>
+          <div class="panel-title" style="margin-bottom:8px">Summary</div>
+          <div class="sumrow"><span>Players</span><b id="blSumN">0</b></div><div class="sumrow"><span>Tokens each</span><b id="blSumA">0</b></div><div class="sumrow"><span>Total given</span><b id="blSumT" style="color:var(--gold)">0 🪙</b></div>
+          <div class="panel-title" style="margin:16px 0 8px">Slack preview</div>
+          <div class="slackp" id="blPreview"></div>
+          <button class="btn btn-gold" id="blSend" style="width:100%;justify-content:center;margin-top:14px" onclick="blSend()">🙏 Send Blessing</button>
+          <div class="pra-msg" id="blMsgOut" style="margin-top:8px;text-align:center"></div>
+        </div></div>
+      </div>
+      <div class="panel">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px"><div class="panel-title" style="margin-bottom:0">📜 Recent Blessings</div><button class="btn btn-outline btn-sm" onclick="blLoadHistory()">🔄 Refresh</button></div>
+        <div id="blHistory"><div class="empty-state">Loading…</div></div>
       </div>
     </div>
 
@@ -1364,6 +1429,16 @@ body::before{display:none}
       <button class="btn btn-gold" style="flex:1;" onclick="savePinChange()">Save New PIN</button>
       <button class="btn btn-outline" style="flex:1;" onclick="document.getElementById('pinChangeOverlay').classList.remove('show');">Cancel</button>
     </div>
+  </div>
+</div>
+
+<!-- ════════════════════ GANZO'S BLESSING POPUP (R9) ════════════════════ -->
+<div class="overlay" id="blessOverlay">
+  <div class="modal ppop">
+    <div style="font-size:40px">🙏</div>
+    <div style="font-weight:800;letter-spacing:.08em;color:var(--teal);font-size:12px">GANZO'S BLESSING</div>
+    <div id="blessPopBody"></div>
+    <button class="btn btn-gold" style="margin-top:12px" onclick="blAck()">Salamat po! 🙏</button>
   </div>
 </div>
 
@@ -1916,7 +1991,9 @@ let _currentAdminTab = 'roster';
 
 function switchAdminTab(name) {
   _currentAdminTab = name;
-  document.querySelectorAll('#screen-admin .tab-btn').forEach(b=>b.classList.toggle('active', b.dataset.tab===name));
+  const _side = ['dashboard','settings'].includes(name) ? 'game' : name;
+  document.querySelectorAll('#screen-admin .tab-btn').forEach(b=>b.classList.toggle('active', b.dataset.tab===_side));
+  document.querySelectorAll('#screen-admin .bingo-sub button').forEach(b=>b.classList.toggle('on', b.dataset.sub===name));
   document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
   const tabEl = document.getElementById('tab-'+name);
   if(tabEl) tabEl.classList.add('active');
@@ -1924,6 +2001,7 @@ function switchAdminTab(name) {
   if(name==='history') refreshHistoryTab();
   if(name==='topics') refreshWeeklyTopicsTab();
   if(name==='petrace') prAdminLoad();
+  if(name==='blessings') blAdminLoad();
   if(['spin','highlow','rps','pets','shop'].includes(name)) gaAdminLoad(name);
 }
 
@@ -5207,6 +5285,7 @@ async function refreshPlayerScreen(){
   const fresh = DB.players.find(p=>p.id===currentPlayer.id);
   if(!fresh){ currentPlayer=null; return; }
   currentPlayer = fresh;
+  blCheckPopup();
 
   // Token balance, Cash In, and Shop are available any time a player is logged
   // in, regardless of whether a game is currently running.
@@ -5721,6 +5800,7 @@ const TOKEN_EVENT_LABELS = {
   avatar_gender_switch: '👤 Avatar Gender Switch', pet_egg: '🐣 Pet Egg', pet_care: '🐾 Pet Care', pet_rename: '✏️ Pet Rename',
   rps_stake: '✊ RPS Stake', rps_payout: '🏆 RPS Win', rps_refund: '↩️ RPS Refund',
   race_spend: '🏁 Pet Race', race_refund: '↩️ Pet Race Refund', race_loot: '🎒 Pet Race Loot', race_clash: '⚔️ Pet Clash Win',
+  ganzo_blessing: "🙏 Ganzo's Blessing",
 };
 function playerNameById(id){ const p=DB.players.find(x=>x.id===id); return p?p.name:(id||'—'); }
 
@@ -5777,6 +5857,7 @@ function renderTokenLog(){
       else if(e.type === 'race_spend') detail = `${playerNameById(e.playerId)} spent ${e.amount} 🪙 — ${e.itemName||'Pet Race'}`;
       else if(e.type === 'race_loot' || e.type === 'race_clash') detail = `${playerNameById(e.playerId)} got ${e.amount} 🪙 — ${e.itemName||'Pet Race'}`;
       else if(e.type === 'race_refund') detail = `${playerNameById(e.playerId)} refunded ${e.amount} 🪙 — ${e.itemName||'Pet Race'} (${e.reason||'refund'})`;
+      else if(e.type === 'ganzo_blessing') detail = `${playerNameById(e.playerId)} received ${e.amount} 🪙 — "${String(e.message||'').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}"`;
       else if(e.type === 'avatar_gender_switch') detail = `${playerNameById(e.playerId)} switched avatar gender for ${e.amount} 🪙`;
       return `<tr><td>${when}</td><td>${label}</td><td>${detail}</td></tr>`;
     }).join('') +
@@ -6258,7 +6339,7 @@ function gpEsc(x){ return String(x == null ? '' : x).replace(/[&<>"']/g, c => ({
 function gpGameLive(){ const g = DB && DB.game; return !!(g && g.active && !g.ended); }
 // Signed token effect of one tokenLog entry for player id (display only).
 const GP_SPEND = ['buy_card','shop_purchase','cosmetic_purchase','title_purchase','pet_care','pet_egg','pet_rename','rps_stake','team_battle_entry','race_spend'];
-const GP_GAIN  = ['cash_in','daily_pet_token_grant','rps_payout','rps_refund','team_battle_payout','team_battle_refund','race_refund','race_loot','race_clash'];
+const GP_GAIN  = ['cash_in','ganzo_blessing','daily_pet_token_grant','rps_payout','rps_refund','team_battle_payout','team_battle_refund','race_refund','race_loot','race_clash'];
 function gpDelta(e, id){
   const a = Number(e.amount) || 0;
   if(e.type === 'give') return e.toPlayerId === id ? a : (e.fromPlayerId === id ? -a : null);
@@ -6292,6 +6373,7 @@ function gpLabel(e, id){
     case 'race_refund': return `🏁 ${gpEsc(e.itemName || 'Pet Race refund')}`;
     case 'race_loot': return `🎒 ${gpEsc(e.itemName || 'Pet Race loot')}`;
     case 'race_clash': return `⚔️ ${gpEsc(e.itemName || 'Pet Clash')}`;
+    case 'ganzo_blessing': return `🙏 Ganzo's Blessing${e.message ? ' — ' + gpEsc(e.message) : ''}`;
     case 'admin_adjust': return `🛠️ Admin adjustment${e.reason ? ' — ' + gpEsc(e.reason) : ''}`;
     default: return gpEsc(e.type);
   }
@@ -7339,6 +7421,111 @@ function gaSegResize(delta){
   if(delta < 0 && segs.length > 6) segs.pop();
   _gaAdmin.spin = Object.assign({}, _gaAdmin.spin, cur, {segments: segs});
   gaAdminRender('spin');
+}
+
+
+// ════════════════════════════════════════════════════════════
+//  R9: GANZO'S BLESSINGS — admin gives tokens to many players at once.
+//  Server (bingo_g_admin 'bless') checks the PIN, validates, credits everyone
+//  in ONE locked write and posts to Slack. The page only collects the choice.
+// ════════════════════════════════════════════════════════════
+let _blPick = new Set(), _blBusy = false;
+function blEsc(x){ return String(x == null ? '' : x).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function blPlayers(){ return (DB.players || []).filter(p => p.active !== false).slice().sort((a, b) => String(a.name).localeCompare(String(b.name))); }
+async function blAdminLoad(){
+  try { await loadDB(); } catch(e){}
+  blRenderList(); blUpdate(); blLoadHistory();
+}
+function blRenderList(){
+  const el = document.getElementById('blList'); if(!el) return;
+  const s = ((document.getElementById('blSearch') || {}).value || '').trim().toLowerCase();
+  const ps = blPlayers().filter(p => !s || String(p.name).toLowerCase().includes(s));
+  el.innerHTML = ps.length ? ps.map(p => `<label class="${_blPick.has(p.id) ? 'on' : ''}" onclick="blToggle('${blEsc(p.id)}')"><span class="ck">${_blPick.has(p.id) ? '✓' : ''}</span>${blEsc(p.name)}</label>`).join('')
+    : '<div class="pr-muted" style="font-size:12px;padding:6px">No player matches that name.</div>';
+}
+function blToggle(id){ _blPick.has(id) ? _blPick.delete(id) : _blPick.add(id); blRenderList(); blUpdate(); }
+function blSelectAll(on){
+  const s = ((document.getElementById('blSearch') || {}).value || '').trim().toLowerCase();
+  blPlayers().filter(p => !s || String(p.name).toLowerCase().includes(s)).forEach(p => on ? _blPick.add(p.id) : _blPick.delete(p.id));
+  if(!on && !s) _blPick.clear();
+  blRenderList(); blUpdate();
+}
+async function blPickRacers(){
+  try {
+    if(!_prAdmin || !_prAdmin.state){ const j = await praCall('get'); if(j && j.ok) _prAdmin = j; }
+    const ents = ((_prAdmin && _prAdmin.state) || {}).entries || [];
+    if(!ents.length){ blOut(false, 'No racers in the current Pet Race yet.'); return; }
+    ents.forEach(e => _blPick.add(e.playerId));
+    blRenderList(); blUpdate(); blOut(true, `Added ${ents.length} racer${ents.length === 1 ? '' : 's'}.`);
+  } catch(e){ blOut(false, 'Could not load the Pet Race lineup.'); }
+}
+function blOut(ok, t){ const m = document.getElementById('blMsgOut'); if(m){ m.textContent = t; m.style.color = ok ? 'var(--success)' : 'var(--danger)'; } }
+function blUpdate(){
+  const ids = [..._blPick], amt = parseInt((document.getElementById('blAmount') || {}).value, 10) || 0;
+  const msg = ((document.getElementById('blMsg') || {}).value || '');
+  const ch = (document.getElementById('blChannel') || {}).value || 'bingo';
+  const byId = id => (DB.players || []).find(p => p.id === id);
+  const set = (id, v) => { const e = document.getElementById(id); if(e) e.innerHTML = v; };
+  set('blCount', msg.length);
+  set('blSumN', ids.length); set('blSumA', amt); set('blSumT', (ids.length * amt) + ' 🪙');
+  set('blChips', ids.map(id => `<span onclick="blToggle('${blEsc(id)}')" title="Remove">${blEsc((byId(id) || {}).name || id)} ✕</span>`).join(''));
+  const tags = ids.map(id => `<span class="m">@${blEsc((byId(id) || {}).name || id)}</span>`).join(', ') || '<span style="color:#888">(pick players)</span>';
+  set('blPreview', ch === 'none' ? '<span style="color:#888">Not posting to Slack. Players still get the popup in the portal.</span>'
+    : `✨ <b>Ganzo's Blessings</b> ✨<br>${tags} ${ids.length === 1 ? 'received' : 'each received'} <b>${amt} 🪙</b>!<span class="q">${blEsc(msg.trim()) || '<span style="color:#888">(your message)</span>'}</span>
+       <div style="font-size:11px;color:#888;margin-top:6px">Posts to: ${({bingo:'BINGO channel', games:'Mini Games channel', both:'BINGO + Mini Games channels'})[ch]}</div>`);
+  const b = document.getElementById('blSend'); if(b) b.textContent = ids.length && amt ? `🙏 Send Blessing (${ids.length * amt} tokens)` : '🙏 Send Blessing';
+}
+async function blSend(){
+  if(_blBusy) return;
+  const ids = [..._blPick], amtRaw = (document.getElementById('blAmount') || {}).value, amt = Number(amtRaw);
+  const msg = ((document.getElementById('blMsg') || {}).value || '').trim(), ch = (document.getElementById('blChannel') || {}).value || 'bingo';
+  if(!ids.length) return blOut(false, '⚠ Pick at least one player.');
+  if(!Number.isInteger(amt) || amt < 1 || amt > 500) return blOut(false, '⚠ Tokens per player must be a whole number from 1 to 500.');
+  if(!msg) return blOut(false, '⚠ Add a message so players know what the tokens are for.');
+  const names = ids.map(id => playerNameById(id));
+  if(!confirm(`Send ${amt} tokens each to ${ids.length} player${ids.length === 1 ? '' : 's'} (${ids.length * amt} total)?\n\n${names.join(', ')}\n\n"${msg}"`)) return;
+  _blBusy = true; const b = document.getElementById('blSend'); if(b) b.disabled = true; blOut(true, 'Sending…');
+  try {
+    const j = await gaCall('bless', null, { playerIds: ids, amount: amt, message: msg, channel: ch });
+    if(!j || !j.ok){ blOut(false, '⚠ ' + ((j && j.error) || 'Blessing failed. Nothing was given.')); return; }
+    blOut(true, `✅ Sent! ${j.count} player${j.count === 1 ? '' : 's'} got ${j.amount} 🪙 each.`);
+    if(typeof adminLog === 'function') adminLog(`🙏 Ganzo's Blessing: ${j.amount} tokens each to ${(j.names || names).join(', ')}`, 'info');
+    _blPick.clear(); document.getElementById('blMsg').value = '';
+    try { await loadDB(); } catch(e){}
+    blRenderList(); blUpdate(); blLoadHistory();
+  } finally { _blBusy = false; if(b) b.disabled = false; }
+}
+function blWhen(ts){ try { return new Date(ts).toLocaleString('en-US', {timeZone:'Asia/Manila', month:'short', day:'numeric', hour:'numeric', minute:'2-digit'}); } catch(e){ return ''; } }
+async function blLoadHistory(){
+  const el = document.getElementById('blHistory'); if(!el) return;
+  const j = await gaCall('blessings', null, {});
+  if(!j || !j.ok){ el.innerHTML = `<div class="empty-state">${blEsc((j && j.error) || 'Could not load')}</div>`; return; }
+  const rows = j.blessings || [];
+  el.innerHTML = rows.length ? `<table class="blh"><tr><th>When (PHT)</th><th>Players</th><th>Each</th><th>Message</th><th>Slack</th></tr>${rows.map(r =>
+    `<tr><td style="white-space:nowrap">${blWhen(r.ts)}</td><td>${(r.names || []).length > 4 ? `${r.names.length} players<br><span class="pr-muted" style="font-size:11px">${blEsc(r.names.join(', '))}</span>` : blEsc((r.names || []).join(', '))}</td><td style="color:var(--gold);font-weight:700">+${r.amount}</td><td>${blEsc(r.message)}</td><td class="pr-muted">${({bingo:'BINGO', games:'Mini Games', both:'Both', none:'—'})[r.channel] || r.channel}</td></tr>`).join('')}</table>`
+    : '<div class="empty-state">No blessings sent yet.</div>';
+}
+
+// ── Player side: popup on the next refresh after a blessing lands. "Seen" is stored on this device.
+let _blShowing = 0;
+function blSeenKey(){ return 'smbBlessSeen_' + (currentPlayer ? currentPlayer.id : ''); }
+function blCheckPopup(){
+  if(!currentPlayer || !DB || !Array.isArray(DB.tokenLog)) return;
+  const ov = document.getElementById('blessOverlay'); if(!ov || ov.classList.contains('show')) return;
+  let seen = 0; try { seen = Number(localStorage.getItem(blSeenKey())) || 0; } catch(e){}
+  const weekAgo = Date.now() - 7 * 864e5;
+  const mine = DB.tokenLog.filter(e => e && e.type === 'ganzo_blessing' && e.playerId === currentPlayer.id && Number(e.blessId) > seen && Number(e.ts) > weekAgo)
+    .sort((a, b) => a.blessId - b.blessId);
+  if(!mine.length) return;
+  _blShowing = Math.max(...mine.map(e => Number(e.blessId)));
+  const body = document.getElementById('blessPopBody');
+  body.innerHTML = mine.map((e, i) => `${i ? '<div class="bsep"></div>' : ''}<div class="big">+${Number(e.amount) || 0} 🪙</div><div class="bmsg">"${blEsc(e.message)}"</div><div class="bsub">— PM • ${blWhen(e.ts)}</div>`).join('');
+  ov.classList.add('show');
+}
+function blAck(){
+  try { if(_blShowing) localStorage.setItem(blSeenKey(), String(_blShowing)); } catch(e){}
+  document.getElementById('blessOverlay').classList.remove('show');
+  if(typeof refreshTokenBalance === 'function') refreshTokenBalance();
 }
 
 </script>
