@@ -577,6 +577,7 @@ body::before{display:none}
 .pra-sec{font-family:'Space Grotesk';color:var(--gold);font-size:14px;margin:16px 0 8px;border-top:1px solid var(--line);padding-top:12px}
 .pra-sec:first-child{border-top:0;margin-top:0;padding-top:0}
 .pra-save{position:sticky;bottom:0;display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap;background:var(--deep);border-top:1px solid var(--line);padding:10px 0;margin-top:14px}
+.ga-hook{background:rgba(227,166,62,.06);border:1px solid var(--line);border-radius:10px;padding:12px;margin-bottom:14px}
 .pra-msg{font-size:12.5px}
 
 </style>
@@ -6938,12 +6939,12 @@ const GA_LABELS = { markerTheme:'🖍️ Marker Themes', cardSkin:'🎨 Card Ski
   emojiPack:'😄 Emoji Packs', avatarBackground:'🎨 Avatar Background', avatarHair:'💇 Hair Color', avatarOutfit:'👕 Outfit', avatarAccessory:'✨ Accessory',
   avatarFrame:'⭕ Avatar Frame', avatarLipstick:'💄 Lipstick', avatarNails:'💅 Nails', avatarEarrings:'💎 Earrings', title:'🏷️ Weekly Titles' };
 const GA_FIELDS = {
-  spin: [['on','Game on','bool','Off = players see "closed"'],['minBet','Min bet','num','tokens'],['maxBet','Max bet','num','tokens'],['perShift','Spins per shift','num','resets 9 PM PHT'],['slack','Post results to Slack','bool','BINGO channel']],
+  spin: [['on','Game on','bool','Off = players see "closed"'],['minBet','Min bet','num','tokens'],['maxBet','Max bet','num','tokens'],['perShift','Spins per shift','num','resets 9 PM PHT'],['slack','Post results to Slack','bool','Mini Games channel']],
   highlow: [['on','Game on','bool','Off = players see "closed"'],['minBet','Min bet','num','tokens'],['maxBet','Max bet','num','tokens'],['perShift','Plays per shift','num','a tie (push) doesn\'t use a play'],
-    ['minVal','Lowest number','num','draw range'],['maxVal','Highest number','num','draw range'],['winMult','Win pays','num','× the bet (2 = double back)'],['slack','Post results to Slack','bool','BINGO channel']],
+    ['minVal','Lowest number','num','draw range'],['maxVal','Highest number','num','draw range'],['winMult','Win pays','num','× the bet (2 = double back)'],['slack','Post results to Slack','bool','Mini Games channel']],
   rps: [['on','Game on','bool','Off = no new challenges'],['minStake','Min stake','num','tokens'],['maxStake','Max stake','num','tokens'],['stakeStep','Stake step','num','e.g. 5 → 10, 15, 20…'],
     ['houseCutPct','House cut on a win','num','% of pot, burned (0–50)'],['perShift','Duels per shift','num','per player'],['perPairPerDay','Duels per pair per day','num','same two people'],
-    ['expiryHours','Challenge expires after','num','hours (1–24), then refunded'],['slack','Post to Slack','bool','challenges + results']],
+    ['expiryHours','Challenge expires after','num','hours (1–24), then refunded'],['slack','Post to Slack','bool','Mini Games channel: challenges + results']],
   pets: [['on','Pet actions on','bool','Off = no eggs/care/rename'],['eggPrice','Egg price','num','tokens'],['carePrice','Care action','num','feed / play / bath, tokens each'],
     ['renamePrice','Rename','num','tokens'],['firstRenameFree','First rename free','bool',''],['maxPets','Max pets per player','num','alive + eggs (1–10)'],['slack','Post to Slack','bool','eggs, hatches, level-ups, renames']],
   shop: [['on','Shop on','bool','Off = no purchases'],['genderFee','Avatar gender switch','num','tokens (first pick free)'],['featuredDiscount','Featured item discount','num','tokens off (min price 1)'],
@@ -6994,7 +6995,7 @@ function gaAdminRender(game){
       : `<input data-k="${k}" data-t="num" type="number" min="0" step="1" value="${escapeHtml(v ?? '')}" oninput="gaPreview('${game}')">`;
     return `<div class="pra-f"><label>${lab}<small>${help}</small></label>${inp}</div>`;
   };
-  let h = `<div class="pra-form">${GA_FIELDS[game].map(fld).join('')}</div>`;
+  let h = (['spin','highlow','rps'].includes(game) ? gaHookBox(game) : '') + `<div class="pra-form">${GA_FIELDS[game].map(fld).join('')}</div>`;
   if(game === 'spin'){
     h += `<div class="pra-sec">Wheel segments (${(c.segments || []).length} equal slices, 6–12, 0x–5x) <button type="button" class="btn btn-outline btn-sm" style="margin-left:8px" ${(c.segments || []).length >= 12 ? 'disabled' : ''} onclick="gaSegResize(1)">＋ Add slice</button> <button type="button" class="btn btn-outline btn-sm" ${(c.segments || []).length <= 6 ? 'disabled' : ''} onclick="gaSegResize(-1)">− Remove last</button></div><div class="pra-form">${(c.segments || []).map((m, i) =>
       `<div class="pra-f"><label>Slice ${i + 1}</label><select data-k="segments.${i}" data-t="num" onchange="gaPreview('spin')">${[0,1,2,3,4,5].map(o => `<option value="${o}" ${o === m ? 'selected' : ''}>${o}x</option>`).join('')}</select></div>`).join('')}</div>`;
@@ -7010,6 +7011,40 @@ function gaAdminRender(game){
   h += `<div class="pr-muted" id="gaNote-${game}" style="font-size:12px;margin-top:12px;line-height:1.6">${gaAdminNote(game, c)}</div>`;
   h += `<div class="pra-save"><span class="pra-msg" id="gaMsg-${game}"></span><span><button class="btn btn-outline btn-sm" onclick="gaAdminLoad('${game}')">Reload</button> <button class="btn btn-gold" onclick="gaSave('${game}')">💾 Save ${GA_TITLES[game].replace(/^\S+\s/, '')} settings</button></span></div>`;
   el.innerHTML = h;
+}
+
+// ── R8: Mini Games Slack channel (one webhook shared by Spin, Higher or Lower, RPS Duel). Stored server-side, never sent back to the page.
+function gaHookBox(game){
+  const on = !!(_gaAdmin && _gaAdmin.gamesHook);
+  return `<div class="ga-hook"><div class="pra-sec" style="margin-top:0;border-top:0;padding-top:0">📣 Mini Games Slack channel</div>
+    <div class="pr-muted" style="font-size:12px;margin-bottom:8px">One webhook for Spin the Wheel, Higher or Lower and RPS Duel posts. Status: ${on ? '<b style="color:var(--success)">✅ Set — posting to the Mini Games channel</b>' : '<b style="color:var(--gold)">Not set — still posting to the BINGO channel</b>'}</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+      <input type="text" id="gaHook-${game}" autocomplete="off" placeholder="${on ? 'Paste a NEW webhook only to change it' : 'https://hooks.slack.com/services/…'}" style="flex:1;min-width:220px;margin:0">
+      <button class="btn btn-gold btn-sm" onclick="gaHookSave('${game}')">💾 Save webhook</button>
+      <button class="btn btn-outline btn-sm" ${on ? '' : 'disabled'} onclick="gaHookTest('${game}')">Send test post</button>
+      ${on ? `<button class="btn btn-outline btn-sm" onclick="gaHookClear('${game}')">Remove</button>` : ''}
+    </div><div class="pra-msg" id="gaHookMsg-${game}" style="margin-top:6px"></div></div>`;
+}
+function gaHookMsg(game, ok, t){ const m = document.getElementById('gaHookMsg-' + game); if(m){ m.textContent = t; m.style.color = ok ? 'var(--success)' : 'var(--danger)'; } }
+async function gaHookSave(game){
+  const v = (document.getElementById('gaHook-' + game) || {}).value || '';
+  if(!v.trim()) return gaHookMsg(game, false, '⚠ Paste the webhook URL first.');
+  const j = await gaCall('hooks', null, { games: v.trim() });
+  if(!j.ok) return gaHookMsg(game, false, '⚠ ' + (j.error || 'Save failed'));
+  _gaAdmin.gamesHook = !!j.gamesHook; ['spin','highlow','rps'].forEach(g => gaAdminRender(g));
+  gaHookMsg(game, true, '✅ Saved. Tap "Send test post" to check the channel.');
+  if(typeof adminLog === 'function') adminLog('Mini Games Slack webhook saved.', 'info');
+}
+async function gaHookTest(game){
+  const j = await gaCall('test_hooks', null, {});
+  gaHookMsg(game, !!j.ok, j.ok ? '✅ Test post sent — check the Mini Games channel.' : '⚠ ' + (j.error || 'Test failed'));
+}
+async function gaHookClear(game){
+  if(!confirm('Remove the Mini Games webhook? Spin, Higher or Lower and RPS posts go back to the BINGO channel.')) return;
+  const j = await gaCall('hooks', null, { games: '' });
+  if(!j.ok) return gaHookMsg(game, false, '⚠ ' + (j.error || 'Failed'));
+  _gaAdmin.gamesHook = false; ['spin','highlow','rps'].forEach(g => gaAdminRender(g));
+  gaHookMsg(game, true, 'Removed. Posts go to the BINGO channel again.');
 }
 function gaCollect(game){
   const out = {};
