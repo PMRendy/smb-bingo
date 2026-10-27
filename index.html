@@ -395,7 +395,6 @@ body::before{display:none}
 #gpv-spin .panel-group-body::before{content:'🎡 Spin the Wheel'}
 #gpv-hl .panel-group-body::before{content:'📈 Higher or Lower'}
 #gpv-rps .panel-group-body::before{content:'✊ RPS Duel (1v1)'}
-#gpv-team .panel-group-body::before{content:'⚔️ Team Battles (3v3)'}
 #gpv-avatar .panel-group-body::before{content:'🧑 Avatar Studio'}
 .gp-lb .board-grid .panel{background:var(--deep);border:1px solid var(--line);border-radius:18px;padding:18px}
 #gpv-bingo #playerPatternDisplay{background:var(--deep);border:1px solid var(--line);border-radius:18px}
@@ -426,6 +425,28 @@ body::before{display:none}
 .prx-rps.on{opacity:1;border-color:var(--gold);background:rgba(245,200,66,.15)}
 .prx-rps:disabled{cursor:not-allowed}
 @media (max-width:700px){.prx-rps{font-size:19px;padding:1px 2px}}
+/* R7 race evolution + pet stages */
+.evo-meter i{background:linear-gradient(90deg,#8069cc,#ec7fa5,#f5c842)!important}
+.evo-btn.ready{background:linear-gradient(90deg,#8069cc,#ec7fa5,#f5c842);color:#1b1305;font-weight:800;animation:evopulse 1.2s ease-in-out infinite alternate}
+@keyframes evopulse{from{box-shadow:0 0 0 0 rgba(245,200,66,.0)}to{box-shadow:0 0 14px 3px rgba(245,200,66,.55)}}
+.evo-on{border-color:#ec7fa5!important;box-shadow:0 0 0 1px rgba(236,127,165,.4) inset,0 0 18px rgba(236,127,165,.25)}
+.evo-live{display:flex;gap:12px;align-items:center}
+.evo-form{font-family:'Space Grotesk';font-size:17px;background:linear-gradient(90deg,#f5c842,#ec7fa5);-webkit-background-clip:text;background-clip:text;color:transparent}
+.evo-glow{box-shadow:0 0 0 3px #f5c842,0 0 18px 4px rgba(236,127,165,.7);animation:evoaura 1.6s ease-in-out infinite alternate}
+@keyframes evoaura{from{box-shadow:0 0 0 3px #f5c842,0 0 10px 2px rgba(236,127,165,.5)}to{box-shadow:0 0 0 3px #ec7fa5,0 0 22px 6px rgba(245,200,66,.75)}}
+.pr-runner.st-baby img,.pr-runner.st-baby .emo{width:32px;height:32px}
+.pr-runner.st-adult img,.pr-runner.st-adult .emo{width:44px;height:44px}
+.pr-runner.evo img,.pr-runner.evo .emo{width:54px;height:54px;filter:drop-shadow(0 0 6px #f5c842) drop-shadow(0 0 10px #ec7fa5)}
+.pr-runner.evo::before{content:'✨';position:absolute;top:-10px;left:-6px;font-size:14px;animation:prflick .35s infinite alternate}
+.pr-lane .tag.evo{background:linear-gradient(90deg,#8069cc,#ec7fa5);color:#fff}
+.stg-badge{display:inline-block;font-size:10px;font-weight:800;padding:1px 7px;border-radius:99px;letter-spacing:.3px;vertical-align:middle}
+.stg-baby{background:rgba(137,216,255,.18);color:#9fdcff}
+.stg-teen{background:rgba(63,191,174,.2);color:#6fe6d3}
+.stg-adult{background:rgba(245,200,66,.2);color:#f5c842}
+.pet-portrait.stg-p-baby{width:66px;height:66px}
+.pet-portrait.stg-p-teen{width:78px;height:78px;border-color:#6fe6d3}
+.pet-portrait.stg-p-adult{width:90px;height:90px;border:3px solid #f5c842;box-shadow:0 0 0 3px rgba(245,200,66,.25),0 5px 16px rgba(0,0,0,.35)}
+.pet-stage-row{text-align:center;margin-top:2px}
 </style>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -566,7 +587,7 @@ body::before{display:none}
 <div id="screen-landing" class="screen active">
   <div class="eyebrow">🌙 Bayaning Puyat Series</div>
   <h1>SMB GAME PORTAL</h1>
-  <div class="sub">Overnight Shift Edition · 9PM – 5AM PHT<br><span class="gp-landing-games">🎱 BINGO · 🎡 Spin · 📈 Higher/Lower · ✊ RPS · 🏁 Pet Race · ⚔️ Team Battles · 🛒 Shop</span></div>
+  <div class="sub">Overnight Shift Edition · 9PM – 5AM PHT<br><span class="gp-landing-games">🎱 BINGO · 🎡 Spin · 📈 Higher/Lower · ✊ RPS · 🏁 Pet Race · 🛒 Shop</span></div>
   <div class="landing-buttons">
     <button class="btn btn-gold" onclick="gotoAdminLogin()">🔐 Admin Portal</button>
     <button class="btn btn-teal" onclick="gotoPlayerLogin()">🎮 Player Login</button>
@@ -633,7 +654,6 @@ body::before{display:none}
       <button class="tab-btn" data-tab="game" onclick="switchAdminTab('game')">🎱 Game Control</button>
       <div class="adm-grp">Games</div>
       <button class="tab-btn" data-tab="petrace" onclick="switchAdminTab('petrace')">🏁 Pet Race <span class="adm-chip">NEW</span></button>
-      <button class="tab-btn" data-tab="teambattles" onclick="switchAdminTab('teambattles')">⚔️ Team Battles</button>
       <button class="tab-btn" data-tab="spin" onclick="switchAdminTab('spin')">🎡 Spin the Wheel</button>
       <button class="tab-btn" data-tab="highlow" onclick="switchAdminTab('highlow')">📈 Higher or Lower</button>
       <button class="tab-btn" data-tab="rps" onclick="switchAdminTab('rps')">✊ RPS Duel</button>
@@ -926,15 +946,7 @@ body::before{display:none}
       </div>
     </div>
 
-    <div class="tab-content" id="tab-teambattles">
-      <div class="panel">
-        <div class="panel-title">⚔️ Team Battles — 3v3 Token Wager</div>
-        <div style="font-size:12px;color:var(--muted);margin-bottom:14px;">Players form 3-player teams themselves (leader pays 1 token, invites 2 more, locks in at 3/3). Once at least 2 teams are locked, pick which ones to pit against each other and set the winning pattern below.</div>
-        <div id="adminTeamBattlesContent"><div class="empty-state">Loading...</div></div>
-        <div id="adminTeamBattleCardsWrap" class="cards-wrap view-3" style="margin-top:16px;"></div>
-      </div>
-    </div>
-    <div class="tab-content" id="tab-petrace">
+<div class="tab-content" id="tab-petrace">
       <div class="panel">
         <div class="panel-title">🏁 Pet Race Frenzy</div>
         <div style="font-size:12px;color:var(--muted);margin-bottom:12px;">Weekly 3-shift pet marathon. Every price, limit and toggle is here. The server enforces all of it; the page only displays.</div>
@@ -993,7 +1005,6 @@ body::before{display:none}
       <button class="sub" data-v="hl" onclick="gpGo('hl')">📈 Higher or Lower <span class="gp-cnt" id="gpCntHl"></span></button>
       <button class="sub" data-v="rps" onclick="gpGo('rps')">✊ RPS Duel <span class="gp-cnt" id="gpCntRps"></span></button>
       <button class="sub" data-v="race" onclick="gpGo('race')">🏁 Pet Race Frenzy <span class="gp-cnt" id="gpCntRace"></span></button>
-      <button class="sub" data-v="team" onclick="gpGo('team')">⚔️ Team Battles</button>
       <div class="gp-grp">Store</div>
       <button class="sub" data-v="shop" onclick="gpGo('shop')">🛒 Shop</button>
       <button class="sub" data-v="avatar" onclick="gpGo('avatar')">🧑 Avatar Studio</button>
@@ -1081,7 +1092,6 @@ body::before{display:none}
           <div class="gp-game" onclick="gpGo('hl')"><span class="ic">📈</span><b>Higher or Lower</b><span class="gp-left" id="gpTileHl">Bet 5–20</span></div>
           <div class="gp-game" onclick="gpGo('rps')"><span class="ic">✊</span><b>RPS Duel</b><span class="gp-left" id="gpTileRps">Stake 10–50 • 1v1</span></div>
           <div class="gp-game" onclick="gpGo('race')"><span class="ic">🏁</span><b>Pet Race Frenzy</b><span class="gp-left" id="gpTileRace">Weekly pet marathon</span></div>
-          <div class="gp-game" onclick="gpGo('team')"><span class="ic">⚔️</span><b>Team Battles</b><span class="gp-left">3v3 • winner takes pot</span></div>
           <div class="gp-game" onclick="gpGo('shop')"><span class="ic">🛒</span><b>Shop</b><span class="gp-left">Frames, icons, titles</span></div>
         </div>
       </div>
@@ -1207,15 +1217,7 @@ body::before{display:none}
     </details></div>
       <div class="gp-card"><div class="gp-hdr"><h3>✊ RPS Leaderboard</h3><span class="gp-badge">All-time • completed duels</span></div><div class="gp-rpsboard gp-mini">Loading…</div></div></section>
     <section class="gp-view" id="gpv-race"><div class="pr-wrap" id="prRoot"><div class="gp-card"><div class="empty-state">Loading Pet Race…</div></div></div></section>
-    <section class="gp-view" id="gpv-team"><div class="gp-card gp-wrap-group"><details class="panel-group" id="teamBattlesGroup">
-      <summary>⚔️ Team Battles (3v3)</summary>
-      <div class="panel-group-body">
-        <div class="panel" id="teamBattlesPanel">
-          <div style="font-size:12px;color:var(--muted);margin-bottom:10px;">Form a 3-player team (1 token entry each), lock in, and battle another team — winner takes the whole pot! An admin needs 2+ locked teams to start a battle.</div>
-          <div id="teamBattlesPanelContent" style="font-size:13px;color:var(--muted);">Loading...</div>
-        </div>
-      </div>
-    </details></div></section>
+
 
     <!-- ═══ SHOP ═══ -->
     <section class="gp-view" id="gpv-shop">
@@ -1846,7 +1848,6 @@ async function submitAdminPin() {
     if(_adminPoll) clearInterval(_adminPoll);
     _adminPoll = setInterval(()=>{
       refreshAdminGame(); refreshRosterUI();
-      if(_currentAdminTab==='teambattles') refreshAdminTeamBattlesTab();
     }, 5000);
   } else {
     errEl.textContent = chk.locked
@@ -1921,7 +1922,6 @@ function switchAdminTab(name) {
   if(name==='dashboard') refreshDashboard();
   if(name==='history') refreshHistoryTab();
   if(name==='topics') refreshWeeklyTopicsTab();
-  if(name==='teambattles') refreshAdminTeamBattlesTab();
   if(name==='petrace') prAdminLoad();
   if(['spin','highlow','rps','pets','shop'].includes(name)) gaAdminLoad(name);
 }
@@ -3749,7 +3749,7 @@ function petHealth(pet){
   const m=pet.meters||{}, min=Math.min(m.hunger??100,m.fun??100,m.clean??100);
   return min<=20?'Critical':min<=40?'Sick':min<=60?'Needs Care':'Happy';
 }
-function petStage(pet){ return pet.status==='dead'?'Gone':pet.status==='egg'?'Egg':(pet.level>=5?'Adult':'Baby'); }
+function petStage(pet){ return pet.status==='dead'?'Gone':pet.status==='egg'?'Egg':petStageOf(pet.level); }
 function petPercent(value){ return Math.max(0,Math.min(100,Number(value??100))); }
 function petMeter(label, value){
   const pct=petPercent(value);
@@ -3760,7 +3760,7 @@ function petCard(pet){
   const health=petHealth(pet), stage=petStage(pet), isDead=pet.status==='dead', isEgg=pet.status==='egg';
   const min=Math.min(pet.meters?.hunger??100,pet.meters?.fun??100,pet.meters?.clean??100);
   const stateClass=isDead?'pet-dead':min<=20?'pet-critical':min<=40?'pet-sick':min<=60?'pet-warning':'';
-  const portraitClass=`${isDead?'pet-dead ':''}${isEgg?'pet-egg':''}`;
+  const portraitClass=`${isDead?'pet-dead ':''}${isEgg?'pet-egg':''}${!isDead&&!isEgg?' stg-p-'+petStageOf(pet.level).toLowerCase():''}`;
   const safeName=escapeHtml(pet.name||`Baby ${petSpecies(pet.species)[1]}`);
   const meters = petMeter('🍖',pet.meters?.hunger)+petMeter('🎾',pet.meters?.fun)+petMeter('🫧',pet.meters?.clean);
   const actions=isDead ? `<div style="text-align:center;color:#ff9c9c;font-size:11px;margin-top:10px;">This pet is gone.</div>` :
@@ -3773,7 +3773,8 @@ function petCard(pet){
   return `<div class="pet-card ${stateClass}">
     <div class="pet-portrait ${portraitClass}">${isDead?'💤':isEgg?`<img class="pet-egg-img" src="${COSMETICS_BACKEND_URL}/pets/egg.gif" alt="Twitching pet egg" onerror="this.replaceWith(document.createTextNode('🥚'))">`:`<img src="${COSMETICS_BACKEND_URL}/pets/${pet.species}.gif" alt="Animated ${petSpecies(pet.species)[1]}" onerror="this.replaceWith(document.createTextNode('${emoji}'))">`}</div>
     <div class="pet-name">${safeName}</div>
-    <div class="pet-meta">${stage} · ${health}${!isEgg&&!isDead?` · Lv ${pet.level||1}`:''}</div>
+    ${!isEgg&&!isDead?`<div class="pet-stage-row">${petStageBadge(pet.level)}</div>`:''}
+    <div class="pet-meta">${isEgg||isDead?stage+' · ':''}${health}${!isEgg&&!isDead?` · Lv ${pet.level||1}`:''}</div>
     ${meters}${hatch}${actions}
   </div>`;
 }
@@ -4152,7 +4153,7 @@ async function equipSkin(skinId){
 // 5 unlockable categories (Background, Hair, Outfit, Accessory, Frame).
 // Purchases/equips reuse the same generic buyCosmetic()/equipCosmetic() calls
 // as the Cosmetics Shop — only the gender toggle needs its own endpoint.
-// ─── Spin the Wheel: bet 1 token, up to 3 spins per shift, 6 segments 0/1/0/2/0/3x.
+// ─── Spin the Wheel: slices come from the spin settings (6–12, set in Admin → Games).
 // Shift boundary mirrors Marcus-Ganzo's graveyard shift (9PM-5AM PHT) so
 // "once per shift" lines up with the rest of the check-in system.
 let SPIN_WHEEL_SEGMENTS = [
@@ -4198,9 +4199,9 @@ function renderSpinWheelPanel(){
   const R = 146, P = Math.PI/180;
   let wheel = '<defs>' + SPIN_WHEEL_SEGMENTS.map((g,i) => `<radialGradient id="sw2g${i}" cx="0" cy="0" r="150" gradientUnits="userSpaceOnUse"><stop offset="0.25" stop-color="${g.inner}"/><stop offset="1" stop-color="${g.color}"/></radialGradient>`).join('') + '</defs>';
   SPIN_WHEEL_SEGMENTS.forEach((g,i) => {
-    const s0 = (i*60-90)*P, s1 = ((i+1)*60-90)*P, c = (i*60+30-90)*P;
+    const A = 360 / SPIN_WHEEL_SEGMENTS.length, s0 = (i*A-90)*P, s1 = ((i+1)*A-90)*P, c = (i*A+A/2-90)*P;
     wheel += `<path d="M0 0 L${(R*Math.cos(s0)).toFixed(2)} ${(R*Math.sin(s0)).toFixed(2)} A${R} ${R} 0 0 1 ${(R*Math.cos(s1)).toFixed(2)} ${(R*Math.sin(s1)).toFixed(2)} Z" fill="url(#sw2g${i})" stroke="#E3A63E" stroke-opacity=".55" stroke-width="2"/>`;
-    wheel += `<g transform="translate(${(100*Math.cos(c)).toFixed(2)} ${(100*Math.sin(c)).toFixed(2)}) rotate(${i*60+30})"><text text-anchor="middle" dy="10" font-weight="800" font-size="30" font-family="Inter,system-ui,sans-serif" fill="${g.text}">${g.label}</text><text text-anchor="middle" dy="27" font-size="10.5" font-family="Inter,system-ui,sans-serif" fill="${g.text}" opacity=".75">${g.mult===0?'lose':g.mult===1?'push':'win'}</text></g>`;
+    wheel += `<g transform="translate(${(100*Math.cos(c)).toFixed(2)} ${(100*Math.sin(c)).toFixed(2)}) rotate(${i*(360/SPIN_WHEEL_SEGMENTS.length)+180/SPIN_WHEEL_SEGMENTS.length})"><text text-anchor="middle" dy="10" font-weight="800" font-size="${SPIN_WHEEL_SEGMENTS.length > 8 ? 22 : SPIN_WHEEL_SEGMENTS.length > 6 ? 26 : 30}" font-family="Inter,system-ui,sans-serif" fill="${g.text}">${g.label}</text><text text-anchor="middle" dy="27" font-size="10.5" font-family="Inter,system-ui,sans-serif" fill="${g.text}" opacity=".75">${g.mult===0?'lose':g.mult===1?'push':'win'}</text></g>`;
   });
   wheel += `<circle r="${R}" fill="none" stroke="#E3A63E" stroke-width="3"/>`;
   let ring = '<circle cx="0" cy="0" r="148" fill="#1a1e2c"/><circle cx="0" cy="0" r="139" fill="none" stroke="#3a2d12" stroke-width="8"/>';
@@ -4259,7 +4260,7 @@ async function spinTheWheel(){
 
     _spinWheelAnimating = true;
     const stage = document.getElementById('sw2Stage'); if(stage) stage.classList.add('spinning');
-    const segAngle = j.segmentIndex * 60 + 30;
+    const segAngle = j.segmentIndex * (360 / SPIN_WHEEL_SEGMENTS.length) + 180 / SPIN_WHEEL_SEGMENTS.length;
     const extraSpins = 4 * 360;
     const targetRotation = extraSpins + (360 - segAngle);
     dial.style.transform = `rotate(${targetRotation}deg)`;
@@ -5225,7 +5226,6 @@ async function refreshPlayerScreen(){
   renderPlayerRichestBoard();
   renderPlayerBigSpenderBoard();
   renderPlayerCheckinPointsBoard();
-  renderTeamBattlesPanel();
   if(typeof gpRefresh === 'function') gpRefresh();
   gpCardGenToggle();
 
@@ -6208,7 +6208,7 @@ function setCardsView(mode){
 
 <script>
 // ═════ SMB GAME PORTAL (R2): sidebar views. Display only — no token writes. ═════
-const GP_TITLES = {player:'Player', bingo:'BINGO', spin:'Spin the Wheel', hl:'Higher or Lower', rps:'RPS Duel', race:'Pet Race Frenzy', team:'Team Battles', shop:'Shop', avatar:'Avatar Studio', lb:'Leaderboards'};
+const GP_TITLES = {player:'Player', bingo:'BINGO', spin:'Spin the Wheel', hl:'Higher or Lower', rps:'RPS Duel', race:'Pet Race Frenzy', shop:'Shop', avatar:'Avatar Studio', lb:'Leaderboards'};
 let _gpView = 'player', _gpSub = 'play';
 function gpGo(v){
   if(!GP_TITLES[v]) v = 'player';
@@ -6501,7 +6501,7 @@ function prRegCard(){
     else {
       if(!_prSel || !pets.find(p => p.id === _prSel)) _prSel = (pets.find(p => (p.health || 0) >= 20) || {}).id || null;
       body = `<div class="pr-pick">${pets.map(p => { const ok = (p.health || 0) >= 20; return `<label class="${p.id === _prSel ? 'on' : ''} ${ok ? '' : 'no'}" ${ok ? `onclick="_prSel='${prEsc(p.id)}';prRender()"` : ''}>
-          <div class="pr-portrait">${prPetImg(p.species)}</div><b>${prEsc(p.name || 'Pet')}</b><span class="pr-muted" style="font-size:12px">Lv ${p.level || 1} • health ${p.health}</span>
+          <div class="pr-portrait">${prPetImg(p.species)}</div><b>${prEsc(p.name || 'Pet')}</b><span class="pr-muted" style="font-size:12px">${petStageOf(p.level)} • Lv ${p.level || 1} • health ${p.health}</span>
           ${ok ? '' : '<span class="pr-chip b">Alagaan muna (health < 20)</span>'}</label>`; }).join('')}</div>
         <div class="pr-hl"><span>Entry fee <b>${fee} 🪙</b> • one pet per player • withdraw anytime before close for a full refund</span>
         <button class="pr-btn" ${prDis(!can ? (s.mode !== 'live' ? 'Locked until launch' : 'Registration not open') : !_prSel ? 'Pick a pet' : bal < fee ? 'Not enough tokens' : '')} onclick="prAct('register',{petId:_prSel})">Register (${fee} 🪙)</button></div>`;
@@ -6591,10 +6591,10 @@ function prStandingsCard(){
   const canCheer = c.cheersOn !== false && run && prCanPlay();
   const rows = list.map((e, i) => {
     const mine = currentPlayer && e.playerId === currentPlayer.id;
-    const st = e.dnf ? '<span class="pr-chip b">DNF</span>' : e.blocked ? '<span class="pr-chip w">Blocked</span>' : e.lastEvent === 'backfire' ? '<span class="pr-chip b">Spun out</span>'
+    const st = e.dnf ? '<span class="pr-chip b">DNF</span>' : Number(e.evoLegs || 0) > 0 ? `<span class="pr-chip y">✨ ${prEsc(e.form || 'Evolved')}</span>` : e.blocked ? '<span class="pr-chip w">Blocked</span>' : e.lastEvent === 'backfire' ? '<span class="pr-chip b">Spun out</span>'
       : e.lastEvent === 'stumble' ? '<span class="pr-chip w">Stumbled</span>' : (e.lastBoost || 0) >= 12 ? '<span class="pr-chip y">🔥 Boost</span>' : '<span class="pr-chip g">Running</span>';
     const cheer = canCheer && !mine && !e.dnf ? `<button class="pr-btn ghost" style="padding:3px 8px;font-size:11px" ${prDis((e.pendingCheer || 0) >= Number(c.cheerMax || 5) && 'Max cheers this leg')} onclick="prCheer(${e.id},'${prEsc(e.petName)}')">📣 ${Number(c.cheerPrice || 1)}</button>` : '';
-    return `<tr class="${mine ? 'me' : ''}"><td>${e.place || (e.dnf ? '–' : i + 1)}</td><td><b>${prEsc(e.petName)}</b>${e.swerte ? ' 🍀' : ''}<div class="pr-muted" style="font-size:11px">${prEsc(e.playerName)}</div></td>
+    return `<tr class="${mine ? 'me' : ''}"><td>${e.place || (e.dnf ? '–' : i + 1)}</td><td><b>${prEsc(e.petName)}</b>${e.swerte ? ' 🍀' : ''}<div class="pr-muted" style="font-size:11px">${prEsc(e.playerName)}${e.level ? ` • ${petStageOf(e.level)}` : ''}${prxEvoCfg().on && e.evoMeter !== undefined && !e.dnf ? ` • ⚡${Number(e.evoMeter)}` : ''}</div></td>
       <td class="n">${Number(e.laps).toFixed(2)}</td><td class="n">${e.health ?? '—'}</td><td class="n">${e.walletUsed}/${wc}</td><td>${st}</td><td>${cheer}</td></tr>`;
   }).join('');
   return `<div class="gp-card"><div class="gp-hdr"><h3>📊 Standings</h3><span class="gp-badge">laps • speed health • wallet</span></div>
@@ -6626,6 +6626,7 @@ function prRulesCard(){
     • 24 hourly legs over the Wed, Thu and Fri shifts. Each leg your pet runs about ${(Number(c.totalLaps || 42) / 24).toFixed(2)} laps × health speed × luck × boosts.<br>
     • Speed health = lowest pet meter or ⚡ Stamina, whichever is lower. 90+ full speed • 70–89 ×0.9 • 50–69 ×0.75 • 20–49 ×0.5 and may stumble • real pet below 20 or gone = DNF.<br>
     • Race wallet cap ${Number(c.walletCap || 60)} 🪙 for boosts + dice, so tokens can't buy the win. Care beats spending.<br>
+    ${prxEvoCfg().on ? `• ✨ Race Evolution: your ⚡ meter fills every leg (faster in the bottom half, +${Number(prxEvoCfg().clashWin || 0)} for a clash win). At 100, tap EVOLVE: ${Number(prxEvoCfg().legs || 2)} legs of +${Number(prxEvoCfg().pct || 0)}% speed, no stumbles, a free obstacle jump and ${Number(prxEvoCfg().lootMult || 1)}× loot chance. Once per race day. Pets change back after.<br>` : ''}
     • Most laps after leg 24 wins. Ties: higher health, then earlier registration. Prizes are paid in PHP by the admin.</div></details>`;
 }
 
@@ -6643,7 +6644,7 @@ function prDrawTrack(force){
     host.innerHTML = `<div class="pr-track" data-key="${key}">${list.map(e => `<div class="pr-lane ${prLane(e.species)} ${currentPlayer && e.playerId === currentPlayer.id ? 'me' : ''}" data-id="${e.id}">
       <span class="tag">${prEsc(e.petName)} • ${prEsc(e.playerName)}</span><div class="pr-finish"></div>
       ${ob ? `<span class="pr-ob" style="left:${x(ob.lap)}%">${{grass:'🪨', sky:'🌩️', water:'🕸️'}[prLane(e.species)]}</span>` : ''}
-      <div class="pr-runner" style="left:${x(_prPrevL[e.id] ?? e.laps)}%" data-l="${e.laps}"><span class="fx">🔥</span>${prPetImg(e.species)}</div></div>`).join('')}</div>`;
+      <div class="pr-runner st-${petStageOf(e.level).toLowerCase()}" style="left:${x(_prPrevL[e.id] ?? e.laps)}%" data-l="${e.laps}"><span class="fx">🔥</span>${prPetImg(e.species)}</div></div>`).join('')}</div>`;
     tr = host.querySelector('.pr-track');
   }
   void tr.offsetWidth;
@@ -6655,6 +6656,8 @@ function prDrawTrack(force){
     rn.classList.toggle('dnf', !!e.dnf);
     rn.classList.toggle('blocked', !!e.blocked);
     rn.classList.toggle('spin', e.lastEvent === 'backfire' || e.lastEvent === 'stumble');
+    rn.classList.toggle('evo', Number(e.evoLegs || 0) > 0 && !e.dnf);
+    const tg = tr.querySelector(`[data-id="${e.id}"] .tag`); if(tg){ const ev = Number(e.evoLegs || 0) > 0 && !e.dnf; tg.classList.toggle('evo', ev); tg.textContent = ev ? `✨ ${e.form || e.petName} • ${e.playerName}` : `${e.petName} • ${e.playerName}`; }
     let b = rn.querySelector('.bub'); if(e.blocked && !b){ b = document.createElement('span'); b.className = 'bub'; b.textContent = '!'; rn.appendChild(b); } else if(!e.blocked && b) b.remove();
   }));
 }
@@ -6764,7 +6767,7 @@ function prAdminSub(s){ _prAdminSub = s; prAdminRender(); }
 function prAdminRender(){
   const el = document.getElementById('prAdminRoot'); if(!el || !_prAdmin) return;
   const a = _prAdmin, st = a.state || {}, r = st.race || {}, c = a.settings || {};
-  const subs = [['set','⚙️ Settings'],['items','🛍️ Boost items'],['ent',`👥 Entrants (${(st.entries || []).length})`],['pay','💸 Payouts'],['audit','🔎 Audit'],['loot','🎒 Loot & Clash'],['slack','💬 Slack']];
+  const subs = [['set','⚙️ Settings'],['items','🛍️ Boost items'],['ent',`👥 Entrants (${(st.entries || []).length})`],['pay','💸 Payouts'],['audit','🔎 Audit'],['loot','🎒 Loot, Clash & Evolve'],['slack','💬 Slack']];
   let h = `<div class="info-box" style="margin-bottom:12px">Race #${r.id || '—'} • <b>${prEsc(r.status || 'none')}</b> • mode <b>${prEsc(c.mode)}</b> • leg ${r.lastLeg || 0}/24${r.regOpenAt ? ` • registration ${new Date(r.regOpenAt).toLocaleString('en-PH',{timeZone:'Asia/Manila'})} → ${new Date(r.regCloseAt).toLocaleString('en-PH',{timeZone:'Asia/Manila'})}` : ''}. Changes during a race apply to the next race, except prizes.</div>`;
   h += `<div class="pra-sub">${subs.map(s => `<button class="${_prAdminSub === s[0] ? 'on' : ''}" onclick="prAdminSub('${s[0]}')">${s[1]}</button>`).join('')}</div>`;
   if(_prAdminSub === 'set'){
@@ -6784,7 +6787,7 @@ function prAdminRender(){
       <div class="pr-muted" style="font-size:12px;margin-top:8px">Economy check: full wallet (${c.walletCap} 🪙) ≈ +${praEcon(c).toFixed(1)} laps vs ~4.2 laps lost per health tier. ${praEcon(c) > 4.2 ? '<b style="color:var(--danger)">⚠ Spending now beats care — lower prices/boosts or the wallet cap.</b>' : '<b style="color:var(--success)">✓ Care still beats spending.</b>'}</div>`;
   } else if(_prAdminSub === 'slack'){
     const sl = c.slack || {};
-    h += `<div class="pra-form">${[['regOpen','Registration open'],['reminder','Tuesday closing reminder'],['lineup','Lineup / cancelled notice'],['obstacle','Obstacle alert at shift start'],['leader','Leader update after Day 1 and Day 2'],['winner','Winner + podium'],['clash','Pet Clash start + result'],['loot','Rare/Legendary finds + Salamin']].map(([k, l]) =>
+    h += `<div class="pra-form">${[['regOpen','Registration open'],['reminder','Tuesday closing reminder'],['lineup','Lineup / cancelled notice'],['obstacle','Obstacle alert at shift start'],['leader','Leader update after Day 1 and Day 2'],['winner','Winner + podium'],['clash','Pet Clash start + result'],['loot','Rare/Legendary finds + Salamin'],['evolve','Evolutions']].map(([k, l]) =>
       `<div class="pra-f"><label>${l}</label><select data-k="slack.${k}" data-t="bool"><option value="true" ${sl[k] !== false ? 'selected' : ''}>On</option><option value="false" ${sl[k] === false ? 'selected' : ''}>Off</option></select></div>`).join('')}</div>
       <div class="pr-muted" style="font-size:12px;margin-top:8px">These switches turn each post type on/off. Use 💾 Save Pet Race settings below for them.</div>` + praxHooksHtml();
   } else if(_prAdminSub === 'ent'){
@@ -6993,7 +6996,7 @@ function gaAdminRender(game){
   };
   let h = `<div class="pra-form">${GA_FIELDS[game].map(fld).join('')}</div>`;
   if(game === 'spin'){
-    h += `<div class="pra-sec">Wheel segments (6 equal slices, 0x–5x)</div><div class="pra-form">${(c.segments || []).map((m, i) =>
+    h += `<div class="pra-sec">Wheel segments (${(c.segments || []).length} equal slices, 6–12, 0x–5x) <button type="button" class="btn btn-outline btn-sm" style="margin-left:8px" ${(c.segments || []).length >= 12 ? 'disabled' : ''} onclick="gaSegResize(1)">＋ Add slice</button> <button type="button" class="btn btn-outline btn-sm" ${(c.segments || []).length <= 6 ? 'disabled' : ''} onclick="gaSegResize(-1)">− Remove last</button></div><div class="pra-form">${(c.segments || []).map((m, i) =>
       `<div class="pra-f"><label>Slice ${i + 1}</label><select data-k="segments.${i}" data-t="num" onchange="gaPreview('spin')">${[0,1,2,3,4,5].map(o => `<option value="${o}" ${o === m ? 'selected' : ''}>${o}x</option>`).join('')}</select></div>`).join('')}</div>`;
   }
   if(game === 'shop'){
@@ -7045,9 +7048,9 @@ function prxClashCfg(){ return ((_pr && _pr.settings) || {}).clash || {}; }
 
 function prxCards(me, ph){
   if(!_pr) return '';
-  const clash = prxClashCard(), bag = prxBagCard(me, ph);
-  if(!clash && !bag) return '';
-  return `<div class="pr-grid2"><div class="pr-wrap">${clash || prxClashInfo()}</div><div class="pr-wrap">${bag}</div></div>`;
+  const clash = prxClashCard(), bag = prxBagCard(me, ph), evo = (ph && (ph.key === 'race' || ph.key === 'lineup')) ? prxEvoCard(me) : '';
+  if(!clash && !bag && !evo) return '';
+  return `<div class="pr-grid2"><div class="pr-wrap">${evo}${clash || prxClashInfo()}</div><div class="pr-wrap">${bag}</div></div>`;
 }
 
 // ── Pet Clash
@@ -7124,7 +7127,8 @@ function prxBagCard(me, ph){
     let btn = '';
     if(i.kind === 'power'){
       const why = !prCanPlay() ? 'Locked' : !i.usable ? (i.sellable ? '' : 'Race not running') : (me && me.dnf) ? 'DNF' : (me && me.blocked) ? 'Blocked' : usedThisLeg ? '1 per leg' :
-        (i.key === 'salamin' && Number(my.salaminUsed || 0) >= Number((P.salamin || {}).maxPerRace || 1)) ? '1 per race' : '';
+        (i.key === 'salamin' && Number(my.salaminUsed || 0) >= Number((P.salamin || {}).maxPerRace || 1)) ? '1 per race' :
+        (i.key === 'kwintas' && (Number(my.evoLegs || 0) > 0 || Number(my.evoMeter || 0) >= 100)) ? 'Meter full' : '';
       if(i.usable) btn = `<button class="pr-btn" ${prDis(why)} onclick="prxUse(${i.id},'${i.key}')">${why ? prEsc(why) : 'Use'}</button>`;
     }
     if(i.sellable) btn = `<button class="pr-btn ghost" ${prDis(!prCanPlay() && 'Locked')} onclick="prxSell(${i.id})">Sell ${i.value}🪙</button>`;
@@ -7148,6 +7152,7 @@ function prxPowerDesc(k){
   if(k === 'monster') return `+${p.pct}% speed for ${p.legs} legs`;
   if(k === 'dice') return `roll for +${(p.faces || [])[0]}–${(p.faces || []).slice(-1)[0]}% next leg`;
   if(k === 'salamin') return `+${p.laps} lap now (stops at obstacle) • 1 per race`;
+  if(k === 'kwintas') return 'fills your ⚡ Evolve meter to 100 instantly';
   return '';
 }
 async function prxUse(id, key){
@@ -7155,7 +7160,7 @@ async function prxUse(id, key){
   if(!confirm(`Use ${p.name || 'power-up'} now?\n${prxPowerDesc(key)}`)) return;
   const j = await prAct('use_item', {itemId: id});
   if(j && j.ok && key === 'dice') alert(`🎲 ${j.msg}`);
-  if(j && j.ok && key === 'salamin') alert(j.msg);
+  if(j && j.ok && (key === 'salamin' || key === 'kwintas')) alert(j.msg);
 }
 async function prxSell(id){
   if(id === 'all' && !confirm('Sell all sellable items?')) return;
@@ -7176,16 +7181,17 @@ function prxF(prefix, obj, [k, lab, t, help]){
 function praxLootHtml(){
   const a = _prAdmin, c = a.settings || {}, L = c.loot || {}, C = c.clash || {}, P = L.powers || {};
   const st = a.state || {}, nm = id => { const e = (st.entries || []).find(x => x.playerId === id); return e ? `${e.petName} (${e.playerName})` : (typeof playerNameById === 'function' ? playerNameById(id) : id); };
-  let h = `<div class="info-box" style="margin-bottom:10px">${L.on ? '🟢 Loot ON' : '⚪ Loot OFF'} • ${C.on ? '🟢 Pet Clash ON' : '⚪ Pet Clash OFF'} — changes apply from the next leg, even mid-race.</div>`;
+  let h = `<div class="info-box" style="margin-bottom:10px">${L.on ? '🟢 Loot ON' : '⚪ Loot OFF'} • ${C.on ? '🟢 Pet Clash ON' : '⚪ Pet Clash OFF'} • ${(c.evolve || {}).on ? '🟢 Evolution ON' : '⚪ Evolution OFF'} — changes apply from the next leg, even mid-race.</div>`;
   h += `<div class="pra-sec">🎒 Loot</div><div class="pra-form">${PRX_LOOT_F.map(f => prxF('loot', L, f)).join('')}</div>`;
   h += `<div class="pra-sec">Item tiers (names fixed)</div><div class="pr-tbl"><table class="roster-table"><thead><tr><th>Tier</th><th>Items</th><th>Odds %</th><th>Sells for 🪙</th></tr></thead><tbody>${(L.tiers || []).map((t, i) =>
     `<tr><td>${prEsc(t.label)}</td><td>${(t.items || []).map(x => `${x.emoji} ${prEsc(x.name)}`).join('<br>')}</td><td><input style="width:70px;margin:0" type="number" data-x="tier.${i}.pct" data-t="num" value="${t.pct}"></td><td><input style="width:70px;margin:0" type="number" data-x="tier.${i}.value" data-t="num" value="${t.value}"></td></tr>`).join('')}</tbody></table></div>`;
   const pw = (k, fields) => `<tr><td>${P[k].emoji} ${prEsc(P[k].name)}</td>${fields.map(f => f ? `<td><input style="width:64px;margin:0" type="number" data-x="power.${k}.${f}" data-t="num" value="${P[k][f]}"></td>` : '<td>—</td>').join('')}</tr>`;
   h += `<div class="pra-sec">Power-ups</div><div class="pr-tbl"><table class="roster-table"><thead><tr><th>Power-up</th><th>Share %</th><th>Sell 🪙</th><th>Boost %</th><th>Legs / laps</th><th>Max per race</th></tr></thead><tbody>
     ${P.monster ? pw('monster', ['share','sell','pct','legs', null]) : ''}${P.dice ? `<tr><td>${P.dice.emoji} ${prEsc(P.dice.name)}</td><td><input style="width:64px;margin:0" type="number" data-x="power.dice.share" data-t="num" value="${P.dice.share}"></td><td><input style="width:64px;margin:0" type="number" data-x="power.dice.sell" data-t="num" value="${P.dice.sell}"></td><td colspan="3" class="pr-muted">d6 → +${(P.dice.faces || []).join('/')}% next leg</td></tr>` : ''}
-    ${P.salamin ? pw('salamin', ['share','sell', null, 'laps','maxPerRace']) : ''}</tbody></table></div>
+    ${P.salamin ? pw('salamin', ['share','sell', null, 'laps','maxPerRace']) : ''}${P.kwintas ? pw('kwintas', ['share','sell', null, null, null]) : ''}</tbody></table></div>
     <div class="pr-muted" style="font-size:12px;margin-top:6px">Speed power-ups still count toward the per-leg boost cap (+${Number(c.legCap || 35)}%). One power-up per racer per leg.</div>`;
   h += `<div class="pra-sec">⚔️ Pet Clash</div><div class="pra-form">${PRX_CLASH_F.map(f => prxF('clash', C, f)).join('')}</div>`;
+  h += praxEvoHtml();
   const n = (st.entries || []).length || 7, legs = 24, fp = (Number(L.findPct || 0) + Number(L.underdogPct || 0)) / 200;
   const tierEV = (L.tiers || []).reduce((s, t) => s + Number(t.pct) / 100 * Number(t.value), 0) / Math.max(1, (L.tiers || []).reduce((s, t) => s + Number(t.pct), 0) / 100);
   const pwShare = Object.values(P).reduce((s, p) => s + Number(p.share || 0), 0) || 1, pwEV = Object.values(P).reduce((s, p) => s + Number(p.share || 0) / pwShare * Number(p.sell || 0), 0);
@@ -7199,17 +7205,17 @@ function praxLootHtml(){
   return h;
 }
 async function praxSave(){
-  const c = _prAdmin.settings, loot = {powers:{}, tiers:(c.loot.tiers || []).map(() => ({}))}, clash = {}, msg = document.getElementById('praxMsg');
+  const c = _prAdmin.settings, loot = {powers:{}, tiers:(c.loot.tiers || []).map(() => ({}))}, clash = {}, evolve = {}, msg = document.getElementById('praxMsg');
   document.querySelectorAll('#prAdminRoot [data-x]').forEach(inp => {
     const p = inp.dataset.x.split('.'), t = inp.dataset.t; let v = inp.value;
     v = t === 'bool' ? v === 'true' : Math.round(Number(v));
     if(t !== 'bool' && !isFinite(v)) return;
-    if(p[0] === 'loot') loot[p[1]] = v; else if(p[0] === 'clash') clash[p[1]] = v;
+    if(p[0] === 'loot') loot[p[1]] = v; else if(p[0] === 'clash') clash[p[1]] = v; else if(p[0] === 'evolve') evolve[p[1]] = v;
     else if(p[0] === 'tier') loot.tiers[Number(p[1])][p[2]] = v;
     else if(p[0] === 'power'){ loot.powers[p[1]] = loot.powers[p[1]] || {}; loot.powers[p[1]][p[2]] = v; }
   });
   if((loot.on && !c.loot.on) || (clash.on && !c.clash.on)){ if(!confirm('Turn ON the new race add-ons? They start with the next leg.')) return; }
-  const j = await praCall('save', {loot, clash});
+  const j = await praCall('save', Object.assign({loot, clash}, c.evolve && Object.keys(evolve).length ? {evolve} : {}));
   if(!j.ok){ if(msg){ msg.textContent = '⚠ ' + (j.error || 'Save failed'); msg.style.color = 'var(--danger)'; } return; }
   _prAdmin.settings = j.settings; prAdminRender();
   const m2 = document.getElementById('praxMsg'); if(m2){ m2.textContent = '✅ Saved'; m2.style.color = 'var(--success)'; }
@@ -7238,6 +7244,66 @@ async function praxHooks(){
 async function praxTest(){
   const j = await praCall('test_hooks', {});
   alert(j.ok ? `Test sent → Pet Race channel: ${j.raceHook ? 'yes' : 'NOT SET'} • Project manager: ${j.pmHook ? 'yes' : 'NOT SET'}. Check Slack.` : (j.error || 'Failed'));
+}
+
+</script>
+<script>
+// ═════ R7: RACE EVOLUTION (temporary, race-only) + Kwintas + pet growth stages. Server owns every rule. ═════
+function prxEvoCfg(){ return ((_pr && _pr.settings) || {}).evolve || {}; }
+function petStageOf(level){ const l = Number(level || 1); return l >= 10 ? 'Adult' : l >= 5 ? 'Teen' : 'Baby'; }
+const PET_STAGE_ICON = {Baby:'🐣', Teen:'🌱', Adult:'👑'};
+function petStageBadge(level){ const s = petStageOf(level); return `<span class="stg-badge stg-${s.toLowerCase()}">${PET_STAGE_ICON[s]} ${s}</span>`; }
+
+function prxEvoCard(me){
+  const E = prxEvoCfg();
+  if(!E.on || !me || !_pr) return '';
+  const my = _pr.me || {}, run = prRunning(), meter = Math.max(0, Math.min(100, Number(my.evoMeter || 0)));
+  const legsLeft = Number(my.evoLegs || 0), form = my.form || 'Evolved form', perDay = Number(E.perDay || 1);
+  const usedToday = Number(my.evoUsedToday || 0) >= perDay;
+  const why = !prCanPlay() ? 'Locked' : !run ? 'Race not running' : me.dnf ? 'DNF' : legsLeft > 0 ? 'Evolved na!' : meter < 100 ? `${meter}/100` : usedToday ? 'Bukas ulit' : '';
+  let top;
+  if(legsLeft > 0){
+    top = `<div class="evo-live"><div class="pr-portrait evo-glow">${prPetImg(me.species)}</div><div><b class="evo-form">✨ ${prEsc(form)}</b>
+      <div class="pr-muted" style="font-size:12px">${legsLeft} evolved leg${legsLeft === 1 ? '' : 's'} left • +${Number(E.pct || 0)}% speed${E.noStumble !== false ? ' • no stumbles' : ''}${my.evoJump ? ' • 🦘 obstacle jump ready' : ''}</div></div></div>`;
+  } else {
+    top = `<div class="pr-hl" style="display:block"><div style="display:flex;justify-content:space-between;align-items:center"><span>⚡ Evolve meter</span><b class="pr-mono">${meter}/100</b></div>
+      <div class="pr-meter evo-meter"><i style="width:${meter}%"></i></div>
+      <div class="pr-muted" style="font-size:11.5px;margin-top:4px">+${Number(E.perLeg || 0)} per leg (+${Number(E.underdog || 0)} more if you're in the bottom half) • +${Number(E.clashWin || 0)} for a Pet Clash win • 📿 Kwintas fills it instantly.</div></div>`;
+  }
+  const btn = legsLeft > 0 ? '' : `<button class="pr-btn evo-btn ${!why ? 'ready' : ''}" style="width:100%;margin-top:10px" ${prDis(why)} onclick="prxEvolve()">${!why ? `✨ EVOLVE into ${prEsc(form)}` : `✨ EVOLVE — ${prEsc(why)}`}</button>`;
+  return `<div class="gp-card ${legsLeft > 0 ? 'evo-on' : ''}"><div class="gp-hdr"><h3>✨ Race Evolution</h3><span class="gp-badge">${perDay}× per race day</span></div>
+    ${top}${btn}
+    <div class="pr-muted" style="font-size:11.5px;margin-top:8px">Evolved for ${Number(E.legs || 2)} legs: +${Number(E.pct || 0)}% speed (inside the +${Number((_pr.settings || {}).legCap || 35)}% cap), ${E.noStumble !== false ? 'no sick stumbles, ' : ''}${E.jump !== false ? 'one free jump over the obstacle (or instantly if you\'re stuck), ' : ''}${Number(E.lootMult || 1) > 1 ? `${Number(E.lootMult)}× loot chance` : ''}. Timing is everything!</div></div>`;
+}
+async function prxEvolve(){
+  const my = (_pr && _pr.me) || {}, E = prxEvoCfg();
+  if(!confirm(`Evolve into ${my.form || 'evolved form'} now?\n+${E.pct}% speed for the next ${E.legs} legs. Once per race day.`)) return;
+  const j = await prAct('evolve', {});
+  if(j && j.ok) alert(j.msg);
+}
+
+// ── Admin: evolve settings (rendered inside the Loot & Clash tab)
+const PRX_EVO_F = [['on','Race Evolution on','bool','⚡ meter + EVOLVE button'],['perLeg','Meter per leg','num','100 = full'],['underdog','Extra per leg (bottom half)','num','catch-up help'],
+  ['clashWin','Meter for a clash win','num',''],['legs','Evolved legs','num','1–8'],['pct','Speed boost %','num','0–35, counts toward the leg cap'],['perDay','Evolutions per racer per day','num',''],
+  ['noStumble','No stumbles while evolved','bool',''],['jump','Free obstacle jump','bool','or instant unblock if stuck'],['lootMult','Loot chance × while evolved','num','1–5']];
+function praxEvoHtml(){
+  const c = (_prAdmin && _prAdmin.settings) || {}, E = c.evolve || {}, forms = E.forms || {};
+  if(!c.evolve) return '';
+  let h = `<div class="pra-sec">✨ Race Evolution</div><div class="pra-form">${PRX_EVO_F.map(f => prxF('evolve', E, f)).join('')}</div>`;
+  h += `<div class="pr-muted" style="font-size:12px;margin-top:6px">Evolved forms: ${Object.keys(forms).map(k => `${prEmoji(k)} ${prEsc(forms[k])}`).join(' • ')}</div>`;
+  const ents = ((_prAdmin.state || {}).entries || []);
+  if(ents.length && ents.some(e => e.evoMeter !== undefined)) h += `<div class="pr-tbl" style="margin-top:8px"><table class="roster-table"><thead><tr><th>Racer</th><th>⚡ Meter</th><th>Evolved legs left</th></tr></thead><tbody>${ents.map(e => `<tr><td>${prEsc(e.petName)} (${prEsc(e.playerName)})</td><td>${Number(e.evoMeter || 0)}</td><td>${Number(e.evoLegs || 0)}</td></tr>`).join('')}</tbody></table></div>`;
+  return h;
+}
+
+// ── Spin Wheel admin: add/remove slices (6–12)
+function gaSegResize(delta){
+  if(!_gaAdmin || !_gaAdmin.spin) return;
+  const cur = gaCollect('spin'), segs = (cur.segments || _gaAdmin.spin.segments || []).slice();
+  if(delta > 0 && segs.length < 12) segs.push(0);
+  if(delta < 0 && segs.length > 6) segs.pop();
+  _gaAdmin.spin = Object.assign({}, _gaAdmin.spin, cur, {segments: segs});
+  gaAdminRender('spin');
 }
 
 </script>
