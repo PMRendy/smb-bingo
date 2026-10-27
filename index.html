@@ -824,7 +824,7 @@ table.blh th{color:var(--muted);font-weight:600;font-size:11px;text-transform:up
       <button class="tab-btn" data-tab="spin" onclick="switchAdminTab('spin')">🎡 Spin the Wheel</button>
       <button class="tab-btn" data-tab="highlow" onclick="switchAdminTab('highlow')">📈 Higher or Lower</button>
       <button class="tab-btn" data-tab="rps" onclick="switchAdminTab('rps')">✊ RPS Duel</button>
-      <button class="tab-btn" data-tab="lucky9" onclick="switchAdminTab('lucky9')">🃏 Lucky 9 <span class="adm-chip">NEW</span></button>
+      <button class="tab-btn" data-tab="lucky9" onclick="switchAdminTab('lucky9')">🃏 Beat Sir Rendy <span class="adm-chip">NEW</span></button>
       <div class="adm-grp">Economy</div>
       <button class="tab-btn" data-tab="blessings" onclick="switchAdminTab('blessings')">🙏 Ganzo's Blessings <span class="adm-chip">NEW</span></button>
       <button class="tab-btn" data-tab="pets" onclick="switchAdminTab('pets')">🐾 Pets</button>
@@ -1171,7 +1171,7 @@ table.blh th{color:var(--muted);font-weight:600;font-size:11px;text-transform:up
       </div>
     </div>
     <div class="tab-content" id="tab-lucky9">
-      <div class="panel" style="margin-bottom:16px"><div class="panel-title" style="margin-bottom:4px">🃏 Beat Sir Rendy · Lucky 9</div>
+      <div class="panel" style="margin-bottom:16px"><div class="panel-title" style="margin-bottom:4px">🃏 Beat Sir Rendy</div>
         <div style="font-size:12px;color:var(--muted)">Staff buy a Shift Pass and play hands against you on autopilot. The server deals, enforces every value and pays the bounty; this page only displays.</div></div>
       <div id="l9AdminRoot"><div class="empty-state">Loading...</div></div>
     </div>
@@ -5966,7 +5966,7 @@ const TOKEN_EVENT_LABELS = {
   race_spend: '🏁 Pet Race', race_refund: '↩️ Pet Race Refund', race_loot: '🎒 Pet Race Loot', race_clash: '⚔️ Pet Clash Win',
   ganzo_blessing: "🙏 Ganzo's Blessing",
   pet_evolve: '👑 Pet Evolve', pet_trade_fee: '🔁 Pet Trade Fee', pet_trade_fee_in: '🔁 Trade Fee to Admin',
-  l9_pass: '🃏 Lucky 9 Shift Pass', l9_bounty: '👑 Lucky 9 Boss Bounty',
+  l9_pass: '🃏 Beat Sir Rendy Shift Pass', l9_bounty: '👑 Beat Sir Rendy Boss Bounty',
 };
 function playerNameById(id){ const p=DB.players.find(x=>x.id===id); return p?p.name:(id||'—'); }
 
@@ -6023,7 +6023,7 @@ function renderTokenLog(){
       else if(e.type === 'race_spend') detail = `${playerNameById(e.playerId)} spent ${e.amount} 🪙 — ${e.itemName||'Pet Race'}`;
       else if(e.type === 'race_loot' || e.type === 'race_clash') detail = `${playerNameById(e.playerId)} got ${e.amount} 🪙 — ${e.itemName||'Pet Race'}`;
       else if(e.type === 'race_refund') detail = `${playerNameById(e.playerId)} refunded ${e.amount} 🪙 — ${e.itemName||'Pet Race'} (${e.reason||'refund'})`;
-      else if(e.type === 'l9_pass') detail = `${playerNameById(e.playerId)} bought a Lucky 9 Shift Pass (${e.amount} 🪙, ${e.hands || 5} hands)`;
+      else if(e.type === 'l9_pass') detail = `${playerNameById(e.playerId)} bought a Beat Sir Rendy Shift Pass (${e.amount} 🪙, ${e.hands || 5} hands)`;
       else if(e.type === 'l9_bounty') detail = `${playerNameById(e.playerId)} beat Sir Rendy and claimed the ${e.amount} 🪙 Boss Bounty (broke a ${e.streak}-win streak)`;
       else if(e.type === 'ganzo_blessing') detail = `${playerNameById(e.playerId)} received ${e.amount} 🪙 — "${String(e.message||'').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}"`;
       else if(e.type === 'avatar_gender_switch') detail = `${playerNameById(e.playerId)} switched avatar gender for ${e.amount} 🪙`;
@@ -6458,7 +6458,7 @@ function setCardsView(mode){
 
 <script>
 // ═════ SMB GAME PORTAL (R2): sidebar views. Display only — no token writes. ═════
-const GP_TITLES = {player:'Player', bingo:'BINGO', spin:'Spin the Wheel', hl:'Higher or Lower', rps:'RPS Duel', race:'Pet Race Frenzy', l9:'Beat Sir Rendy · Lucky 9', shop:'Shop', avatar:'Avatar Studio', lb:'Leaderboards'};
+const GP_TITLES = {player:'Player', bingo:'BINGO', spin:'Spin the Wheel', hl:'Higher or Lower', rps:'RPS Duel', race:'Pet Race Frenzy', l9:'Beat Sir Rendy', shop:'Shop', avatar:'Avatar Studio', lb:'Leaderboards'};
 let _gpView = 'player', _gpSub = 'play';
 function gpGo(v){
   if(!GP_TITLES[v]) v = 'player';
@@ -6542,8 +6542,8 @@ function gpLabel(e, id){
     case 'race_refund': return `🏁 ${gpEsc(e.itemName || 'Pet Race refund')}`;
     case 'race_loot': return `🎒 ${gpEsc(e.itemName || 'Pet Race loot')}`;
     case 'race_clash': return `⚔️ ${gpEsc(e.itemName || 'Pet Clash')}`;
-    case 'l9_pass': return '🃏 Lucky 9 Shift Pass';
-    case 'l9_bounty': return `👑 Lucky 9 Boss Bounty${e.streak ? ` (broke a ${e.streak}-win streak)` : ''}`;
+    case 'l9_pass': return '🃏 Beat Sir Rendy Shift Pass';
+    case 'l9_bounty': return `👑 Beat Sir Rendy Boss Bounty${e.streak ? ` (broke a ${e.streak}-win streak)` : ''}`;
     case 'ganzo_blessing': return `🙏 Ganzo's Blessing${e.message ? ' — ' + gpEsc(e.message) : ''}`;
     case 'pet_evolve': return `👑 Evolved ${gpEsc(e.itemName || 'a pet')}`;
     case 'pet_trade_fee': return `🔁 Trade fee — ${gpEsc(e.itemName || 'pet trade')}`;
@@ -8028,7 +8028,7 @@ function l9TableHtml(){
   let act = '';
   const mine = _l9.myTable && _l9.myTable.seats.find(x => x.me);
   if(l9IsBanker()){
-    act = `<div class="l9-modal"><div style="font-size:28px">😎</div><div style="font-weight:700;font-size:17px">You're the banker, Sir!</div><div class="l9-hint">Staff take seats here; when ${need} are seated you deal automatically (stand on 6–9, draw on 0–5). Settings: Admin → 🃏 Lucky 9.</div></div>`;
+    act = `<div class="l9-modal"><div style="font-size:28px">😎</div><div style="font-weight:700;font-size:17px">You're the banker, Sir!</div><div class="l9-hint">Staff take seats here; when ${need} are seated you deal automatically (stand on 6–9, draw on 0–5). Settings: Admin → 🃏 Beat Sir Rendy.</div></div>`;
   } else if(!c.on){
     act = `<div class="l9-modal"><div style="font-weight:700">Beat Sir Rendy is closed right now.</div><div class="l9-hint">Check back later!</div></div>`;
   } else if(_l9.myTable && _l9.myTable.status === 'open'){
@@ -8145,7 +8145,7 @@ function l9AdminRender(){
   const root = document.getElementById('l9AdminRoot'); if(!root || !_l9a) return;
   const s = _l9a.settings, b = _l9a.boss, t = _l9a.today, hk = _l9a.hook;
   const num = (k, label, hint) => `<div><label>${label}</label><input type="number" id="l9a_${k}" value="${s[k]}" min="0" step="1" oninput="l9aPreview()"><small style="display:block;min-height:14px;color:var(--muted);font-size:11px">${hint || ''}</small></div>`;
-  const hookTxt = hk.own ? '✅ Lucky 9 webhook set (hidden)' : hk.fallback === 'games' ? 'Not set — posting to the Mini Games channel for now' : hk.fallback === 'bingo' ? 'Not set — posting to the BINGO channel for now' : 'Not set — no Slack posts';
+  const hookTxt = hk.own ? '✅ Beat Sir Rendy webhook set (hidden)' : hk.fallback === 'games' ? 'Not set — posting to the Mini Games channel for now' : hk.fallback === 'bingo' ? 'Not set — posting to the BINGO channel for now' : 'Not set — no Slack posts';
   const rows = (_l9a.recent || []).map(r => {
     const d = new Date(r.at);
     const pl = (r.players || []).map(x => {
@@ -8174,7 +8174,7 @@ function l9AdminRender(){
     <div style="font-size:12px;color:var(--muted);margin-top:10px;opacity:.6">Live-banker mode (you play your own hands): Phase 2. Autopilot deals for now.</div>
     <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap"><button class="btn btn-gold" onclick="l9aSave()">💾 Save</button><button class="btn btn-outline" onclick="l9aReset()">↺ Reset streak</button></div>
     <div class="pra-msg" id="l9aMsg" style="margin-top:8px"></div>
-    <div class="panel-title" style="margin-top:18px">🔔 Lucky 9 Slack webhook</div>
+    <div class="panel-title" style="margin-top:18px">🔔 Beat Sir Rendy Slack webhook</div>
     <div style="font-size:12px;color:var(--muted);margin-bottom:6px">${hookTxt}. Stored on the server, never shown again. Paste a new one to replace it; Save empty to go back to the Mini Games channel.</div>
     <div style="display:flex;gap:8px"><input type="password" id="l9a_hook" placeholder="https://hooks.slack.com/services/…" autocomplete="off" style="flex:1;background:var(--deep,#151824);color:var(--white,#fff);border:1px solid var(--line,#333);border-radius:8px;padding:8px 10px"><button class="btn btn-outline btn-sm" onclick="l9aHook()">Save</button><button class="btn btn-outline btn-sm" onclick="l9aTest()">Test</button></div>
    </div>
@@ -8210,7 +8210,7 @@ async function l9aReset(){
 }
 async function l9aHook(){
   const url = document.getElementById('l9a_hook').value.trim();
-  if(!url && !confirm('Clear the Lucky 9 webhook? Posts go back to the Mini Games channel.')) return;
+  if(!url && !confirm('Clear the Beat Sir Rendy webhook? Posts go back to the Mini Games channel.')) return;
   const j = await l9AdminCall('hook', { url });
   if(!j.ok) return l9aOut(j.error || 'Not saved.');
   await l9AdminLoad(); l9aOut(j.own ? '✅ Webhook saved — tap Test to check it' : '✅ Webhook cleared', true);
