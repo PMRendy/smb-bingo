@@ -447,6 +447,14 @@ body::before{display:none}
 .pet-portrait.stg-p-teen{width:78px;height:78px;border-color:#6fe6d3}
 .pet-portrait.stg-p-adult{width:90px;height:90px;border:3px solid #f5c842;box-shadow:0 0 0 3px rgba(245,200,66,.25),0 5px 16px rgba(0,0,0,.35)}
 .pet-stage-row{text-align:center;margin-top:2px}
+.prl-strip{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
+.prl-strip>div{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:8px 10px;min-width:0}
+.prl-strip b{display:block;font-size:15px;color:var(--white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.prl-strip span{font-size:11px;opacity:.7}
+.prl-feed{max-height:260px;overflow:auto;font-size:12.5px;line-height:1.5}
+.prl-feed>div{padding:4px 0;border-bottom:1px dashed rgba(255,255,255,.1)}
+.prl-feed span{opacity:.6;margin-right:8px;font-size:11px}
+@media(max-width:700px){.prl-strip{grid-template-columns:repeat(2,minmax(0,1fr))}}
 </style>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -6636,7 +6644,7 @@ function gpMirrorBalance(){
 // ═════ R4: PET RACE FRENZY — player view + admin tab. Server (bingo-pet-race) owns every rule and token charge. ═════
 const PR_URL = 'https://ebeggngsggwnxufovkco.supabase.co/functions/v1/bingo-pet-race';
 let _pr = null, _prSkew = 0, _prTimer = null, _prBusy = false, _prSel = null, _prTaps = 0, _prDice = null, _prShownFinal = 0;
-let _prAdmin = null, _prAdminSub = 'set', _prPrevL = {};
+let _prAdmin = null, _prAdminSub = 'live', _prPrevL = {};
 const PR_TAP_GOAL = 8;
 function prNow(){ return Date.now() + _prSkew; }
 function prEsc(x){ return (typeof escapeHtml === 'function') ? escapeHtml(String(x == null ? '' : x)) : String(x == null ? '' : x).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
@@ -7021,11 +7029,80 @@ async function prAdminLoad(){
     _prAdmin = j; prAdminRender();
   } catch(e){ el.innerHTML = '<div class="empty-state">Pet Race backend unavailable — try ulit.</div>'; }
 }
+// R15: Admin → Pet Race → 🏟️ Live Track (read-only; uses the public race GET, no admin PIN calls)
+let _praLive = null, _praLivePrev = {}, _praLiveTimer = null, _praLiveAt = 0;
+async function praLiveFetch(){
+  try { const r = await fetch(PR_URL + '?playerId=_admin'); const j = await r.json(); if(j && j.ok !== false){ _praLive = j; _praLiveAt = Date.now(); } }
+  catch(e){}
+  praLiveDraw();
+}
+function praLiveStart(){
+  if(_praLiveTimer) clearInterval(_praLiveTimer);
+  _praLiveTimer = setInterval(() => {
+    if(_prAdminSub !== 'live' || !document.getElementById('praLive')){ clearInterval(_praLiveTimer); _praLiveTimer = null; return; }
+    praLiveFetch();
+  }, 60000);
+  praLiveFetch();
+}
+function praLiveHtml(){
+  setTimeout(praLiveStart, 0);
+  return `<div id="praLive"><div class="empty-state">Loading live race…</div></div>`;
+}
+function praLiveStatus(e){
+  return e.dnf ? `<span class="pr-chip b">DNF${e.dnfReason ? ' • ' + prEsc(e.dnfReason) : ''}</span>` : Number(e.evoLegs || 0) > 0 ? `<span class="pr-chip y">✨ ${prEsc(e.form || 'Evolved')} (${e.evoLegs} legs)</span>`
+    : e.blocked ? `<span class="pr-chip w">🚧 Blocked${e.blockedSinceLeg ? ' since leg ' + e.blockedSinceLeg : ''}</span>` : e.lastEvent === 'backfire' ? '<span class="pr-chip b">Spun out</span>'
+    : e.lastEvent === 'stumble' ? '<span class="pr-chip w">Stumbled</span>' : (e.lastBoost || 0) >= 12 ? '<span class="pr-chip y">🔥 Boost</span>' : '<span class="pr-chip g">Running</span>';
+}
+function praLiveDraw(){
+  const root = document.getElementById('praLive'); if(!root) return;
+  const s = _praLive;
+  if(!s){ root.innerHTML = '<div class="empty-state">Could not load the race. <button class="btn btn-outline btn-sm" onclick="praLiveFetch()">Try again</button></div>'; return; }
+  const r = s.race || {}, c = s.settings || {}, total = Number(c.totalLaps || 42), now = Date.now();
+  const list = (s.entries || []).slice().sort((a, b) => (a.place || 99) - (b.place || 99) || (!!a.dnf - !!b.dnf) || Number(b.laps) - Number(a.laps));
+  const L = r.legTimes || [], last = Number(r.lastLeg || 0), next = L[last];
+  const leader = list.find(e => !e.dnf), lead = leader ? Number(leader.laps) : 0;
+  const ob = r.obstacle;
+  let h = `<div class="prl-strip">
+    <div><b>Race #${r.id || '—'}</b><span>${prEsc(r.status || 'none')}</span></div>
+    <div><b>Leg ${last}/24</b><span>Day ${r.day || Math.min(3, Math.floor(last / 8) + 1)}</span></div>
+    <div><b ${next && last < 24 && ['locked','racing'].includes(r.status) ? `data-pr-cd="${next}">${prFmtDur(next - now)}` : '>—'}</b><span>${next && last < 24 ? 'next leg • ' + prTime(next) + ' PHT' : 'no leg pending'}</span></div>
+    <div><b>${leader ? prEsc(leader.petName) : '—'}</b><span>${leader ? 'leader • ' + Number(leader.laps).toFixed(2) + ' laps' : 'no leader yet'}</span></div>
+    <div><b>${ob ? 'Lap ' + ob.lap : 'None'}</b><span>${ob ? 'Day ' + ob.day + ' obstacle' : 'obstacle'}</span></div>
+  </div>`;
+  h += `<div class="gp-card" style="margin-top:12px"><div class="gp-hdr"><h3>🏟️ Track</h3><span class="gp-badge">${total} laps • updated ${new Date(_praLiveAt).toLocaleTimeString('en-PH',{timeZone:'Asia/Manila',hour:'numeric',minute:'2-digit'})} PHT • auto-refresh 1 min</span>
+    <button class="btn btn-outline btn-sm" onclick="praLiveFetch()">↻ Refresh</button></div><div id="praTrack"></div></div>`;
+  if(list.length) h += `<div class="pr-tbl" style="margin-top:12px"><table class="roster-table"><thead><tr><th>Pos</th><th>Player</th><th>Pet</th><th>Laps</th><th>Gap</th><th>Last leg</th><th>Health</th><th>⚡ Stamina</th><th>✨ Evo</th><th>Boosts</th><th>Wallet</th><th>Status</th></tr></thead><tbody>${list.map((e, i) => {
+      const gap = e.dnf ? '—' : Number(e.laps) === lead ? 'Leader' : '−' + (lead - Number(e.laps)).toFixed(2);
+      const bo = [e.shoes ? '👟 Shoes' : '', e.swerte ? '🍀 Swerte' : '', Number(e.pendingCheer || 0) ? `📣 ${e.pendingCheer}` : '', Number(e.lastBoost || 0) ? `last +${e.lastBoost}%` : ''].filter(Boolean).join(' • ') || '—';
+      return `<tr><td>${e.place || i + 1}</td><td>${prEsc(e.playerName)}</td><td>${prEsc(e.petName)}</td><td><b>${Number(e.laps).toFixed(2)}</b></td><td>${gap}</td><td>+${Number(e.lastGain || 0).toFixed(2)} ${prEsc(String(e.lastEvent || '').replace(/_/g, ' '))}</td>
+        <td>${e.health ?? '—'}</td><td>${e.stamina ?? '—'}</td><td>${Number(e.evoLegs || 0) > 0 ? 'ACTIVE' : (e.evoMeter ?? 0) + '/100'}</td><td style="font-size:12px">${bo}</td><td>${e.walletUsed ?? 0}/${c.walletCap ?? 60}</td><td>${praLiveStatus(e)}</td></tr>`; }).join('')}</tbody></table></div>`;
+  const feed = (s.feed || []).slice(0, 12);
+  if(feed.length) h += `<div class="pra-sec">Latest race feed</div><div class="prl-feed">${feed.map(f => `<div><span>${new Date(f.at).toLocaleString('en-PH',{timeZone:'Asia/Manila',weekday:'short',hour:'numeric',minute:'2-digit'})}</span>${prEsc(f.msg)}</div>`).join('')}</div>`;
+  root.innerHTML = h;
+  praLiveTrack(list, total, ob);
+}
+function praLiveTrack(list, total, ob){
+  const host = document.getElementById('praTrack'); if(!host) return;
+  if(!list.length){ host.innerHTML = '<div class="pr-track"><div class="pr-lane grass"><span class="tag">Waiting for racers…</span><div class="pr-finish"></div></div></div>'; return; }
+  const maxL = Math.max(total, ...list.map(e => Number(e.laps)));
+  const x = l => 4 + Math.min(1, Number(l) / maxL) * 89;
+  host.innerHTML = `<div class="pr-track">${list.map((e, i) => {
+    const ev = Number(e.evoLegs || 0) > 0 && !e.dnf;
+    const cls = ['pr-runner', 'st-' + petStageOf(e.level, e).toLowerCase(), (e.lastBoost || 0) >= 12 && !e.dnf ? 'boost' : '', e.dnf ? 'dnf' : '', e.blocked ? 'blocked' : '', ev ? 'evo' : ''].filter(Boolean).join(' ');
+    return `<div class="pr-lane ${prLane(e.species)}" data-id="${e.id}">
+      <span class="tag ${ev ? 'evo' : ''}">${e.place || i + 1}. ${ev ? '✨ ' + prEsc(e.form || e.petName) : prEsc(e.petName)} • ${prEsc(e.playerName)} • ${Number(e.laps).toFixed(2)}</span><div class="pr-finish"></div>
+      ${ob ? `<span class="pr-ob" style="left:${x(ob.lap)}%">${{grass:'🪨', sky:'🌩️', water:'🕸️'}[prLane(e.species)]}</span>` : ''}
+      <div class="${cls}" style="left:${x(_praLivePrev[e.id] ?? e.laps)}%" data-l="${e.laps}"><span class="fx">🔥</span>${prPetImg(e.species, e)}${e.blocked ? '<span class="bub">!</span>' : ''}</div></div>`; }).join('')}</div>`;
+  const tr = host.querySelector('.pr-track'); void tr.offsetWidth;
+  requestAnimationFrame(() => list.forEach(e => { const rn = tr.querySelector(`[data-id="${e.id}"] .pr-runner`); if(rn) rn.style.left = x(e.laps) + '%'; }));
+  list.forEach(e => { _praLivePrev[e.id] = Number(e.laps); });
+}
+
 function prAdminSub(s){ _prAdminSub = s; prAdminRender(); }
 function prAdminRender(){
   const el = document.getElementById('prAdminRoot'); if(!el || !_prAdmin) return;
   const a = _prAdmin, st = a.state || {}, r = st.race || {}, c = a.settings || {};
-  const subs = [['set','⚙️ Settings'],['items','🛍️ Boost items'],['ent',`👥 Entrants (${(st.entries || []).length})`],['pay','💸 Payouts'],['audit','🔎 Audit'],['loot','🎒 Loot, Clash & Evolve'],['slack','💬 Slack']];
+  const subs = [['live','🏟️ Live Track'],['set','⚙️ Settings'],['items','🛍️ Boost items'],['ent',`👥 Entrants (${(st.entries || []).length})`],['pay','💸 Payouts'],['audit','🔎 Audit'],['loot','🎒 Loot, Clash & Evolve'],['slack','💬 Slack']];
   let h = `<div class="info-box" style="margin-bottom:12px">Race #${r.id || '—'} • <b>${prEsc(r.status || 'none')}</b> • mode <b>${prEsc(c.mode)}</b> • leg ${r.lastLeg || 0}/24${r.regOpenAt ? ` • registration ${new Date(r.regOpenAt).toLocaleString('en-PH',{timeZone:'Asia/Manila'})} → ${new Date(r.regCloseAt).toLocaleString('en-PH',{timeZone:'Asia/Manila'})}` : ''}. Changes during a race apply to the next race, except prizes.</div>`;
   h += `<div class="pra-sub">${subs.map(s => `<button class="${_prAdminSub === s[0] ? 'on' : ''}" onclick="prAdminSub('${s[0]}')">${s[1]}</button>`).join('')}</div>`;
   if(_prAdminSub === 'set'){
@@ -7066,6 +7143,7 @@ function prAdminRender(){
     h += `<div class="pra-sec">Purchases</div>${pur.length ? `<div class="pr-tbl" style="max-height:340px;overflow:auto"><table class="roster-table"><thead><tr><th>When</th><th>Player</th><th>Kind</th><th>Item</th><th>Cost</th><th>Wallet</th><th>Refunded</th></tr></thead><tbody>${pur.map(p => `<tr><td>${new Date(p.at).toLocaleString('en-PH',{timeZone:'Asia/Manila',month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})}</td><td>${prEsc(typeof playerNameById === 'function' ? playerNameById(p.playerId) : p.playerId)}</td><td>${prEsc(p.kind)}</td><td>${prEsc(p.item || (p.detail && p.detail.face !== undefined ? 'rolled ' + p.detail.face : ''))}</td><td>${p.cost}</td><td>${p.inWallet ? 'yes' : ''}</td><td>${p.refunded ? '↩️' : ''}</td></tr>`).join('')}</tbody></table></div>` : '<div class="empty-state">No purchases yet.</div>'}`;
   }
   if(_prAdminSub === 'loot') h += praxLootHtml();
+  if(_prAdminSub === 'live') h += praLiveHtml();
   if(['set','items','slack'].includes(_prAdminSub)) h += `<div class="pra-save"><span class="pra-msg" id="praMsg"></span><span><button class="btn btn-outline btn-sm" onclick="prAdminLoad()">Reload</button> <button class="btn btn-gold" onclick="praSave()">💾 Save Pet Race settings</button></span></div>`;
   el.innerHTML = h;
 }
