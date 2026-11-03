@@ -384,6 +384,7 @@ body::before{display:none}
 .gp-subtabs button{all:unset;cursor:pointer;padding:7px 13px;border-radius:999px;font-size:12.5px;color:var(--muted);box-shadow:inset 0 0 0 1px var(--line)}
 .gp-subtabs button.on{background:var(--card-bg);color:var(--white);box-shadow:inset 0 0 0 1px var(--gold)}
 .gp-bsub{display:none}.gp-bsub.on{display:block}
+.gp-ssub{display:none}.gp-ssub.on{display:block}
 .gp-empty{display:none;font-size:13px;color:var(--muted);padding:6px 2px}
 .gp-wrap-panel .panel[style*="display:none"]+.gp-empty,.gp-wrap-panel .panel[style*="display: none"]+.gp-empty{display:block}
 /* existing panels/details sit inside cards: drop their own chrome */
@@ -446,6 +447,59 @@ body::before{display:none}
 .pet-portrait.stg-p-baby{width:66px;height:66px}
 .pet-portrait.stg-p-teen{width:78px;height:78px;border-color:#6fe6d3}
 .pet-portrait.stg-p-adult{width:90px;height:90px;border:3px solid #f5c842;box-shadow:0 0 0 3px rgba(245,200,66,.25),0 5px 16px rgba(0,0,0,.35)}
+
+/* ═══ PET STORE (2026-11-04): whole-pet cosmetics that fit every species — Dye, Glow, Aura, Backdrop, Floor, Particles, Motion ═══ */
+.pg-stage{position:relative;width:100%;aspect-ratio:1;border-radius:12px;overflow:hidden;container-type:inline-size;background:radial-gradient(circle at 50% 60%,#2a3346,#151a23 70%)}
+.pet-portrait.pg-on{position:relative;container-type:inline-size}
+.pg-pet,.pg-dye{position:absolute;inset:0;z-index:2;display:block}
+.pg-dye img{width:100%;height:100%;display:block;object-fit:contain}
+.pet-portrait .pg-dye img{object-fit:cover;transform:scale(1.2)}
+.pg-aura{position:absolute;inset:4%;z-index:1;border-radius:50%;pointer-events:none}
+.pg-a-sparkle{background:radial-gradient(circle,#fff6c9aa,#ffd86b44 40%,transparent 68%);animation:pgPulse 2s infinite}
+.pg-a-fire{background:radial-gradient(circle at 50% 65%,#ff8a1f99,#ff3d0055 45%,transparent 70%);animation:pgPulse 1.2s infinite}
+.pg-a-galaxy{background:radial-gradient(circle,#b77bffaa,#3a1c7a77 45%,transparent 70%);animation:pgPulse 3s infinite}
+.pg-a-bayani{background:conic-gradient(#ffd23f22,#ffd23f88,#ffd23f22,#ffd23f88,#ffd23f22,#ffd23f88,#ffd23f22,#ffd23f88,#ffd23f22);-webkit-mask:radial-gradient(circle,#000 30%,transparent 70%);mask:radial-gradient(circle,#000 30%,transparent 70%);animation:pgSpin 10s linear infinite}
+.pg-bg-sunset{background:linear-gradient(#ff9a5a,#ffcf7a 45%,#5ec4e8 72%,#f2d9a0 72%)!important}
+.pg-bg-city{background:linear-gradient(#1a1446,#40227a 55%,#ff6fa8 85%)!important}
+.pg-bg-terrace{background:linear-gradient(#bfe7ff 0 40%,#7cc46a 40% 52%,#5aa64a 52% 64%,#3f8a38 64% 76%,#2e6e2a 76%)!important}
+.pg-bg-stars{background:radial-gradient(circle at 20% 20%,#fff 1px,transparent 2px),radial-gradient(circle at 70% 15%,#fff 1px,transparent 2px),radial-gradient(circle at 85% 40%,#fff 1.5px,transparent 2.5px),radial-gradient(circle at 40% 35%,#fff 1px,transparent 2px),linear-gradient(#070a24,#23185a)!important}
+.pg-bg-office{background:linear-gradient(90deg,#24324a 0 8%,#2f4060 8% 92%,#24324a 92%)!important}
+.pg-bg-office::after{content:"SMB VS";position:absolute;top:8%;left:0;right:0;text-align:center;font-weight:900;color:#f5b94255;font-size:13cqw;letter-spacing:.3em;z-index:0}
+.pg-floor{position:absolute;left:5%;right:5%;bottom:3%;height:16%;z-index:1;border-radius:50%;pointer-events:none}
+.pg-f-grass{background:radial-gradient(ellipse,#5cc35a,#3a8f3a 60%,transparent 72%)}
+.pg-f-cloud{background:radial-gradient(ellipse at 30% 50%,#fff 30%,transparent 55%),radial-gradient(ellipse at 70% 50%,#fff 30%,transparent 55%),radial-gradient(ellipse,#e8f1ff 45%,transparent 70%)}
+.pg-f-podium{border-radius:8px;left:15%;right:15%;height:12%;background:linear-gradient(#ffe27a,#d49b00);box-shadow:0 4px 0 #8a6200}
+.pg-f-banig{border-radius:6px;height:11%;background:repeating-linear-gradient(45deg,#e7c48a 0 6px,#c0392b 6px 9px,#e7c48a 9px 15px,#1f4fbf 15px 18px)}
+.pg-f-water{background:radial-gradient(ellipse,#7fd6ffcc,#2b8fd1aa 55%,transparent 72%);animation:pgRip 2s infinite}
+.pg-m-bounce{animation:pgBounce 1s ease-in-out infinite}.pg-m-float{animation:pgFloat 3s ease-in-out infinite}.pg-m-wiggle{animation:pgWig .6s ease-in-out infinite}
+.pg-m-hop{animation:pgHop 1.6s infinite}.pg-m-breathe{animation:pgBreathe 2.4s ease-in-out infinite}
+.pg-rainbow{animation:pgRainbow 3s linear infinite}
+.pg-fx{position:absolute;inset:0;z-index:3;pointer-events:none;overflow:hidden}
+.pg-fx span{position:absolute;bottom:-10%;font-size:9cqw;line-height:1;animation:pgRise 4s linear infinite}
+.pg-fx.fall span{bottom:auto;top:-10%;animation-name:pgFall}
+@keyframes pgPulse{50%{transform:scale(1.08);opacity:.75}}@keyframes pgSpin{to{transform:rotate(360deg)}}@keyframes pgRip{50%{transform:scaleX(1.06)}}
+@keyframes pgRainbow{to{filter:hue-rotate(360deg) saturate(1.6)}}
+@keyframes pgBounce{50%{transform:translateY(-6%)}}@keyframes pgFloat{50%{transform:translateY(-4%) rotate(-2deg)}}
+@keyframes pgWig{25%{transform:rotate(-4deg)}75%{transform:rotate(4deg)}}@keyframes pgBreathe{50%{transform:scale(1.04)}}
+@keyframes pgHop{0%,60%,100%{transform:none}30%{transform:translateY(-12%) scaleY(1.05)}45%{transform:scaleY(.94) scaleX(1.04)}}
+@keyframes pgRise{0%{transform:translateY(0);opacity:0}15%{opacity:1}100%{transform:translateY(-120cqw) rotate(25deg);opacity:0}}
+@keyframes pgFall{0%{transform:translateY(0);opacity:0}15%{opacity:1}100%{transform:translateY(120cqw) rotate(200deg);opacity:0}}
+@media (prefers-reduced-motion:reduce){.pg-stage *,.pet-portrait.pg-on *{animation:none!important}}
+.ps-grid{display:grid;grid-template-columns:320px 1fr;gap:14px}@media(max-width:820px){.ps-grid{grid-template-columns:1fr}}
+.ps-chips{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0}
+.ps-chip{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);color:inherit;border-radius:999px;padding:5px 10px;cursor:pointer;font-size:12px}
+.ps-chip.on{border-color:var(--gold);color:var(--gold)}
+.ps-slots{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px;margin-top:10px}
+.ps-slot{min-width:0;overflow:hidden;background:rgba(255,255,255,.04);border:1px dashed rgba(255,255,255,.15);border-radius:10px;padding:6px 2px;text-align:center;font-size:9.5px;color:var(--muted);cursor:pointer;line-height:1.2}
+.ps-slot.f{border-style:solid;border-color:var(--gold);color:var(--text,#fff)}.ps-slot b{display:block;font-size:16px}
+.ps-items{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px}
+.ps-item{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:8px;cursor:pointer}
+.ps-item.on{outline:2px solid var(--gold)}.ps-item.try{outline:2px dashed var(--teal)}
+.ps-item .pg-stage{border-radius:9px}.ps-nm{font-weight:700;margin-top:6px;font-size:13px}
+.ps-rr{font-size:10px;font-weight:800;letter-spacing:.5px;text-transform:uppercase}
+.ps-r-c{color:#9aa3b2}.ps-r-r{color:#4ea8ff}.ps-r-e{color:#b77bff}.ps-r-l{color:#ffbf3c}
+.ps-act{display:flex;gap:4px;margin-top:6px}.ps-act .btn{flex:1;justify-content:center;padding:5px 4px;font-size:11px}
+.ps-lock{text-align:center;padding:22px 12px;color:var(--muted);font-size:13px;line-height:1.6}
 .pet-stage-row{text-align:center;margin-top:2px}
 .prl-strip{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
 .prl-strip>div{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:8px 10px;min-width:0}
@@ -874,6 +928,7 @@ table.blh th{color:var(--muted);font-weight:600;font-size:11px;text-transform:up
       <button class="tab-btn" data-tab="blessings" onclick="switchAdminTab('blessings')">🙏 Ganzo's Blessings <span class="adm-chip">NEW</span></button>
       <button class="tab-btn" data-tab="pets" onclick="switchAdminTab('pets')">🐾 Pets</button>
       <button class="tab-btn" data-tab="shop" onclick="switchAdminTab('shop')">🛒 Shop & Cosmetics</button>
+      <button class="tab-btn" data-tab="petstore" onclick="switchAdminTab('petstore')">🐾 Pet Store</button>
       <button class="tab-btn" data-tab="history" onclick="switchAdminTab('history')">🪙 Transaction History</button>
       <div class="adm-grp">People</div>
       <button class="tab-btn active" data-tab="roster" onclick="switchAdminTab('roster')">👥 Player Roster</button>
@@ -1254,6 +1309,13 @@ table.blh th{color:var(--muted);font-weight:600;font-size:11px;text-transform:up
         <div id="gaRoot-shop"><div class="empty-state">Loading...</div></div>
       </div>
     </div>
+    <div class="tab-content" id="tab-petstore">
+      <div class="panel">
+        <div class="panel-title">🐾 Pet Store</div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:12px;">Open/close the Pet Store, the minimum pet level, and the price and on/off for every Dye, Glow, Aura, Backdrop, Floor, Particle and Motion item. Players find it in Shop → 🐾 Pet Store. The server enforces every value; the page only displays.</div>
+        <div id="gaRoot-petstore"><div class="empty-state">Loading...</div></div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -1493,6 +1555,11 @@ table.blh th{color:var(--muted);font-weight:600;font-size:11px;text-transform:up
 
     <!-- ═══ SHOP ═══ -->
     <section class="gp-view" id="gpv-shop">
+      <div class="gp-subtabs" id="gpShopTabs" style="margin-bottom:12px">
+        <button class="on" data-s="main" onclick="gpShopSub('main')">🛒 Shop</button>
+        <button data-s="pets" onclick="gpShopSub('pets')">🐾 Pet Store</button>
+      </div>
+      <div class="gp-ssub on" data-s="main">
       <div class="gp-card gp-wrap-panel"><div class="panel" id="cosmeticsShopPanel" style="display:none;">
           <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;color:var(--gold);text-transform:uppercase;margin-bottom:6px;">✨ Cosmetics Shop</div>
           <div style="font-size:12px;color:var(--muted);margin-bottom:10px;">Badge frames, sound packs, lucky charm icons, and marker emoji packs — all cosmetic, permanent once bought.</div>
@@ -1508,6 +1575,14 @@ table.blh th{color:var(--muted);font-weight:600;font-size:11px;text-transform:up
         <div class="gp-mini">Gift cards, food treats and more — bridged with SMB Portal tokens. Not available yet.</div>
       </div>
       <div class="gp-mini" style="margin-top:4px">🎨 Card skins &amp; marker themes are in <a href="#" style="color:var(--gold)" onclick="gpGo('bingo');gpSub('style');return false;">BINGO → Card skins &amp; markers</a>.</div>
+      </div>
+      <div class="gp-ssub" data-s="pets">
+      <div class="gp-card gp-wrap-panel"><div class="panel" id="petStorePanel">
+          <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;color:var(--gold);text-transform:uppercase;margin-bottom:6px;">🐾 Pet Store</div>
+          <div style="font-size:12px;color:var(--muted);margin-bottom:10px;" id="petStoreIntro">Dyes, glows, auras and more for your 👑 Adult pets. Looks only — no race or gameplay edge. Buy once, then put it on any of your eligible pets.</div>
+          <div id="petStoreContent" style="font-size:13px;">Loading…</div>
+      </div></div>
+      </div>
     </section>
 
     <section class="gp-view" id="gpv-avatar"><div class="gp-card gp-wrap-group"><details class="panel-group" id="avatarStudioGroup">
@@ -2212,7 +2287,7 @@ function switchAdminTab(name) {
   if(name==='petrace') prAdminLoad();
   if(name==='blessings') blAdminLoad();
   if(name==='lucky9'){ if(typeof _bsaSub !== 'undefined' && _bsaSub === 'bs') bsAdminLoad(); else l9AdminLoad(); }
-  if(['spin','highlow','rps','pets','shop'].includes(name)) gaAdminLoad(name);
+  if(['spin','highlow','rps','pets','shop','petstore'].includes(name)) gaAdminLoad(name);
   if(name==='pets'){ evoChartRender(); adminPetsRender(); }
 }
 
@@ -4059,9 +4134,10 @@ function petCard(pet){
       <button class="btn btn-gold" ${_petBusy?'disabled':''} onclick="petAction('care','${pet.id}','play')">🎾 Play<br>${PET_CARE_PRICE} 🪙</button>
       <button class="btn btn-gold" ${_petBusy?'disabled':''} onclick="petAction('care','${pet.id}','bath')">🫧 Bath<br>${PET_CARE_PRICE} 🪙</button>
     </div><button class="btn btn-outline btn-sm" style="width:100%;justify-content:center;margin-top:6px;" onclick="renamePet('${pet.id}')">✏️ Rename${Number(pet.renameCount||0)===0&&PET_FIRST_FREE?' — First Free':` — ${PET_RENAME_PRICE} 🪙`}</button>`;
+  const pgL=(!isDead&&!isEgg&&petIsAdult(pet)&&pgHasGear(pet))?pgLayers(pgGear(pet),petAdultImg(pet.species,'Adult '+petSpecies(pet.species)[1])):null;
   const hatch=isEgg ? `<div class="pet-hatch">🥚 ${Math.min(3,pet.hatchCareCount||0)}/3 care actions to hatch</div>` : '';
   return `<div class="pet-card ${stateClass}">
-    <div class="pet-portrait ${portraitClass}">${isDead?'💤':isEgg?`<img class="pet-egg-img" src="${COSMETICS_BACKEND_URL}/pets/egg.gif" alt="Twitching pet egg" onerror="this.replaceWith(document.createTextNode('🥚'))">`:(petIsAdult(pet)?petAdultImg(pet.species,'Adult '+petSpecies(pet.species)[1]):`<img src="${petBabySrc(pet.species)}" alt="Animated ${petSpecies(pet.species)[1]}" onerror="this.replaceWith(document.createTextNode('${emoji}'))">`)}</div>
+    <div class="pet-portrait ${portraitClass}${pgL?' pg-on '+pgL.cls:''}">${pgL?pgL.html:isDead?'💤':isEgg?`<img class="pet-egg-img" src="${COSMETICS_BACKEND_URL}/pets/egg.gif" alt="Twitching pet egg" onerror="this.replaceWith(document.createTextNode('🥚'))">`:(petIsAdult(pet)?petAdultImg(pet.species,'Adult '+petSpecies(pet.species)[1]):`<img src="${petBabySrc(pet.species)}" alt="Animated ${petSpecies(pet.species)[1]}" onerror="this.replaceWith(document.createTextNode('${emoji}'))">`)}</div>
     <div class="pet-name">${safeName}${petChampTag(pet)}</div>
     ${!isEgg&&!isDead?`<div class="pet-stage-row">${petStageBadge(pet.level,pet)}</div>`:''}
     <div class="pet-meta">${isEgg||isDead?stage+' · ':''}${health}${!isEgg&&!isDead?` · Lv ${pet.level||1}`:''}</div>
@@ -4130,6 +4206,158 @@ async function petAction(action,petId='',careType='',species='',name=''){
     setTimeout(renderBingoPetsPanel,2500);
   }catch(e){alert('Hindi na-update ang pet — try ulit.');}
   finally{_petBusy=false; if(Date.now()>=_petResultUntil) renderBingoPetsPanel();}
+}
+
+// ═══ PET STORE (2026-11-04) ════════════════════════════════════════════════
+// Whole-pet cosmetics: they wrap the full GIF (recolor, outline, glow behind,
+// backdrop, floor, particles, idle motion), so one item fits all 15 species
+// with no per-species placement. Looks only — never touches race math.
+// Eligibility: alive + evolved Adult at Lv PET_STORE_MIN_LEVEL+ (admin-set).
+// Buying reuses the generic 'cosmetic' purchase (ownership in DB.unlocks2,
+// prices/on-off from the admin 🐾 Pet Store tab). Equipping is per pet:
+// petAction 'gear' → pet.gear[slot] on the server. Server enforces all of it.
+let PET_STORE_MIN_LEVEL = 30, PET_STORE_ON = false; // stays closed until the server sends petstore.on = true
+const PG = (id, name, price, r, v) => ({ id, name, price, r, v });
+const PET_GEAR_CATEGORIES = [
+  { key:'petDye', slot:'dye', icon:'🎨', label:'Dye', catalog:[
+    PG('pink','Sakura Pink',25,'c','hue-rotate(300deg) saturate(1.3)'), PG('blue','Ocean Blue',25,'c','hue-rotate(190deg) saturate(1.2)'),
+    PG('mint','Mint Fresh',25,'c','hue-rotate(110deg)'), PG('ube','Ube Purple',35,'r','hue-rotate(240deg) saturate(1.4)'),
+    PG('noir','Shadow Noir',50,'e','grayscale(1) contrast(1.25) brightness(.75)'), PG('ghost','Ghost White',50,'e','grayscale(1) brightness(1.45) opacity(.85)'),
+    PG('gold','24K Golden',120,'l','sepia(1) saturate(3.2) hue-rotate(-8deg) brightness(1.08)'), PG('rainbow','Rainbow Shift',150,'l','rainbow') ]},
+  { key:'petGlow', slot:'glow', icon:'💡', label:'Glow', catalog:[
+    PG('sticker','Sticker Outline',15,'c','drop-shadow(2px 0 0 #fff) drop-shadow(-2px 0 0 #fff) drop-shadow(0 2px 0 #fff) drop-shadow(0 -2px 0 #fff)'),
+    PG('gold','Gold Glow',40,'r','drop-shadow(0 0 6px #ffd23f) drop-shadow(0 0 2px #ffd23f)'), PG('neon','Neon Pink',40,'r','drop-shadow(0 0 6px #ff3fa4) drop-shadow(0 0 2px #ff3fa4)'),
+    PG('ice','Ice Cyan',40,'r','drop-shadow(0 0 6px #3fe0ff) drop-shadow(0 0 2px #3fe0ff)'), PG('shadow','Dark Shadow',60,'e','drop-shadow(0 0 8px #000) drop-shadow(0 0 3px #6a00ff)') ]},
+  { key:'petAura', slot:'aura', icon:'✨', label:'Aura', catalog:[
+    PG('sparkle','Sparkle Aura',30,'r'), PG('fire','Fire Aura',60,'e'), PG('galaxy','Galaxy Aura',100,'e'), PG('bayani','Araw ng Bayani',150,'l') ]},
+  { key:'petBackdrop', slot:'bg', icon:'🖼️', label:'Backdrop', catalog:[
+    PG('sunset','Boracay Sunset',30,'r'), PG('terrace','Banaue Terraces',30,'r'), PG('city','Manila Night',40,'r'), PG('stars','Starry Puyat Sky',60,'e'), PG('office','SMB HQ',80,'e') ]},
+  { key:'petFloor', slot:'floor', icon:'🟫', label:'Floor', catalog:[
+    PG('grass','Grass Patch',15,'c'), PG('banig','Banig Mat',25,'r'), PG('water','Water Ripple',30,'r'), PG('cloud','Cloud Nine',50,'e'), PG('podium','Champion Podium',120,'l') ]},
+  { key:'petParticles', slot:'fx', icon:'🎈', label:'Particles', catalog:[
+    PG('hearts','Floating Hearts',30,'r','💖'), PG('zzz','Puyat Zzz',30,'r','💤'), PG('bubbles','Bubbles',30,'r','🫧'), PG('confetti','Confetti Rain',50,'e','🎊'), PG('tokens','Token Shower',150,'l','🪙') ]},
+  { key:'petMotion', slot:'motion', icon:'💃', label:'Motion', catalog:[
+    PG('breathe','Chill Breathe',15,'c'), PG('wiggle','Happy Wiggle',30,'r'), PG('float','Floaty',40,'r'), PG('bounce','Bouncy',40,'r'), PG('hop','Big Hop',60,'e') ]},
+];
+const PG_RARITY = { c:'Common', r:'Rare', e:'Epic', l:'Legendary' };
+function pgCat(key){ return PET_GEAR_CATEGORIES.find(c => c.key === key); }
+function pgItem(key, id){ const c = pgCat(key); return c ? c.catalog.find(i => i.id === id) : null; }
+function pgGear(pet){ return (pet && pet.gear && typeof pet.gear === 'object') ? pet.gear : {}; }
+function petStoreEligible(pet){ return !!(pet && pet.status === 'alive' && pet.evolved && Number(pet.level || 1) >= PET_STORE_MIN_LEVEL); }
+// Filter-only look (dye + glow) for small spots like the race track.
+function pgFilter(gear){
+  const d = gear && pgItem('petDye', gear.petDye), g = gear && pgItem('petGlow', gear.petGlow);
+  return { style: [d && d.v !== 'rainbow' ? d.v : '', g ? g.v : ''].filter(Boolean).join(' '), rainbow: !!(d && d.v === 'rainbow') };
+}
+// Full layered look: returns { cls, html } — cls goes on the container (backdrop),
+// html replaces the container's contents. imgHtml is the existing <img> markup.
+function pgLayers(gear, imgHtml){
+  gear = gear || {};
+  const d = pgItem('petDye', gear.petDye), g = pgItem('petGlow', gear.petGlow), a = pgItem('petAura', gear.petAura),
+        b = pgItem('petBackdrop', gear.petBackdrop), f = pgItem('petFloor', gear.petFloor), p = pgItem('petParticles', gear.petParticles), m = pgItem('petMotion', gear.petMotion);
+  let html = '';
+  if(f) html += `<div class="pg-floor pg-f-${f.id}"></div>`;
+  if(a) html += `<div class="pg-aura pg-a-${a.id}"></div>`;
+  const img = g ? imgHtml.replace('<img ', `<img style="filter:${g.v}" `) : imgHtml;
+  const dyeStyle = d && d.v !== 'rainbow' ? ` style="filter:${d.v}"` : '';
+  html += `<span class="pg-pet ${m ? 'pg-m-' + m.id : ''}"><span class="pg-dye ${d && d.v === 'rainbow' ? 'pg-rainbow' : ''}"${dyeStyle}>${img}</span></span>`;
+  if(p){ const fall = p.id === 'confetti' || p.id === 'tokens';
+    html += `<div class="pg-fx ${fall ? 'fall' : ''}">` + [8,24,40,58,74,88].map((x, i) => `<span style="left:${x}%;animation-delay:${(i * .67).toFixed(2)}s">${p.v}</span>`).join('') + '</div>'; }
+  return { cls: b ? 'pg-bg-' + b.id : '', html, any: !!(d || g || a || b || f || p || m) };
+}
+function pgHasGear(pet){ return Object.values(pgGear(pet)).some(Boolean); }
+
+// ── Store UI ──
+let _psPetId = null, _psTab = 'petDye', _psTry = {}, _psBusy = false;
+function psMyPets(){ return ((DB.pets && currentPlayer && DB.pets[currentPlayer.id]) || []).filter(p => p && p.status === 'alive'); }
+function psStage(pet, gear, extraCls){
+  const L = pgLayers(gear, petAdultImg(pet.species, ''));
+  return `<div class="pg-stage ${L.cls} ${extraCls || ''}">${L.html}</div>`;
+}
+function renderPetStorePanel(){
+  const el = document.getElementById('petStoreContent'); if(!el || !currentPlayer) return;
+  const intro = document.getElementById('petStoreIntro');
+  if(intro) intro.innerHTML = `Dyes, glows, auras and more for <b>👑 Adult pets at Lv ${PET_STORE_MIN_LEVEL}+</b>. Looks only — no race or gameplay edge. Buy once, then put it on any of your eligible pets.`;
+  if(!PET_STORE_ON){ el.innerHTML = `<div class="ps-lock">⏸️ The Pet Store is closed right now. Balik later!</div>`; return; }
+  const mine = psMyPets(), ok = mine.filter(petStoreEligible);
+  if(!ok.length){
+    const best = mine.slice().sort((a, b) => Number(b.level || 1) - Number(a.level || 1))[0];
+    const hint = !best ? 'You don\'t have a pet yet — buy an egg on the Player page. 🐣'
+      : !best.evolved ? `${escapeHtml(best.name || 'Your pet')} is Lv ${best.level || 1}. Evolve it to 👑 Adult and reach Lv ${PET_STORE_MIN_LEVEL} to shop here.`
+      : `${escapeHtml(best.name || 'Your pet')} is Lv ${best.level || 1} — ${PET_STORE_MIN_LEVEL - Number(best.level || 1)} more level${PET_STORE_MIN_LEVEL - Number(best.level || 1) === 1 ? '' : 's'} to go. Keep caring! 🍖🎾🫧`;
+    el.innerHTML = `<div class="ps-lock">🔒 <b>Pet Store unlocks at 👑 Adult Lv ${PET_STORE_MIN_LEVEL}.</b><br>${hint}</div>`;
+    return;
+  }
+  if(!ok.find(p => p.id === _psPetId)){ _psPetId = ok[0].id; _psTry = {}; }
+  const pet = ok.find(p => p.id === _psPetId), worn = pgGear(pet), look = Object.assign({}, worn, _psTry);
+  Object.keys(look).forEach(k => { if(!look[k]) delete look[k]; });
+  const cat = pgCat(_psTab) || PET_GEAR_CATEGORIES[0];
+  const tryCost = Object.entries(_psTry).reduce((t, [k, id]) => { const it = id && pgItem(k, id); return t + (it && !ownedCosmetics(currentPlayer.id, k).includes(id) ? Number(it.price) : 0); }, 0);
+  const chips = ok.map(p => `<span class="ps-chip ${p.id === _psPetId ? 'on' : ''}" onclick="psPick('${p.id}')">${petSpecies(p.species)[2]} ${escapeHtml(p.name || petSpecies(p.species)[1])} · Lv ${p.level || 1}</span>`).join('') +
+    mine.filter(p => !petStoreEligible(p)).map(p => `<span class="ps-chip" style="opacity:.45;cursor:not-allowed" title="Needs 👑 Adult Lv ${PET_STORE_MIN_LEVEL}">🔒 ${escapeHtml(p.name || 'Pet')} · Lv ${p.level || 1}</span>`).join('');
+  const slots = PET_GEAR_CATEGORIES.map(c => { const it = look[c.key] && pgItem(c.key, look[c.key]);
+    return `<div class="ps-slot ${it ? 'f' : ''}" onclick="psTab('${c.key}')" title="${c.label}"><b>${c.icon}</b>${it ? escapeHtml(it.name) : c.label}</div>`; }).join('');
+  const owned = ownedCosmetics(currentPlayer.id, cat.key);
+  const items = cat.catalog.filter(i => !i.off || owned.includes(i.id)).map(i => {
+    const has = owned.includes(i.id), on = worn[cat.key] === i.id, trying = _psTry[cat.key] === i.id;
+    const btns = on ? `<button class="btn btn-outline btn-sm" ${_psBusy ? 'disabled' : ''} onclick="event.stopPropagation();psEquip('${cat.key}',null)">Remove</button>`
+      : has ? `<button class="btn btn-teal btn-sm" ${_psBusy ? 'disabled' : ''} onclick="event.stopPropagation();psEquip('${cat.key}','${i.id}')">Put on</button>`
+      : `<button class="btn btn-gold btn-sm" ${_psBusy || i.off ? 'disabled' : ''} onclick="event.stopPropagation();psBuy('${cat.key}','${i.id}')">Buy ${i.price} 🪙</button>`;
+    return `<div class="ps-item ${on ? 'on' : trying ? 'try' : ''}" onclick="psTry('${cat.key}','${i.id}')">
+      ${psStage(pet, Object.assign({}, worn, { [cat.key]: i.id }))}
+      <div class="ps-nm">${escapeHtml(i.name)}</div><div class="ps-rr ps-r-${i.r}">${PG_RARITY[i.r] || ''}${has ? ' · <span style="color:var(--teal)">Owned</span>' : ''}</div>
+      <div class="ps-act">${on ? '<span class="st-status" style="flex:1;font-size:11px">✓ Wearing</span>' : ''}${btns}</div></div>`;
+  }).join('');
+  el.innerHTML = `<div class="ps-grid">
+    <div><div style="font-weight:700;margin-bottom:6px">🪞 Fitting Room</div>${psStage(pet, look)}
+      <div class="ps-chips">${chips}</div><div class="ps-slots">${slots}</div>
+      ${Object.keys(_psTry).length ? `<div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;font-size:12px"><span class="pr-muted">Trying on${tryCost ? ` · not owned: <b style="color:var(--gold)">${tryCost} 🪙</b>` : ''}</span><button class="btn btn-outline btn-sm" onclick="psClearTry()">Back to current look</button></div>` : ''}
+    </div>
+    <div><div class="ps-chips" style="margin-top:0">${PET_GEAR_CATEGORIES.map(c => `<span class="ps-chip ${c.key === cat.key ? 'on' : ''}" onclick="psTab('${c.key}')">${c.icon} ${c.label}</span>`).join('')}</div>
+      <div class="pr-muted" style="font-size:11px;margin-bottom:8px">Tap a card to try it on. Previews show on ${escapeHtml(pet.name || 'your pet')}.</div>
+      <div class="ps-items">${items}</div></div></div>`;
+}
+function psPick(id){ _psPetId = id; _psTry = {}; renderPetStorePanel(); }
+function psTab(k){ _psTab = k; renderPetStorePanel(); }
+function psTry(k, id){ if(_psTry[k] === id) delete _psTry[k]; else _psTry[k] = id; renderPetStorePanel(); }
+function psClearTry(){ _psTry = {}; renderPetStorePanel(); }
+async function psBuy(cat, id){
+  const it = pgItem(cat, id), pet = psMyPets().find(p => p.id === _psPetId);
+  if(!it || !pet || _psBusy) return;
+  if(Number(_myTokenBalance || 0) < Number(it.price)){ alert(`Kulang ang tokens — ${it.name} costs ${it.price} 🪙.`); return; }
+  if(!confirm(`Buy ${it.name} for ${it.price} 🪙 and put it on ${pet.name || 'your pet'}?\n\nYou keep it forever and can move it to any of your 👑 Lv ${PET_STORE_MIN_LEVEL}+ pets.`)) return;
+  _psBusy = true; renderPetStorePanel();
+  try {
+    const r = await fetch(GAMES_URL, { method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ action:'cosmetic', playerId: currentPlayer.id, playerName: currentPlayer.name, category: cat, itemId: id, petId: pet.id }) });
+    const j = await r.json();
+    if(!r.ok || !j.ok){ alert(j.error || 'Hindi na-process ang pagbili.'); return; }
+    if(j.tokens !== undefined && j.tokens !== null) _myTokenBalance = j.tokens;
+    if(j.unlocks2){ if(!DB.unlocks2) DB.unlocks2 = {}; DB.unlocks2[currentPlayer.id] = j.unlocks2; }
+    playerLog(`🐾 Na-unlock: ${it.name}! Bagong balance: ${j.tokens} 🪙`, 'ok');
+    await refreshTokenBalance();
+    _psBusy = false;
+    await psEquip(cat, id, true);
+  } catch(e){ alert('Hindi na-process ang pagbili — try ulit.'); }
+  finally { _psBusy = false; renderPetStorePanel(); }
+}
+async function psEquip(cat, id, quiet){
+  const pet = psMyPets().find(p => p.id === _psPetId);
+  if(!pet || _psBusy) return;
+  _psBusy = true; renderPetStorePanel();
+  try {
+    const r = await fetch(GAMES_URL, { method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ action:'pet', petAction:'gear', playerId: currentPlayer.id, playerName: currentPlayer.name, petId: pet.id, category: cat, itemId: id }) });
+    const j = await r.json();
+    if(!r.ok || !j.ok){ alert(j.error || 'Hindi na-update ang pet.'); return; }
+    if(!DB.pets) DB.pets = {};
+    if(Array.isArray(j.pets)) DB.pets[currentPlayer.id] = j.pets;
+    delete _psTry[cat];
+    const it = id && pgItem(cat, id);
+    if(!quiet || it) playerLog(it ? `✨ ${pet.name || 'Your pet'} is now wearing ${it.name}!` : `${pet.name || 'Your pet'} took off the ${pgCat(cat).label.toLowerCase()}.`, 'ok');
+    try { renderBingoPetsPanel(); } catch(e){}
+  } catch(e){ alert('Hindi na-update ang pet — try ulit.'); }
+  finally { _psBusy = false; renderPetStorePanel(); }
 }
 
 // ─── CASH IN: points → tokens ───────────────────────────────────────────────
@@ -6526,8 +6754,17 @@ function setCardsView(mode){
 <script>
 // ═════ SMB GAME PORTAL (R2): sidebar views. Display only — no token writes. ═════
 const GP_TITLES = {player:'Player', bingo:'BINGO', spin:'Spin the Wheel', hl:'Higher or Lower', rps:'RPS Duel', race:'Pet Race Frenzy', l9:'Beat Sir Rendy', shop:'Shop', avatar:'Avatar Studio', lb:'Leaderboards'};
+let _gpShopSub = 'main';
+function gpShopSub(s){
+  _gpShopSub = s === 'pets' ? 'pets' : 'main';
+  document.querySelectorAll('#gpShopTabs button').forEach(b => b.classList.toggle('on', b.dataset.s === _gpShopSub));
+  document.querySelectorAll('#gpv-shop .gp-ssub').forEach(d => d.classList.toggle('on', d.dataset.s === _gpShopSub));
+  const t = document.getElementById('gpTitle'); if(t && _gpView === 'shop') t.textContent = _gpShopSub === 'pets' ? 'Shop · Pet Store' : 'Shop';
+  if(_gpShopSub === 'pets'){ try { renderPetStorePanel(); } catch(e){} }
+}
 let _gpView = 'player', _gpSub = 'play';
 function gpGo(v){
+  if(v === 'petstore'){ v = 'shop'; _gpShopSub = 'pets'; }
   if(!GP_TITLES[v]) v = 'player';
   _gpView = v;
   document.querySelectorAll('#gpNav button').forEach(b => b.classList.toggle('on', b.dataset.v === v));
@@ -6544,6 +6781,7 @@ function gpGo(v){
   if(v === 'lb' || v === 'rps') gpLoadRpsBoard();
   if(v === 'race'){ if(_pr) prRender(); prFetch(); prLoop(); }
   if(v === 'l9'){ l9Open(); try { bsOpen(); } catch(e){} }
+  if(v === 'shop') gpShopSub(_gpShopSub);
 }
 const GP_RPS_BOARD_URL = 'https://ebeggngsggwnxufovkco.supabase.co/functions/v1/bingo-rps-board';
 let _gpRpsBoardAt = 0, _gpRpsBoard = null;
@@ -6712,7 +6950,8 @@ function prNow(){ return Date.now() + _prSkew; }
 function prEsc(x){ return (typeof escapeHtml === 'function') ? escapeHtml(String(x == null ? '' : x)) : String(x == null ? '' : x).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 function prLane(sp){ return sp === 'parrot' ? 'sky' : (sp === 'arowana' || sp === 'goldfish') ? 'water' : 'grass'; }
 function prEmoji(sp){ try { return petSpecies(sp)[2]; } catch(e){ return '🐾'; } }
-function prPetImg(sp, o){ const em = prEmoji(sp); if(o && petIsAdult(o)) return petAdultImg(sp, ''); return `<img src="${petBabySrc(encodeURIComponent(sp))}" alt="" onerror="this.outerHTML='<span class=&quot;emo&quot;>${em}</span>'">`; }
+function prPetImg(sp, o){ const em = prEmoji(sp); if(o && petIsAdult(o)){ const h = petAdultImg(sp, ''), own = o.gear ? o : petFindOwned(o), F = pgFilter(pgGear(own));
+    return (F.style || F.rainbow) ? h.replace('<img ', `<img class="${F.rainbow ? 'pg-rainbow' : ''}" style="${F.style ? 'filter:' + F.style : ''}" `) : h; } return `<img src="${petBabySrc(encodeURIComponent(sp))}" alt="" onerror="this.outerHTML='<span class=&quot;emo&quot;>${em}</span>'">`; }
 function prFmtDur(ms){
   if(ms <= 0) return 'now';
   const s = Math.floor(ms / 1000), d = Math.floor(s / 86400), h = Math.floor(s % 86400 / 3600), m = Math.floor(s % 3600 / 60), ss = s % 60;
@@ -7304,6 +7543,10 @@ function applyGamesConfig(cfg){
     RPS_STAKES = []; for(let v = rp.minStake; v <= rp.maxStake; v += Math.max(1, rp.stakeStep || 1)) RPS_STAKES.push(v);
     if(typeof _rpsNew !== 'undefined' && !RPS_STAKES.includes(_rpsNew.stake)) _rpsNew.stake = RPS_STAKES[0];
   }
+  const ps = cfg.petstore || {};
+  if(ps.minLevel !== undefined) PET_STORE_MIN_LEVEL = Number(ps.minLevel) || 30;
+  if(ps.on !== undefined) PET_STORE_ON = ps.on !== false;
+  if(ps.items) PET_GEAR_CATEGORIES.forEach(c => c.catalog.forEach(it => { const v = ps.items[c.key] && ps.items[c.key][it.id]; if(v){ if(v.price !== undefined) it.price = v.price; it.off = v.on === false; } }));
   if(pe.eggPrice !== undefined){ PET_EGG_PRICE = pe.eggPrice; PET_CARE_PRICE = pe.carePrice; PET_RENAME_PRICE = pe.renamePrice;
     PET_FIRST_FREE = pe.firstRenameFree !== false; PET_MAX = pe.maxPets;
     if(pe.evolvePrice !== undefined) PET_EVOLVE_PRICE = pe.evolvePrice; if(pe.adultDropCap) PET_ADULT_DROP_CAP = pe.adultDropCap; if(pe.babyDropCap) PET_BABY_DROP_CAP = pe.babyDropCap; }
@@ -7315,6 +7558,7 @@ function applyGamesConfig(cfg){
     if(sh.featuredDiscount !== undefined) SHOP_FEATURED_DISCOUNT = sh.featuredDiscount;
   }
   gaDescribe();
+  if(typeof _gpView !== 'undefined' && _gpView === 'shop' && typeof _gpShopSub !== 'undefined' && _gpShopSub === 'pets' && !_psBusy){ try { renderPetStorePanel(); } catch(e){} }
 }
 function gaDescribe(){
   const set = (id, h) => { const e = document.getElementById(id); if(e) e.innerHTML = h; };
@@ -7335,7 +7579,9 @@ setInterval(loadGamesConfig, 60000);
 let _gaAdmin = null;
 const GA_LABELS = { markerTheme:'🖍️ Marker Themes', cardSkin:'🎨 Card Skins', badgeFrame:'🖼️ Badge Frames', luckyIcon:'🍀 Lucky Charms', soundPack:'🔊 Sound Packs',
   emojiPack:'😄 Emoji Packs', avatarBackground:'🎨 Avatar Background', avatarHair:'💇 Hair Color', avatarOutfit:'👕 Outfit', avatarAccessory:'✨ Accessory',
-  avatarFrame:'⭕ Avatar Frame', avatarLipstick:'💄 Lipstick', avatarNails:'💅 Nails', avatarEarrings:'💎 Earrings', title:'🏷️ Weekly Titles' };
+  avatarFrame:'⭕ Avatar Frame', avatarLipstick:'💄 Lipstick', avatarNails:'💅 Nails', avatarEarrings:'💎 Earrings', title:'🏷️ Weekly Titles',
+  petDye:'🐾 Pet Store · 🎨 Dyes', petGlow:'🐾 Pet Store · 💡 Glows', petAura:'🐾 Pet Store · ✨ Auras', petBackdrop:'🐾 Pet Store · 🖼️ Backdrops',
+  petFloor:'🐾 Pet Store · 🟫 Floors', petParticles:'🐾 Pet Store · 🎈 Particles', petMotion:'🐾 Pet Store · 💃 Motion' };
 const GA_FIELDS = {
   spin: [['on','Game on','bool','Off = players see "closed"'],['minBet','Min bet','num','tokens'],['maxBet','Max bet','num','tokens'],['perShift','Spins per shift','num','resets 9 PM PHT'],['slack','Post results to Slack','bool','Mini Games channel']],
   highlow: [['on','Game on','bool','Off = players see "closed"'],['minBet','Min bet','num','tokens'],['maxBet','Max bet','num','tokens'],['perShift','Plays per shift','num','a tie (push) doesn\'t use a play'],
@@ -7347,8 +7593,10 @@ const GA_FIELDS = {
     ['renamePrice','Rename','num','tokens'],['firstRenameFree','First rename free','bool',''],['maxPets','Max pets per player','num','alive + eggs (1–10)'],['slack','Post to Slack','bool','eggs, hatches, level-ups, renames']],
   shop: [['on','Shop on','bool','Off = no purchases'],['genderFee','Avatar gender switch','num','tokens (first pick free)'],['featuredDiscount','Featured item discount','num','tokens off (min price 1)'],
     ['titleDays','Title lasts','num','days (1–30)'],['slack','Post purchases to Slack','bool','BINGO channel']],
+  petstore: [['on','Pet Store open','bool','Off = players see "closed"; looks already worn stay on'],['minLevel','Minimum pet level','num','👑 Adult pets at this level and up (default 30)'],
+    ['slack','Post to Slack','bool','"Mochi is now wearing 24K Golden"']],
 };
-const GA_TITLES = { spin:'🎡 Spin the Wheel', highlow:'📈 Higher or Lower', rps:'✊ RPS Duel', pets:'🐾 Pets', shop:'🛒 Shop & Cosmetics' };
+const GA_TITLES = { spin:'🎡 Spin the Wheel', highlow:'📈 Higher or Lower', rps:'✊ RPS Duel', pets:'🐾 Pets', shop:'🛒 Shop & Cosmetics', petstore:'🐾 Pet Store' };
 async function gaCall(adminAction, game, payload){
   if(!_adminPinSession){ alert('Please log in to admin again.'); return { ok:false }; }
   try {
@@ -7381,13 +7629,14 @@ function gaAdminNote(game, c){
   if(game === 'rps') return `Open challenges keep the stake they were made with. New limits apply to new duels right away. The house cut is the only part that burns tokens.`;
   if(game === 'pets') return `Pet decay (−10 per meter per weekday shift, weekends skipped) and the nightly pet token drop are unchanged and not edited here.`;
   if(game === 'shop') return `Turning an item Off hides it from players who don't own it yet; owners keep it. Pick featured items in 🪙 Transaction History, same as before.`;
+  if(game === 'petstore') return `Looks only — nothing here changes race speed, drops or clashes. Turning an item Off hides it from players who don't own it; owners keep it and can still wear it. Price changes apply to new purchases right away.`;
   return '';
 }
 function gaAdminRender(game){
   const el = document.getElementById('gaRoot-' + game); if(!el || !_gaAdmin) return;
   const c = _gaAdmin[game] || {};
   const fld = ([k, lab, t, help]) => {
-    const v = c[k];
+    const v = c[k] ?? (game === 'petstore' ? ({ on:false, minLevel:30, slack:false })[k] : undefined);
     const inp = t === 'bool'
       ? `<select data-k="${k}" data-t="bool"><option value="true" ${v !== false ? 'selected' : ''}>On</option><option value="false" ${v === false ? 'selected' : ''}>Off</option></select>`
       : `<input data-k="${k}" data-t="num" type="number" min="0" step="1" value="${escapeHtml(v ?? '')}" oninput="gaPreview('${game}')">`;
@@ -7399,11 +7648,21 @@ function gaAdminRender(game){
       `<div class="pra-f"><label>Slice ${i + 1}</label><select data-k="segments.${i}" data-t="num" onchange="gaPreview('spin')">${[0,1,2,3,4,5].map(o => `<option value="${o}" ${o === m ? 'selected' : ''}>${o}x</option>`).join('')}</select></div>`).join('')}</div>`;
   }
   if(game === 'shop'){
-    const items = c.items || {};
+    const items = Object.assign({}, c.items || {});
+    PET_GEAR_CATEGORIES.forEach(cat => delete items[cat.key]); // these live in the 🐾 Pet Store tab
     h += Object.keys(items).map(cat => `<div class="pra-sec">${GA_LABELS[cat] || cat}</div><div class="pr-tbl"><table class="roster-table"><thead><tr><th>Item</th><th>Price 🪙</th><th>For sale</th></tr></thead><tbody>${
       Object.keys(items[cat]).map(id => { const it = items[cat][id]; return `<tr><td>${escapeHtml(it.name)}</td>
         <td><input type="number" min="1" step="1" style="width:90px;margin:0" data-k="items.${cat}.${id}.price" data-t="num" value="${it.price}"></td>
         <td><select style="margin:0" data-k="items.${cat}.${id}.on" data-t="bool"><option value="true" ${it.on !== false ? 'selected' : ''}>On</option><option value="false" ${it.on === false ? 'selected' : ''}>Off</option></select></td></tr>`; }).join('')
+    }</tbody></table></div>`).join('');
+  }
+  if(game === 'petstore'){
+    const saved = c.items || {}, RN = { c:'Common', r:'Rare', e:'Epic', l:'Legendary' };
+    h += PET_GEAR_CATEGORIES.map(cat => `<div class="pra-sec">${cat.icon} ${cat.label}</div><div class="pr-tbl"><table class="roster-table"><thead><tr><th>Item</th><th>Rarity</th><th>Price 🪙</th><th>For sale</th></tr></thead><tbody>${
+      cat.catalog.map(it => { const sv = (saved[cat.key] || {})[it.id] || {}, price = sv.price ?? it.price, on = sv.on ?? (it.off !== true);
+        return `<tr><td>${escapeHtml(it.name)}</td><td style="font-size:11px">${RN[it.r] || ''}</td>
+        <td><input type="number" min="1" step="1" style="width:90px;margin:0" data-k="items.${cat.key}.${it.id}.price" data-t="num" value="${price}"></td>
+        <td><select style="margin:0" data-k="items.${cat.key}.${it.id}.on" data-t="bool"><option value="true" ${on !== false ? 'selected' : ''}>On</option><option value="false" ${on === false ? 'selected' : ''}>Off</option></select></td></tr>`; }).join('')
     }</tbody></table></div>`).join('');
   }
   h += `<div class="pr-muted" id="gaNote-${game}" style="font-size:12px;margin-top:12px;line-height:1.6">${gaAdminNote(game, c)}</div>`;
@@ -7461,7 +7720,7 @@ function gaPreview(game){
 }
 async function gaSave(game){
   const payload = gaCollect(game), msg = document.getElementById('gaMsg-' + game);
-  if(payload.on === false && _gaAdmin[game].on !== false && !confirm(`Turn ${GA_TITLES[game]} OFF for everyone?`)) return;
+  if(payload.on === false && (_gaAdmin[game] || {}).on !== false && !confirm(`Turn ${GA_TITLES[game]} OFF for everyone?`)) return;
   const j = await gaCall('save', game, payload);
   if(!j.ok){ if(msg){ msg.textContent = '⚠ ' + (j.error || 'Save failed'); msg.style.color = 'var(--danger)'; } return; }
   _gaAdmin[game] = j.settings; applyGamesConfig(Object.assign({}, _gaAdmin, { ok:true }));
@@ -7792,7 +8051,8 @@ function petModal(pet, title, text, sub){
   const old = document.getElementById('petModal'); if(old) old.remove();
   const sp = petSpecies(pet.species);
   const d = document.createElement('div'); d.id = 'petModal'; d.className = 'pet-modal-bg';
-  d.innerHTML = `<div class="pet-modal"><div class="pet-modal-art">${petAdultImg(pet.species, 'Adult ' + sp[1])}</div>
+  const pgM = pgHasGear(pet) ? pgLayers(pgGear(pet), petAdultImg(pet.species, 'Adult ' + sp[1])) : null;
+  d.innerHTML = `<div class="pet-modal"><div class="pet-modal-art">${pgM ? `<div class="pg-stage ${pgM.cls}">${pgM.html}</div>` : petAdultImg(pet.species, 'Adult ' + sp[1])}</div>
     <div class="pet-modal-title">${title}</div><div class="pet-modal-text">“${escapeHtml(text)}”</div>
     <div class="pet-modal-sub">— ${escapeHtml(pet.name || sp[1])} ${sp[2]}${sub ? ' · ' + sub : ''}</div>
     <button class="btn btn-gold" onclick="document.getElementById('petModal').remove()">💛 Aww, salamat!</button></div>`;
@@ -7832,7 +8092,8 @@ function petEvolveRow(pet){
   const lvl = Number(pet.level || 1);
   if(pet.evolved){
     const L = pet.letter && pet.letter.text ? `<div class="pet-letter" onclick="petShowLetter('${pet.id}')">💌 “${escapeHtml(pet.letter.text.length > 70 ? pet.letter.text.slice(0, 68) + '…' : pet.letter.text)}”</div>` : '';
-    return `<div class="pet-evo-perk">👑 Adult · drops up to ${PET_ADULT_DROP_CAP} 🪙/day · 💌 weekly letter</div>${L}`;
+    const S = petStoreEligible(pet) ? `<button class="btn btn-outline btn-sm" style="width:100%;justify-content:center;margin-top:6px;" onclick="_psPetId='${pet.id}';_psTry={};gpGo('petstore')">🐾 Pet Store</button>` : '';
+    return `<div class="pet-evo-perk">👑 Adult · drops up to ${PET_ADULT_DROP_CAP} 🪙/day · 💌 weekly letter</div>${L}${S}`;
   }
   if(lvl < PET_ADULT_LEVEL) return `<div class="pet-evo-hint">👑 Adult form at Lv ${PET_ADULT_LEVEL} (${lvl}/${PET_ADULT_LEVEL})</div>`;
   const poor = Number(_myTokenBalance || 0) < PET_EVOLVE_PRICE;
