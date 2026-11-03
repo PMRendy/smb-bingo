@@ -841,7 +841,7 @@ table.blh th{color:var(--muted);font-weight:600;font-size:11px;text-transform:up
       <div class="adm-grp">People</div>
       <button class="tab-btn active" data-tab="roster" onclick="switchAdminTab('roster')">👥 Player Roster</button>
       <div class="adm-grp">System</div>
-      <button class="tab-btn" data-tab="topics" onclick="switchAdminTab('topics')">🗓️ Weekly Topics</button>
+      <!-- Hourly check-in deactivated (Nov 2026): Weekly Topics tab hidden --><button class="tab-btn" data-tab="topics" onclick="switchAdminTab('topics')" style="display:none">🗓️ Weekly Topics</button>
     </div>
 
     <!-- TAB: ROSTER -->
@@ -1508,7 +1508,7 @@ table.blh th{color:var(--muted);font-weight:600;font-size:11px;text-transform:up
           </div>
 
           <!-- Hourly Check-in Points (running lifetime total from Marcus-Ganzo) -->
-          <div class="panel" id="playerCheckinPointsPanel">
+          <div class="panel" id="playerCheckinPointsPanel" style="display:none">
             <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;color:var(--gold);text-transform:uppercase;margin-bottom:8px;">⏰ Hourly Check-in Points</div>
             <div id="playerCheckinPointsContent" style="font-size:13px;color:var(--muted);"></div>
           </div>
@@ -1790,6 +1790,9 @@ let nextDrawAt = null;
 //  service running server.js with the /state routes), e.g.:
 //  https://smb-bingo-proxy-v2.onrender.com
 // ════════════════════════════════════════════════════════════
+// Hourly check-in feature is DEACTIVATED (Nov 2026). Set to true to bring back the
+// Weekly Topics tab, the Hourly Check-in Points board and automatic points polling.
+const CHECKIN_ENABLED = false;
 const BACKEND_URL = 'https://smb-bingo-backend.netlify.app';
 const COSMETICS_BACKEND_URL = 'https://smb-bingo-cosmetics.netlify.app';
 const CARDS_BACKEND_URL = 'https://smb-bingo-cards.netlify.app'; // buy-card: 5 tokens, max 10 cards/game
@@ -2165,7 +2168,7 @@ function switchAdminTab(name) {
   if(tabEl) tabEl.classList.add('active');
   if(name==='dashboard') refreshDashboard();
   if(name==='history') refreshHistoryTab();
-  if(name==='topics') refreshWeeklyTopicsTab();
+  if(name==='topics' && CHECKIN_ENABLED) refreshWeeklyTopicsTab();
   if(name==='petrace') prAdminLoad();
   if(name==='blessings') blAdminLoad();
   if(name==='lucky9') l9AdminLoad();
@@ -4090,10 +4093,23 @@ async function petAction(action,petId='',careType='',species='',name=''){
 }
 
 // ─── CASH IN: points → tokens ───────────────────────────────────────────────
-async function refreshCashInPanel(){
+let _cashInRequested = false;
+function requestCashInCheck(){ _cashInRequested = true; refreshCashInPanel(true); }
+async function refreshCashInPanel(force){
   const panel = document.getElementById('cashInPanel');
   const content = document.getElementById('cashInPanelContent');
   if(!panel || !content || !currentPlayer) return;
+  // Check-in deactivated: leftover points can still be cashed in, but the balance is
+  // only fetched when the player taps the button (no more 5-second polling).
+  if(!CHECKIN_ENABLED && !force){
+    if(_cashInRequested) return; // keep whatever result is already showing
+    if(currentPlayer.slackUserId){
+      panel.style.display='block';
+      content.innerHTML = `<div style="margin-bottom:8px;">Tapos na ang hourly check-in — pero pwede mo pang i-cash in ang natitira mong points.</div>` +
+        `<button class="btn btn-outline btn-sm" style="width:100%;" onclick="requestCashInCheck()">🔍 Check my leftover points</button>`;
+    } else { panel.style.display='none'; }
+    return;
+  }
 
   if(!currentPlayer.slackUserId){
     panel.style.display='block';
@@ -4134,7 +4150,7 @@ async function doCashIn(tokens){
     playerLog(`Na-cash in ang ${tokens} SMB Token${tokens===1?'':'s'}! Bagong balance: ${j.newTokenBalance} 🪙`, 'ok');
     postToSlack(pickWitty(CASHIN_MESSAGES, { name: currentPlayer.name, n: tokens, s: tokens===1?'':'s' }));
     await refreshTokenBalance();
-    await refreshCashInPanel();
+    await refreshCashInPanel(true);
     await refreshBuyCardPanel();
     await refreshTokenShopPanel();
   } catch(e){
@@ -5408,6 +5424,7 @@ function renderPlayerBigSpenderBoard(){
 // Bingo players via slackUserId so titles/badge frames show correctly.
 let _lastCheckinFetchTs = 0;
 async function renderPlayerCheckinPointsBoard(){
+  if(!CHECKIN_ENABLED) return; // check-in deactivated — no Marcus leaderboard fetches
   const el = document.getElementById('playerCheckinPointsContent');
   if(!el) return;
   // Points only change hourly — avoid hammering the Marcus backend on every
