@@ -757,6 +757,43 @@ table.blh th{color:var(--muted);font-weight:600;font-size:11px;text-transform:up
 @media(max-width:600px){.l9-seats{gap:6px}.l9-seat2{min-width:0;flex:1 1 30%;padding:8px 3px}.l9-cards.sm{gap:2px;min-height:52px}.l9-c.sm{width:29px;height:44px;border-radius:5px}.l9-c.sm .tl,.l9-c.sm .br{font-size:10px;top:2px;left:3px}.l9-c.sm .br{display:none}.l9-c.sm .mid{font-size:15px!important}.l9-c.sm.back .mid span{width:18px;height:18px;font-size:6px}}
 
 </style>
+<style>
+/* ═════ R17 Beat Sir Rendy · Blind Stop ═════ */
+.bs-subtabs{display:flex;gap:8px;margin:0 0 16px;flex-wrap:wrap}
+.bs-subtabs button{padding:9px 18px;border-radius:10px;background:var(--card,#151824);border:1px solid var(--line);font:700 14px 'Space Grotesk',sans-serif;color:var(--muted);cursor:pointer;display:inline-flex;align-items:center;gap:8px}
+.bs-subtabs button.on{background:rgba(226,104,95,.16);border-color:rgba(226,104,95,.6);color:#ffb3ad}
+.bs-subtabs button .gp-cnt{margin-left:0}
+.bs-boss{background:var(--card,#151824);border:1px solid var(--line);border-radius:16px;padding:14px 18px;display:flex;align-items:center;gap:16px;margin-bottom:16px;flex-wrap:wrap}
+.bs-prize{font-family:'Bebas Neue',sans-serif;font-size:38px;color:var(--gold);line-height:1;white-space:nowrap}
+.bs-watch{background:radial-gradient(ellipse at center,#1b2030 0%,#0e1018 75%);border:1px solid var(--line);border-radius:18px;padding:30px 18px;text-align:center;position:relative;min-height:420px;transition:background .4s}
+.bs-watch.dark{background:radial-gradient(ellipse at center,#160c10 0%,#08090d 75%)}
+.bs-target{font-family:'Bebas Neue',sans-serif;font-size:30px;color:var(--gold);margin-bottom:10px}
+.bs-clock{font-family:'IBM Plex Mono',monospace;font-size:92px;font-weight:700;line-height:1;user-select:none;cursor:pointer;display:inline-block;padding:6px 22px;border:2px solid transparent;border-radius:16px;font-variant-numeric:tabular-nums}
+.bs-clock small{font-size:38px}
+.bs-clock.blind{color:#2f3446;background:#07080c;border-color:rgba(226,104,95,.55);text-shadow:0 0 26px rgba(226,104,95,.55);animation:bsPulse 1.2s ease-in-out infinite}
+@keyframes bsPulse{0%,100%{box-shadow:0 0 0 rgba(226,104,95,0)}50%{box-shadow:0 0 34px rgba(226,104,95,.35)}}
+@media(max-width:600px){.bs-clock{font-size:58px;padding:4px 10px}.bs-clock small{font-size:24px}}
+.bs-bar{height:12px;border-radius:6px;background:#2a2f40;margin:22px auto 0;max-width:620px;position:relative;overflow:hidden}
+.bs-bar i{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(90deg,var(--teal),var(--gold));border-radius:6px}
+.bs-bar i.frozen{background:#3a2a2e}
+.bs-bar .mark{position:absolute;left:50%;top:-4px;bottom:-4px;width:2px;background:var(--l9r,#E2685F)}
+.bs-big{font:700 22px 'Space Grotesk',sans-serif;padding:18px 60px;border-radius:14px;border:0;cursor:pointer;touch-action:manipulation}
+.bs-big:disabled{opacity:.6;cursor:wait}
+.bs-stop{background:var(--l9r,#E2685F);color:#fff}
+.bs-modal{display:inline-block;width:100%;max-width:620px;background:#151824;border:2px solid var(--gold);border-radius:18px;padding:22px;box-shadow:0 0 60px rgba(227,166,62,.25)}
+.bs-modal.loss{border-color:var(--l9r,#E2685F);box-shadow:0 0 60px rgba(226,104,95,.22)}
+.bs-title{font-family:'Bebas Neue',sans-serif;font-size:40px;letter-spacing:.03em;line-height:1.05}
+.bs-title.win{color:var(--gold)}.bs-title.loss{color:#ff8f86}
+.bs-pf{display:inline-block;background:rgba(227,166,62,.15);color:var(--gold);border:1px solid rgba(227,166,62,.5);border-radius:99px;padding:4px 12px;font-size:12px;font-weight:700;margin-top:4px}
+.bs-cmp{display:grid;grid-template-columns:1fr 50px 1fr;gap:8px;align-items:center;margin:14px 0}
+.bs-side{background:#1D2130;border-radius:14px;padding:14px 8px}
+.bs-t{font-family:'IBM Plex Mono',monospace;font-size:34px;font-weight:700}
+@media(max-width:600px){.bs-t{font-size:22px}.bs-big{padding:16px 40px}}
+.bs-vs{font-family:'Bebas Neue',sans-serif;font-size:26px;color:var(--muted)}
+.bs-quote{background:#1f1a12;border-left:4px solid var(--gold);border-radius:10px;padding:12px 14px;text-align:left;font-size:14.5px;margin-top:10px}
+.bs-mono{font-family:'IBM Plex Mono',monospace}
+
+</style>
 </head>
 <body>
 
@@ -1180,8 +1217,10 @@ table.blh th{color:var(--muted);font-weight:600;font-size:11px;text-transform:up
     </div>
     <div class="tab-content" id="tab-lucky9">
       <div class="panel" style="margin-bottom:16px"><div class="panel-title" style="margin-bottom:4px">🃏 Beat Sir Rendy</div>
-        <div style="font-size:12px;color:var(--muted)">Staff buy a Shift Pass and play hands against you on autopilot. The server deals, enforces every value and pays the bounty; this page only displays.</div></div>
+        <div style="font-size:12px;color:var(--muted)">🃏 Lucky 9: staff buy a Shift Pass and play hands against you on autopilot. ⏱️ Blind Stop: one free 10-second stopwatch run per shift against AI Sir Rendy. The server enforces every value and pays the prizes; this page only displays.</div></div>
+      <div class="bs-subtabs" id="bsaTabs"><button data-s="l9" class="on" onclick="bsaSub('l9')">🃏 Lucky 9 Table</button><button data-s="bs" onclick="bsaSub('bs')">⏱️ Blind Stop</button></div>
       <div id="l9AdminRoot"><div class="empty-state">Loading...</div></div>
+      <div id="bsAdminRoot" style="display:none"><div class="empty-state">Loading...</div></div>
     </div>
     <div class="tab-content" id="tab-rps">
       <div class="panel">
@@ -1448,7 +1487,8 @@ table.blh th{color:var(--muted);font-weight:600;font-size:11px;text-transform:up
     </details></div>
       <div class="gp-card"><div class="gp-hdr"><h3>✊ RPS Leaderboard</h3><span class="gp-badge">All-time • completed duels</span></div><div class="gp-rpsboard gp-mini">Loading…</div></div></section>
     <section class="gp-view" id="gpv-race"><div class="pr-wrap" id="prRoot"><div class="gp-card"><div class="empty-state">Loading Pet Race…</div></div></div></section>
-    <section class="gp-view" id="gpv-l9"><div id="l9Root"><div class="gp-card"><div class="empty-state">Loading Beat Sir Rendy…</div></div></div></section>
+    <section class="gp-view" id="gpv-l9"><div class="bs-subtabs" id="bsTabs"><button data-s="l9" class="on" onclick="bsSub('l9')">🃏 Lucky 9 Table</button><button data-s="bs" onclick="bsSub('bs')">⏱️ Blind Stop <span class="gp-cnt" id="bsCnt"></span></button></div>
+      <div id="l9Root"><div class="gp-card"><div class="empty-state">Loading Beat Sir Rendy…</div></div></div><div id="bsRoot" style="display:none"></div></section>
 
 
     <!-- ═══ SHOP ═══ -->
@@ -2171,7 +2211,7 @@ function switchAdminTab(name) {
   if(name==='topics' && CHECKIN_ENABLED) refreshWeeklyTopicsTab();
   if(name==='petrace') prAdminLoad();
   if(name==='blessings') blAdminLoad();
-  if(name==='lucky9') l9AdminLoad();
+  if(name==='lucky9'){ if(typeof _bsaSub !== 'undefined' && _bsaSub === 'bs') bsAdminLoad(); else l9AdminLoad(); }
   if(['spin','highlow','rps','pets','shop'].includes(name)) gaAdminLoad(name);
   if(name==='pets'){ evoChartRender(); adminPetsRender(); }
 }
@@ -5991,7 +6031,7 @@ const TOKEN_EVENT_LABELS = {
   race_spend: '🏁 Pet Race', race_refund: '↩️ Pet Race Refund', race_loot: '🎒 Pet Race Loot', race_clash: '⚔️ Pet Clash Win',
   ganzo_blessing: "🙏 Ganzo's Blessing",
   pet_evolve: '👑 Pet Evolve', pet_trade_fee: '🔁 Pet Trade Fee', pet_trade_fee_in: '🔁 Trade Fee to Admin',
-  l9_pass: '🃏 Beat Sir Rendy Shift Pass', l9_bounty: '👑 Beat Sir Rendy Boss Bounty',
+  l9_pass: '🃏 Beat Sir Rendy Shift Pass', l9_bounty: '👑 Beat Sir Rendy Boss Bounty', bs_win: '⏱️ Blind Stop Win', bs_void: '⏱️ Blind Stop Voided',
 };
 function playerNameById(id){ const p=DB.players.find(x=>x.id===id); return p?p.name:(id||'—'); }
 
@@ -6049,6 +6089,8 @@ function renderTokenLog(){
       else if(e.type === 'race_loot' || e.type === 'race_clash') detail = `${playerNameById(e.playerId)} got ${e.amount} 🪙 — ${e.itemName||'Pet Race'}`;
       else if(e.type === 'race_refund') detail = `${playerNameById(e.playerId)} refunded ${e.amount} 🪙 — ${e.itemName||'Pet Race'} (${e.reason||'refund'})`;
       else if(e.type === 'l9_pass') detail = `${playerNameById(e.playerId)} bought a Beat Sir Rendy Shift Pass (${e.amount} 🪙, ${e.hands || 5} hands)`;
+      else if(e.type === 'bs_win') detail = `${playerNameById(e.playerId)} beat Sir Rendy in Blind Stop${e.bullseye ? ' with a 🎯 Bullseye' : ''} (${e.time}s vs ${e.rendy}s): +${e.amount} 🪙`;
+      else if(e.type === 'bs_void') detail = `Admin voided ${playerNameById(e.playerId)}'s Blind Stop prize (−${e.amount} 🪙)`;
       else if(e.type === 'l9_bounty') detail = `${playerNameById(e.playerId)} beat Sir Rendy and claimed the ${e.amount} 🪙 Boss Bounty (broke a ${e.streak}-win streak)`;
       else if(e.type === 'ganzo_blessing') detail = `${playerNameById(e.playerId)} received ${e.amount} 🪙 — "${String(e.message||'').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}"`;
       else if(e.type === 'avatar_gender_switch') detail = `${playerNameById(e.playerId)} switched avatar gender for ${e.amount} 🪙`;
@@ -6501,7 +6543,7 @@ function gpGo(v){
   gpRefresh();
   if(v === 'lb' || v === 'rps') gpLoadRpsBoard();
   if(v === 'race'){ if(_pr) prRender(); prFetch(); prLoop(); }
-  if(v === 'l9') l9Open();
+  if(v === 'l9'){ l9Open(); try { bsOpen(); } catch(e){} }
 }
 const GP_RPS_BOARD_URL = 'https://ebeggngsggwnxufovkco.supabase.co/functions/v1/bingo-rps-board';
 let _gpRpsBoardAt = 0, _gpRpsBoard = null;
@@ -6532,8 +6574,8 @@ function gpSub(s){
 function gpEsc(x){ return String(x == null ? '' : x).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 function gpGameLive(){ const g = DB && DB.game; return !!(g && g.active && !g.ended); }
 // Signed token effect of one tokenLog entry for player id (display only).
-const GP_SPEND = ['buy_card','shop_purchase','cosmetic_purchase','title_purchase','pet_care','pet_egg','pet_rename','rps_stake','team_battle_entry','race_spend','pet_evolve','pet_trade_fee','l9_pass'];
-const GP_GAIN  = ['cash_in','ganzo_blessing','daily_pet_token_grant','rps_payout','rps_refund','team_battle_payout','team_battle_refund','race_refund','race_loot','race_clash','pet_trade_fee_in','l9_bounty'];
+const GP_SPEND = ['buy_card','shop_purchase','cosmetic_purchase','title_purchase','pet_care','pet_egg','pet_rename','rps_stake','team_battle_entry','race_spend','pet_evolve','pet_trade_fee','l9_pass','bs_void'];
+const GP_GAIN  = ['cash_in','ganzo_blessing','daily_pet_token_grant','rps_payout','rps_refund','team_battle_payout','team_battle_refund','race_refund','race_loot','race_clash','pet_trade_fee_in','l9_bounty','bs_win'];
 function gpDelta(e, id){
   const a = Number(e.amount) || 0;
   if(e.type === 'give') return e.toPlayerId === id ? a : (e.fromPlayerId === id ? -a : null);
@@ -6567,6 +6609,8 @@ function gpLabel(e, id){
     case 'race_refund': return `🏁 ${gpEsc(e.itemName || 'Pet Race refund')}`;
     case 'race_loot': return `🎒 ${gpEsc(e.itemName || 'Pet Race loot')}`;
     case 'race_clash': return `⚔️ ${gpEsc(e.itemName || 'Pet Clash')}`;
+    case 'bs_win': return `⏱️ Blind Stop Win${e.bullseye ? ' 🎯 Bullseye' : ''}`;
+    case 'bs_void': return '⏱️ Blind Stop prize voided';
     case 'l9_pass': return '🃏 Beat Sir Rendy Shift Pass';
     case 'l9_bounty': return `👑 Beat Sir Rendy Boss Bounty${e.streak ? ` (broke a ${e.streak}-win streak)` : ''}`;
     case 'ganzo_blessing': return `🙏 Ganzo's Blessing${e.message ? ' — ' + gpEsc(e.message) : ''}`;
@@ -6605,6 +6649,7 @@ function gpRefresh(){
   if(!currentPlayer || typeof DB === 'undefined') return;
   try { if(typeof prBoot === 'function') prBoot(); } catch(e){}
   try { if(typeof l9Tick === 'function') l9Tick(); } catch(e){}
+  try { if(typeof bsTick === 'function') bsTick(); } catch(e){}
   try {
     const id = currentPlayer.id, shift = shiftStartMsClient(), g = DB.game;
     const live = gpGameLive();
@@ -8313,6 +8358,316 @@ async function l9aHook(){
 async function l9aTest(){
   const j = await l9AdminCall('test_hook');
   l9aOut(j.ok ? '✅ Test post sent — check the channel' : (j.error || 'Test failed'), j.ok);
+}
+
+
+// ═════ R17: BEAT SIR RENDY · ⏱️ BLIND STOP ═════
+// 10.000s stopwatch that blacks out at 5s. One free attempt per shift (locked in the database by player + shift).
+// Sir Rendy's time is drawn on the server at START and only revealed after STOP. The server also runs its own clock
+// and flags a browser time that doesn't match it. This page only displays + measures the tap.
+const BS_URL = 'https://ebeggngsggwnxufovkco.supabase.co/functions/v1/bingo-blindstop';
+let _bs = null, _bsAt = 0, _bsErr = '', _bsBusy = false, _bsRun = null, _bsRes = null, _bsTimer = null, _bsSub = 'l9', _bsAudio = null;
+try { _bsSub = localStorage.getItem('smbBsSub') === 'bs' ? 'bs' : 'l9'; } catch(e){}
+function bsEsc(x){ return typeof gpEsc === 'function' ? gpEsc(x) : String(x == null ? '' : x).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+function bsF(x){ return x === null || x === undefined ? '—' : Number(x).toFixed(3); }
+function bsVisible(){ return typeof _gpView !== 'undefined' && _gpView === 'l9' && _bsSub === 'bs'; }
+
+// ── sub-tabs inside Beat Sir Rendy ──
+function bsSub(s){
+  _bsSub = s === 'bs' ? 'bs' : 'l9';
+  try { localStorage.setItem('smbBsSub', _bsSub); } catch(e){}
+  document.querySelectorAll('#bsTabs button').forEach(b => b.classList.toggle('on', b.dataset.s === _bsSub));
+  const a = document.getElementById('l9Root'), b = document.getElementById('bsRoot');
+  if(a) a.style.display = _bsSub === 'l9' ? '' : 'none';
+  if(b) b.style.display = _bsSub === 'bs' ? '' : 'none';
+  if(_bsSub === 'bs'){ bsRender(); bsFetch(); }
+  bsSchedule();
+}
+function bsOpen(){ bsSub(_bsSub); bsFetch(); }
+function bsTick(){ if(!_bs || Date.now() - _bsAt > 60000) bsFetch(); }
+function bsSchedule(){
+  clearTimeout(_bsTimer);
+  if(!bsVisible()) return;
+  _bsTimer = setTimeout(async () => { if(!_bsRun) await bsFetch(); bsSchedule(); }, (_bs && _bs.me && _bs.me.running) ? 6000 : 30000);
+}
+async function bsFetch(){
+  if(!currentPlayer) return;
+  try {
+    const r = await fetch(BS_URL + '?playerId=' + encodeURIComponent(currentPlayer.id));
+    const j = await r.json();
+    if(!j || !j.ok) throw new Error('bad');
+    _bs = j; _bsAt = Date.now(); if(!_bsBusy) _bsErr = '';
+  } catch(e){ if(!_bs) _bsErr = 'Blind Stop is unavailable right now — try ulit in a bit.'; }
+  bsBadge();
+  if(bsVisible() && !_bsRun && !_bsBusy) bsRender();
+}
+function bsBadge(){
+  const c = document.getElementById('bsCnt'); if(!c || !_bs) return;
+  const free = _bs.config.on && _bs.me.left > 0 && !_bs.test;
+  c.textContent = free ? 'FREE' : ''; c.classList.toggle('live', free);
+}
+
+// ── sounds (Web Audio, created on the START tap so browsers allow it) ──
+function bsBeep(freq, dur, vol){
+  try {
+    if(!_bsAudio) _bsAudio = new (window.AudioContext || window.webkitAudioContext)();
+    const o = _bsAudio.createOscillator(), g = _bsAudio.createGain(), t = _bsAudio.currentTime;
+    o.frequency.value = freq; o.type = 'sine'; g.gain.setValueAtTime(vol || 0.08, t); g.gain.exponentialRampToValueAtTime(0.0001, t + (dur || 0.06));
+    o.connect(g); g.connect(_bsAudio.destination); o.start(t); o.stop(t + (dur || 0.06) + 0.02);
+  } catch(e){}
+}
+
+// ── page ──
+function bsBossHtml(){
+  const c = _bs.config, w = _bs.week;
+  return `<div class="bs-boss"><div class="l9-av" style="width:60px;height:60px;font-size:30px">😎</div>
+    <div style="flex:1;min-width:200px"><div class="l9-lbl">Today's boss</div><div style="font-size:19px;font-weight:700">Sir Rendy · AI Benchmark</div>
+      <div style="color:var(--muted);font-size:13px">Stops the clock like a skilled human (usually ${bsF(c.mean - 0.235).slice(0, -1)}s – ${bsF(c.mean + 0.215).slice(0, -1)}s). Closer to ${bsF(c.target)}s wins.</div></div>
+    <div style="text-align:center;padding:0 12px"><div class="l9-lbl">Prize</div><div class="bs-prize">🪙 ${c.winPrize}</div><div style="font-size:11px;color:var(--muted)">🎯 Bullseye ≤${bsF(c.bullseyeWithin)}s = 🪙 ${c.bullseyePrize}</div></div>
+    <div style="text-align:center;padding:0 12px;border-left:1px solid var(--line)"><div class="l9-lbl">This week</div><div style="font-size:19px;font-weight:700;margin-top:4px"><span class="l9-win">Staff ${w.staff}</span> · <span class="l9-loss">Rendy ${w.rendy}</span></div></div></div>`;
+}
+function bsSideHtml(){
+  const me = _bs.me, c = _bs.config;
+  const st = _bs.test ? '🎭 Exhibition mode' : me.running ? '⏳ Attempt in progress' : me.left > 0 ? `${me.left} free attempt${me.left === 1 ? '' : 's'} left` : '✅ Done for this shift';
+  const board = (_bs.board || []).slice(0, 5).map((b, i) => `<tr><td>${['🥇', '🥈', '🥉'][i] || (i + 1)} ${bsEsc(b.name)}</td><td class="bs-mono">${bsF(b.time)}s</td><td class="bs-mono ${i < 3 ? 'l9-win' : ''}">Δ${bsF(b.delta)}</td></tr>`).join('');
+  const tn = (_bs.tonight || []).slice(0, 8).map(t => `<tr><td>${bsEsc(t.name)}</td><td class="bs-mono">${t.time === null ? 'no stop' : bsF(t.time)}</td><td>${t.outcome === 'WIN' ? `<span class="l9-win">${t.bullseye ? '🎯 ' : ''}WIN</span>` : '<span class="l9-loss">LOSS</span>'}</td></tr>`).join('');
+  return `<div class="gp-card"><div class="l9-lbl">My shift</div><div style="font-size:19px;font-weight:700;margin:6px 0 4px">${st}</div>
+    ${_bs.test ? '<div style="font-size:12px;color:var(--muted)">You\'re Sir Rendy: unlimited practice runs, no tokens, not posted to Slack, not on the board.</div>' : ''}
+    <div class="l9-lbl" style="margin-top:14px">Closest to ${bsF(c.target)}s · this week</div>
+    ${board ? `<table class="l9-t" style="margin-top:4px">${board}</table>` : '<div style="color:var(--muted);font-size:13px;margin-top:6px">Nobody yet — be the first!</div>'}
+    <div class="l9-lbl" style="margin-top:14px">Tonight's attempts</div>
+    ${tn ? `<table class="l9-t" style="margin-top:4px">${tn}</table>` : '<div style="color:var(--muted);font-size:13px;margin-top:6px">No attempts yet this shift.</div>'}</div>`;
+}
+function bsResultHtml(r){
+  const win = r.outcome === 'WIN', ns = r.outcome === 'NOSTOP';
+  const title = ns ? 'NO STOP' : r.bullseye ? '🎯 BULLSEYE!' : win ? 'BOUNTY CLAIMED!' : 'BOUNTY SAFE';
+  const emo = ns ? '😴' : r.bullseye ? '🎯🏆' : win ? '🏆⏱️' : r.photo ? '📸' : '😎';
+  const diff = (r.playerDelta !== null && r.rendyDelta !== null) ? Math.abs(r.playerDelta - r.rendyDelta) : null;
+  return `<div class="bs-modal ${win ? 'win' : 'loss'}"><div style="font-size:32px">${emo}</div><div class="bs-title ${win ? 'win' : 'loss'}">${title}</div>
+    ${r.photo ? `<span class="bs-pf">PHOTO FINISH · ${bsF(diff)}s apart</span>` : ''}
+    <div class="bs-cmp"><div class="bs-side"><div class="l9-lbl">${r.test ? 'Sir Rendy (you)' : 'You'}</div><div class="bs-t ${win ? 'l9-win' : 'l9-loss'}">${ns ? '—' : bsF(r.playerTime) + 's'}</div><div class="bs-mono" style="color:var(--muted)">${ns ? 'never stopped' : 'Δ ' + bsF(r.playerDelta) + 's'}</div></div>
+      <div class="bs-vs">VS</div>
+      <div class="bs-side"><div class="l9-lbl">${r.test ? 'AI Sir Rendy' : 'Sir Rendy'}</div><div class="bs-t ${win ? '' : 'l9-win'}">${bsF(r.rendyTime)}s</div><div class="bs-mono" style="color:var(--muted)">Δ ${bsF(r.rendyDelta)}s</div></div></div>
+    ${r.prize > 0 ? `<div style="font-size:18px">+ <b style="color:var(--gold)">🪙 ${r.prize}</b> credited to your balance</div>` : ''}
+    ${r.line ? `<div class="bs-quote">😎 <b>Sir Rendy:</b> "${bsEsc(r.line)}"</div>` : ''}
+    ${r.flagged ? '<div style="font-size:12px;color:#ffb3ad;margin-top:8px">⚠ Your browser\'s time didn\'t match the server clock (slow connection?), so the server time was used.</div>' : ''}
+    <div style="color:var(--muted);font-size:12px;margin-top:10px">${r.test ? 'Exhibition run · not posted' : (r.prize > 0 ? 'Posted to #smb-boss-bounty · ' : 'No tokens this time · Posted to #smb-boss-bounty · ') + 'next attempt next shift'}</div>
+    ${_bs && (_bs.test || _bs.me.left > 0) ? '<button class="l9-btn l9-gold" style="margin-top:14px" onclick="_bsRes=null;bsRender()">↻ Again</button>' : ''}</div>`;
+}
+function bsWatchHtml(){
+  const c = _bs.config, me = _bs.me;
+  if(_bsRes) return `<div class="bs-watch">${bsResultHtml(_bsRes)}</div>`;
+  if(!c.on) return `<div class="bs-watch"><div class="empty-state">Blind Stop is closed right now.</div></div>`;
+  if(me.running) return `<div class="bs-watch"><div style="font-size:30px">⏳</div><div style="font-weight:700;margin:8px 0">An attempt is still open (another tab, or the page was refreshed).</div><div style="color:var(--muted);font-size:13px">It counts as a loss if Stop wasn't pressed. It closes within ${c.maxRun}s.</div></div>`;
+  if(!_bs.test && me.left <= 0){
+    return `<div class="bs-watch">${me.last ? bsResultHtml(me.last) : '<div style="font-weight:700">✅ You used your free attempt this shift.</div>'}</div>`;
+  }
+  return `<div class="bs-watch" id="bsWatch">
+    <div class="l9-lbl" id="bsLbl" style="margin-bottom:12px">Stop the clock at exactly</div><div class="bs-target">${bsF(c.target)} SECONDS</div>
+    <div class="bs-clock" id="bsClock" onclick="bsTap(event)">00.000<small>s</small></div>
+    <div class="bs-bar"><i id="bsBar" style="width:0"></i><div class="mark"></div></div>
+    <div class="l9-hint" id="bsHint">The numbers black out at ${bsF(c.blindAt)}s. After that it's your internal clock.</div>
+    <div style="margin-top:22px"><button class="bs-big l9-gold" id="bsBtn" onclick="bsTap(event)" ${_bsBusy ? 'disabled' : ''}>▶ START</button></div>
+    <div class="l9-hint">or press Spacebar · ${_bs.test ? 'exhibition: unlimited, no tokens' : `${c.attemptsPerShift} free attempt${c.attemptsPerShift === 1 ? '' : 's'} per shift · no tokens needed`}</div>
+    <div style="margin-top:12px;font-size:12px;color:#ffb3ad">⚠ Once you press Start, the attempt counts. Refreshing or closing the tab = loss.</div>
+    <div class="l9-msg" id="bsMsg">${bsEsc(_bsErr)}</div></div>`;
+}
+function bsRender(){
+  const root = document.getElementById('bsRoot'); if(!root || _bsRun) return;
+  if(!_bs){ root.innerHTML = `<div class="gp-card"><div class="empty-state">${_bsErr ? bsEsc(_bsErr) : 'Loading Blind Stop…'}</div></div>`; return; }
+  const c = _bs.config;
+  root.innerHTML = bsBossHtml() + `<div class="l9-grid"><div>${bsWatchHtml()}
+    <details class="gp-card" style="margin-top:16px"><summary style="cursor:pointer;font-weight:700">📖 How to play</summary><div class="l9-rules" style="margin-top:10px">
+      Press <b>Start</b> (or Spacebar) and stop the clock at exactly <b>${bsF(c.target)}s</b>. The numbers are visible until <b>${bsF(c.blindAt)}s</b>, then the display blacks out and you count in your head.<br>
+      Sir Rendy's AI also takes a shot (a skilled human, usually ${bsF(c.mean - 0.235).slice(0, -1)}–${bsF(c.mean + 0.215).slice(0, -1)}s). <b>Closer to ${bsF(c.target)}s wins</b>; a tie goes to Sir Rendy.<br>
+      Win = <b>🪙 ${c.winPrize}</b>. Within <b>${bsF(c.bullseyeWithin)}s</b> of the target and beating him = <b>🎯 Bullseye, 🪙 ${c.bullseyePrize}</b>.<br>
+      <b>${c.attemptsPerShift} free attempt${c.attemptsPerShift === 1 ? '' : 's'} per shift</b>. Pressing Start uses it, and refreshing or closing the tab counts as a loss. Not stopping by ${c.maxRun}s = loss.<br>
+      Every result is posted to <b>#smb-boss-bounty</b>. Sir Rendy's time is drawn on the server when you press Start, so nobody can peek or re-roll it.
+    </div></details></div><div>${bsSideHtml()}</div></div>`;
+}
+
+// ── the run ──
+function bsTap(ev){
+  if(ev){ ev.preventDefault && ev.preventDefault(); ev.stopPropagation && ev.stopPropagation(); }
+  if(_bsRun) return bsStop();
+  if(ev && ev.currentTarget && ev.currentTarget.id === 'bsClock') return;   // the clock only stops, never starts
+  return bsStart();
+}
+async function bsStart(){
+  if(_bsBusy || _bsRun || !currentPlayer) return;
+  _bsBusy = true; _bsErr = '';
+  const btn = document.getElementById('bsBtn'); if(btn){ btn.disabled = true; btn.textContent = 'Starting…'; }
+  bsBeep(660, 0.05, 0.05);
+  let j;
+  try {
+    const r = await fetch(BS_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'start', playerId: currentPlayer.id }) });
+    j = await r.json();
+  } catch(e){ j = { ok: false, error: 'Hindi na-start — try ulit.' }; }
+  _bsBusy = false;
+  if(!j.ok){ _bsErr = j.error || 'Hindi na-start — try ulit.'; await bsFetch(); bsRender(); return; }
+  _bsRun = { id: j.attemptId, t0: performance.now(), blindAt: Number(j.blindAt), target: Number(j.target), maxRun: Number(j.maxRun), blind: false, lastSec: 0, stopping: false };
+  const b2 = document.getElementById('bsBtn'); if(b2){ b2.disabled = false; b2.textContent = '■ STOP'; b2.className = 'bs-big bs-stop'; }
+  const h = document.getElementById('bsHint'); if(h) h.textContent = 'Spacebar, or tap the button / clock';
+  window.addEventListener('beforeunload', bsUnload);
+  requestAnimationFrame(bsFrame);
+}
+function bsUnload(e){ if(_bsRun){ e.preventDefault(); e.returnValue = 'Leaving now counts as a loss.'; return e.returnValue; } }
+function bsFrame(){
+  const R = _bsRun; if(!R || R.stopping) return;
+  const el = (performance.now() - R.t0) / 1000;
+  const clock = document.getElementById('bsClock'), bar = document.getElementById('bsBar'), lbl = document.getElementById('bsLbl'), w = document.getElementById('bsWatch');
+  if(el >= R.maxRun){ bsStop(true); return; }
+  if(el < R.blindAt){
+    if(clock) clock.innerHTML = (el < 10 ? '0' : '') + el.toFixed(3) + '<small>s</small>';
+    if(bar) bar.style.width = Math.min(50, el / R.target * 100) + '%';
+    const s = Math.floor(el); if(s > R.lastSec){ R.lastSec = s; bsBeep(880, 0.04, 0.05); }
+    if(lbl) lbl.textContent = `Blackout in ${(R.blindAt - el).toFixed(1)}s…`;
+  } else if(!R.blind){
+    R.blind = true; bsBeep(330, 0.35, 0.09);
+    if(clock){ clock.classList.add('blind'); clock.innerHTML = '??.???<small>s</small>'; }
+    if(bar){ bar.style.width = (R.blindAt / R.target * 100) + '%'; bar.classList.add('frozen'); }
+    if(lbl){ lbl.textContent = '🌑 BLIND MODE'; lbl.style.color = '#ff8f86'; }
+    if(w) w.classList.add('dark');
+    const h = document.getElementById('bsHint'); if(h) h.textContent = 'Count it in your head. The bar froze at the halfway mark.';
+  }
+  requestAnimationFrame(bsFrame);
+}
+async function bsStop(timeout){
+  const R = _bsRun; if(!R || R.stopping) return;
+  const el = (performance.now() - R.t0) / 1000;
+  R.stopping = true;
+  const btn = document.getElementById('bsBtn'); if(btn){ btn.disabled = true; btn.textContent = timeout ? 'Time\'s up…' : 'Checking…'; }
+  const clock = document.getElementById('bsClock'); if(clock){ clock.classList.remove('blind'); clock.innerHTML = timeout ? '—' : '⏱️'; }
+  let j = null;
+  for(let i = 0; i < 3 && !(j && j.ok); i++){
+    try {
+      const r = await fetch(BS_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'stop', playerId: currentPlayer.id, attemptId: R.id, clientTime: timeout ? null : Math.round(el * 1000) / 1000 }) });
+      j = await r.json();
+    } catch(e){ j = null; await new Promise(r => setTimeout(r, 700)); }
+  }
+  window.removeEventListener('beforeunload', bsUnload);
+  _bsRun = null;
+  if(j && j.ok){
+    _bsRes = j.result;
+    if(j.tokens !== null && j.tokens !== undefined) _myTokenBalance = j.tokens;
+    try { await refreshTokenBalance(); } catch(e){}
+    if(_bsRes && _bsRes.outcome === 'WIN') bsBeep(1320, 0.25, 0.08);
+  } else _bsErr = (j && j.error) || 'Hindi na-record — check your connection. The server will close the attempt.';
+  await bsFetch(); bsRender(); bsSchedule();
+}
+document.addEventListener('keydown', e => {
+  if(e.code !== 'Space' && e.key !== ' ') return;
+  if(!bsVisible() || e.repeat) { if(_bsRun && e.repeat) e.preventDefault(); return; }
+  const t = e.target, tag = t && t.tagName;
+  if(tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || (t && t.isContentEditable)) return;
+  if(!_bsRun && !document.getElementById('bsBtn')) return;
+  e.preventDefault(); bsTap(null);
+});
+
+// ───── Admin: Beat Sir Rendy → ⏱️ Blind Stop ─────
+let _bsa = null, _bsaSub = 'l9', _bsaLines = 'win';
+const BSA_LINES = { win: 'Staff wins', bullseye: '🎯 Bullseye win', early: 'Rendy wins · stopped early', late: 'Rendy wins · stopped late', photo: 'Photo finish (win or loss)', nostop: 'Never pressed Stop' };
+function bsaSub(s){
+  _bsaSub = s === 'bs' ? 'bs' : 'l9';
+  document.querySelectorAll('#bsaTabs button').forEach(b => b.classList.toggle('on', b.dataset.s === _bsaSub));
+  const a = document.getElementById('l9AdminRoot'), b = document.getElementById('bsAdminRoot');
+  if(a) a.style.display = _bsaSub === 'l9' ? '' : 'none';
+  if(b) b.style.display = _bsaSub === 'bs' ? '' : 'none';
+  if(_bsaSub === 'bs') bsAdminLoad(); else if(typeof l9AdminLoad === 'function') l9AdminLoad();
+}
+async function bsAdminCall(adminAction, payload){
+  if(!_adminPinSession){ alert('Please log in to admin again.'); return { ok: false }; }
+  try {
+    const r = await fetch(BS_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'admin', pin: _adminPinSession, adminAction, payload: payload || {} }) });
+    return await r.json();
+  } catch(e){ return { ok: false, error: 'Network error — try ulit.' }; }
+}
+async function bsAdminLoad(){
+  const root = document.getElementById('bsAdminRoot'); if(!root) return;
+  if(!_bsa) root.innerHTML = '<div class="empty-state">Loading…</div>';
+  const j = await bsAdminCall('get');
+  if(!j.ok){ root.innerHTML = `<div class="empty-state">${bsEsc(j.error || 'Could not load.')}</div>`; return; }
+  _bsa = j; bsAdminRender();
+}
+function bsAdminRender(){
+  const root = document.getElementById('bsAdminRoot'); if(!root || !_bsa) return;
+  const s = _bsa.settings, t = _bsa.tonight;
+  const num = (k, label, step, hint) => `<div><label>${label}</label><input type="number" id="bsa_${k}" value="${s[k]}" min="0" step="${step}"><small style="display:block;min-height:14px;color:var(--muted);font-size:11px">${hint || ''}</small></div>`;
+  const chk = (k, label) => `<label style="display:flex;align-items:center;gap:8px;text-transform:none;letter-spacing:0;margin-top:4px"><input type="checkbox" id="bsa_${k}" ${s[k] ? 'checked' : ''} style="width:auto"> ${label}</label>`;
+  const rows = (_bsa.recent || []).map(r => {
+    const d = new Date(r.at);
+    const res = r.status === 'void' ? '<span style="color:var(--muted)">VOID</span>' : r.status === 'retry' ? '<span style="color:var(--muted)">RETRY GIVEN</span>'
+      : r.outcome === 'WIN' ? `<span class="l9-win">${r.bullseye ? '🎯 ' : ''}WIN +${r.prize}</span>` : r.outcome === 'NOSTOP' ? '<span class="l9-loss">NO STOP</span>' : '<span class="l9-loss">LOSS</span>';
+    const check = r.flagged ? `<span style="color:#ff8f86">⚠ ${bsEsc(r.flagNote || 'clock mismatch')}</span>` : (r.serverTime !== null && r.clientTime !== null ? `<span style="color:var(--muted)">✅ +${bsF(r.serverTime - r.clientTime)}s</span>` : '');
+    const acts = r.status === 'done' && !r.test ? `${r.prize > 0 ? `<button class="btn btn-outline btn-sm" onclick="bsaAct('void',${r.id},${r.prize})">Void</button>` : ''} <button class="btn btn-outline btn-sm" onclick="bsaAct('retry',${r.id},${r.prize})">Give retry</button>` : (r.voidNote ? `<span style="font-size:11px;color:var(--muted)">${bsEsc(r.voidNote)}</span>` : '');
+    return `<tr style="${r.current ? '' : 'opacity:.6'}"><td style="white-space:nowrap;color:var(--muted)">${d.toLocaleString('en-US', { timeZone: 'Asia/Manila', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}</td>
+      <td>${bsEsc(r.name)}${r.test ? ' <span style="color:var(--muted)">(exhibition)</span>' : ''}</td><td class="bs-mono">${r.playerTime === null ? '—' : bsF(r.playerTime)}</td><td class="bs-mono">${bsF(r.rendyTime)}</td><td>${res}${r.photo ? ' 📸' : ''}</td><td style="font-size:12px">${check}</td><td style="white-space:nowrap">${acts}</td></tr>`;
+  }).join('');
+  const lines = (s.lines && s.lines[_bsaLines]) || [];
+  root.innerHTML = `<div style="display:grid;grid-template-columns:minmax(0,460px) minmax(0,1fr);gap:16px;align-items:start" class="l9a-wrap">
+   <div class="panel"><div class="panel-title">⚙️ Settings</div>
+    ${chk('on', 'Game open to players')}
+    <div class="l9a-grid" style="margin-top:8px">
+      ${num('winPrize', 'Win prize (🪙)', 1)}
+      ${num('bullseyePrize', '🎯 Bullseye prize (🪙)', 1)}
+      ${num('bullseyeWithin', 'Bullseye = within (s)', 0.001, 'of 10.000s, and must beat him')}
+      ${num('attemptsPerShift', 'Attempts per shift', 1, '1–5')}
+      ${num('mean', 'Sir Rendy average (s)', 0.001, 'spec 10.035 (slight overshoot)')}
+      ${num('sd', 'Sir Rendy spread (s)', 0.001, 'spec 0.170 · lower = harder')}
+      ${num('blindAt', 'Blackout at (s)', 0.1)}
+      ${num('photoFinish', 'Photo finish ≤ (s)', 0.001)}
+    </div>
+    ${chk('slack', 'Slack post for every attempt')}
+    ${chk('recap', 'Shift recap post (~5 AM PHT)')}
+    <div class="panel-title" style="margin-top:16px">💬 Sir Rendy dialogue</div>
+    <select id="bsa_lineSel" onchange="bsaLines(this.value)" style="width:100%">${Object.keys(BSA_LINES).map(k => `<option value="${k}" ${k === _bsaLines ? 'selected' : ''}>${BSA_LINES[k]} (${((s.lines || {})[k] || []).length})</option>`).join('')}</select>
+    <textarea id="bsa_lines" rows="6" style="width:100%;margin-top:6px;background:var(--deep,#151824);color:var(--white,#fff);border:1px solid var(--line,#333);border-radius:8px;padding:8px 10px;font:13px 'Space Grotesk',sans-serif">${bsEsc(lines.join('\n'))}</textarea>
+    <div style="font-size:11px;color:var(--muted)">One line per row; one is picked at random. <b>{prize}</b> becomes the token amount.</div>
+    <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap"><button class="btn btn-gold" onclick="bsaSave()">💾 Save</button></div>
+    <div class="pra-msg" id="bsaMsg" style="margin-top:8px"></div>
+    <div class="panel-title" style="margin-top:18px">🔔 #smb-boss-bounty webhook</div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:6px">${_bsa.hook ? '✅ Webhook set (hidden)' : 'Not set — no Slack posts yet'}. Stored on the server, never shown again. Paste a new one to replace it.</div>
+    <div style="display:flex;gap:8px"><input type="password" id="bsa_hook" placeholder="https://hooks.slack.com/services/…" autocomplete="off" style="flex:1;background:var(--deep,#151824);color:var(--white,#fff);border:1px solid var(--line,#333);border-radius:8px;padding:8px 10px"><button class="btn btn-outline btn-sm" onclick="bsaHook()">Save</button><button class="btn btn-outline btn-sm" onclick="bsaTest()">Test</button></div>
+   </div>
+   <div class="panel"><div style="display:flex;justify-content:space-between;align-items:center"><div class="panel-title" style="margin-bottom:0">📡 Tonight (this shift)</div><button class="btn btn-outline btn-sm" onclick="bsAdminLoad()">🔄 Refresh</button></div>
+    <div class="l9a-stats"><div><div class="l9-lbl">Attempts</div><div class="v">${t.attempts} / ${t.players}</div></div><div><div class="l9-lbl">Staff wins</div><div class="v" style="color:var(--teal)">${t.wins}</div></div>
+      <div><div class="l9-lbl">Bullseyes</div><div class="v">${t.bullseyes}</div></div><div><div class="l9-lbl">Tokens paid</div><div class="v" style="color:var(--gold)">🪙 ${t.tokens}</div></div><div><div class="l9-lbl">Flags</div><div class="v" style="color:${t.flags ? '#ff8f86' : 'inherit'}">${t.flags}</div></div></div>
+    <div style="font-size:11px;color:var(--muted);margin:-8px 0 10px">Check = server clock vs browser stopwatch. Honest runs are a little ahead on the server (internet delay). A big gap gets ⚠ flagged and the server time is used. <b>Void</b> takes the prize back; <b>Give retry</b> lets them play again this shift (and takes back any prize).</div>
+    <div class="panel-title">🧾 Recent attempts</div>
+    ${rows ? `<div style="overflow-x:auto"><table class="l9-t"><tr><th>When (PHT)</th><th>Player</th><th>Stopped</th><th>Sir Rendy</th><th>Result</th><th>Check</th><th></th></tr>${rows}</table></div>` : '<div class="empty-state">No attempts yet.</div>'}
+   </div></div>`;
+}
+function bsaOut(t, ok){ const m = document.getElementById('bsaMsg'); if(m){ m.textContent = t; m.style.color = ok ? 'var(--teal)' : '#ff8f86'; } }
+function bsaKeepLines(){
+  const ta = document.getElementById('bsa_lines'); if(!ta || !_bsa) return;
+  _bsa.settings.lines = Object.assign({}, _bsa.settings.lines, { [_bsaLines]: ta.value.split('\n').map(x => x.trim()).filter(Boolean) });
+}
+function bsaLines(k){ bsaKeepLines(); _bsaLines = k; const ta = document.getElementById('bsa_lines'); if(ta) ta.value = ((_bsa.settings.lines || {})[k] || []).join('\n'); }
+async function bsaSave(){
+  bsaKeepLines();
+  const v = k => Number(document.getElementById('bsa_' + k).value), b = k => document.getElementById('bsa_' + k).checked;
+  const j = await bsAdminCall('save', { on: b('on'), slack: b('slack'), recap: b('recap'), winPrize: Math.floor(v('winPrize')), bullseyePrize: Math.floor(v('bullseyePrize')),
+    attemptsPerShift: Math.floor(v('attemptsPerShift')), bullseyeWithin: v('bullseyeWithin'), mean: v('mean'), sd: v('sd'), blindAt: v('blindAt'), photoFinish: v('photoFinish'),
+    lines: _bsa.settings.lines });
+  if(!j.ok) return bsaOut(j.error || 'Not saved.');
+  _bsa.settings = j.settings; bsAdminRender(); bsaOut('✅ Saved', true); _bsAt = 0;
+}
+async function bsaHook(){
+  const url = document.getElementById('bsa_hook').value.trim();
+  if(!url && !confirm('Clear the #smb-boss-bounty webhook? Blind Stop will stop posting to Slack.')) return;
+  const j = await bsAdminCall('hook', { url });
+  if(!j.ok) return bsaOut(j.error || 'Not saved.');
+  await bsAdminLoad(); bsaOut(j.own ? '✅ Webhook saved — tap Test to check it' : '✅ Webhook cleared', true);
+}
+async function bsaTest(){ const j = await bsAdminCall('test_hook'); bsaOut(j.ok ? '✅ Test post sent — check #smb-boss-bounty' : (j.error || 'Test failed'), j.ok); }
+async function bsaAct(kind, id, prize){
+  const msg = kind === 'void' ? `Void this attempt? ${prize} 🪙 will be taken back. It still counts as their attempt.`
+    : `Give a retry? They can play again this shift${prize > 0 ? ` and the ${prize} 🪙 prize is taken back` : ''}.`;
+  if(!confirm(msg)) return;
+  const j = await bsAdminCall(kind, { id });
+  if(!j.ok) return bsaOut(j.error || 'Failed.');
+  await bsAdminLoad(); bsaOut(kind === 'void' ? `✅ Voided${j.taken ? ` · 🪙 ${j.taken} taken back` : ''}` : `✅ Retry given${j.taken ? ` · 🪙 ${j.taken} taken back` : ''}`, true);
 }
 
 </script>
