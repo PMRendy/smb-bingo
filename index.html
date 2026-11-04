@@ -1589,7 +1589,7 @@ table.blh th{color:var(--muted);font-weight:600;font-size:11px;text-transform:up
       <summary>🧑 Avatar Studio</summary>
       <div class="panel-group-body">
         <div class="panel" id="avatarStudioPanel">
-          <div style="font-size:12px;color:var(--muted);margin-bottom:10px;">Build your look! Pick Boy/Girl, then unlock Background, Hair, Outfit, Accessory, and Frame pieces with SMB Tokens. Your avatar shows on your profile and every leaderboard.</div>
+          <div style="font-size:12px;color:var(--muted);margin-bottom:10px;">Build your Bayani! Tap anything to try it on — you only pay when you save. Wear anything: no boy/girl lock. Your avatar shows on your profile, leaderboards, Pet Race and Bayani City.</div>
           <div id="avatarStudioPanelContent" style="font-size:13px;color:var(--muted);">Loading...</div>
         </div>
       </div>
@@ -7173,7 +7173,7 @@ function prResultsCard(){
   const top = ((lr && lr.entries) || []).filter(e => e.place && e.place <= 3 && !e.dnf).sort((a, b) => a.place - b.place);
   let h = '';
   if(top.length){
-    const pod = p => { const e = top.find(x => x.place === p); return e ? `<div class="pr-pod p${p}"><div class="pr-portrait" style="margin:0 auto">${prPetImg(e.species,e)}</div><div class="r">${['🥇','🥈','🥉'][p-1]}</div><b>${prEsc(e.petName)}</b>${petChampTag(e)}<div class="pr-muted" style="font-size:12px">${prEsc(e.playerName)} • ${Number(e.laps).toFixed(2)} laps</div><div style="color:var(--gold);font-weight:700">₱${Number(prizes[p-1] || 0)}</div></div>` : '<div></div>'; };
+    const pod = p => { const e = top.find(x => x.place === p); return e ? `<div class="pr-pod p${p}"><div class="pr-portrait" style="margin:0 auto">${prPetImg(e.species,e)}</div><div class="r">${['🥇','🥈','🥉'][p-1]}</div><b>${prEsc(e.petName)}</b>${petChampTag(e)}<div class="pr-muted" style="font-size:12px">${e.playerId && typeof avatarHtml === 'function' ? avatarHtml(e.playerId, 26) + ' ' : ''}${prEsc(e.playerName)} • ${Number(e.laps).toFixed(2)} laps</div><div style="color:var(--gold);font-weight:700">₱${Number(prizes[p-1] || 0)}</div></div>` : '<div></div>'; };
     h += `<div class="gp-card"><div class="gp-hdr"><h3>🏆 ${s.race.status === 'finished' ? 'Podium' : 'Last race podium'}</h3><button class="pr-btn ghost" onclick="prReplayLast()">▶ Replay Final Stretch</button></div><div class="pr-podium">${pod(2)}${pod(1)}${pod(3)}</div><div id="prLastTrack" style="margin-top:12px"></div></div>`;
   }
   if(s.race.status === 'cancelled'){
@@ -8929,5 +8929,8 @@ async function bsaAct(kind, id, prize){
 }
 
 </script>
+<!-- Avatar Studio revamp (2026-11-04): chibi SVG renderer + new Studio screen -->
+<script src="bayani-chibi-avatar.js"></script>
+<script src="avatar-studio.js"></script>
 </body>
 </html>
