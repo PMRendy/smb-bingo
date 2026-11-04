@@ -4362,22 +4362,16 @@ async function psEquip(cat, id, quiet){
 
 // ─── CASH IN: points → tokens ───────────────────────────────────────────────
 let _cashInRequested = false;
+let _cashInLastTs = 0, _cashInLastPid = null;
 function requestCashInCheck(){ _cashInRequested = true; refreshCashInPanel(true); }
 async function refreshCashInPanel(force){
   const panel = document.getElementById('cashInPanel');
   const content = document.getElementById('cashInPanelContent');
   if(!panel || !content || !currentPlayer) return;
-  // Check-in deactivated: leftover points can still be cashed in, but the balance is
-  // only fetched when the player taps the button (no more 5-second polling).
-  if(!CHECKIN_ENABLED && !force){
-    if(_cashInRequested) return; // keep whatever result is already showing
-    if(currentPlayer.slackUserId){
-      panel.style.display='block';
-      content.innerHTML = `<div style="margin-bottom:8px;">Tapos na ang hourly check-in — pero pwede mo pang i-cash in ang natitira mong points.</div>` +
-        `<button class="btn btn-outline btn-sm" style="width:100%;" onclick="requestCashInCheck()">🔍 Check my leftover points</button>`;
-    } else { panel.style.display='none'; }
-    return;
-  }
+  // SMB Points (2026-11-04): balance lives in the game database (bingo-games). Refresh at most once a minute
+  // on the background poll; login, the refresh button and cash-ins force a fresh read.
+  if(!force && _cashInLastTs && _cashInLastPid === currentPlayer.id && Date.now() - _cashInLastTs < 60000) return;
+  _cashInLastTs = Date.now(); _cashInLastPid = currentPlayer.id;
 
   if(!currentPlayer.slackUserId){
     panel.style.display='block';
@@ -4386,8 +4380,10 @@ async function refreshCashInPanel(force){
   }
   panel.style.display='block';
   try {
-    const r = await fetch(`${BACKEND_URL}/points-balance?slackUserId=${encodeURIComponent(currentPlayer.slackUserId)}`);
+    const r = await fetch(GAMES_URL, { method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ action:'points_balance', playerId: currentPlayer.id }) });
     const j = await r.json();
+    if(!r.ok || !j.ok) throw new Error(j.error || 'points');
     const balance = j.total ?? 0;
     const maxTokens = Math.floor(balance / POINTS_PER_TOKEN);
     if(maxTokens >= 1){
@@ -4397,6 +4393,7 @@ async function refreshCashInPanel(force){
     } else {
       content.innerHTML = `<div>Points balance: <strong>${balance} pts</strong> — kailangan ng ${POINTS_PER_TOKEN}+ pts para makapag-cash-in ng 1 token. Sagot pa sa check-ins! 💪</div>`;
     }
+    content.innerHTML += `<div style="text-align:right;margin-top:6px;"><a href="#" style="font-size:11px;color:var(--muted);" onclick="requestCashInCheck();return false;">🔄 Refresh points</a></div>`;
   } catch(e){
     content.innerHTML = `<div style="color:var(--danger);">Hindi ma-check ang points balance ngayon — try ulit mamaya.</div>`;
   }
@@ -4405,10 +4402,10 @@ async function refreshCashInPanel(force){
 async function doCashIn(tokens){
   if(!currentPlayer || !tokens || tokens < 1) return;
   try {
-    const r = await fetch(`${BACKEND_URL}/cash-in`, {
+    const r = await fetch(GAMES_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ playerId: currentPlayer.id, slackUserId: currentPlayer.slackUserId, tokens }),
+      body: JSON.stringify({ action: 'cash_in', playerId: currentPlayer.id, tokens }),
     });
     const j = await r.json();
     if(!r.ok || !j.ok){
