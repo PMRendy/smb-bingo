@@ -929,6 +929,7 @@ table.blh th{color:var(--muted);font-weight:600;font-size:11px;text-transform:up
       <button class="tab-btn" data-tab="pets" onclick="switchAdminTab('pets')">🐾 Pets</button>
       <button class="tab-btn" data-tab="shop" onclick="switchAdminTab('shop')">🛒 Shop & Cosmetics</button>
       <button class="tab-btn" data-tab="petstore" onclick="switchAdminTab('petstore')">🐾 Pet Store</button>
+      <button class="tab-btn" data-tab="bingo" onclick="switchAdminTab('bingo')">🎟️ Card Price</button>
       <button class="tab-btn" data-tab="history" onclick="switchAdminTab('history')">🪙 Transaction History</button>
       <div class="adm-grp">People</div>
       <button class="tab-btn active" data-tab="roster" onclick="switchAdminTab('roster')">👥 Player Roster</button>
@@ -1307,6 +1308,13 @@ table.blh th{color:var(--muted);font-weight:600;font-size:11px;text-transform:up
         <div class="panel-title">🛒 Shop & Cosmetics</div>
         <div style="font-size:12px;color:var(--muted);margin-bottom:12px;">Price and on/off for every marker theme, card skin, cosmetic, avatar item and title. The server enforces every value; the page only displays.</div>
         <div id="gaRoot-shop"><div class="empty-state">Loading...</div></div>
+      </div>
+    </div>
+    <div class="tab-content" id="tab-bingo">
+      <div class="panel">
+        <div class="panel-title">🎟️ BINGO Card Price</div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:12px;">Price of an extra BINGO card and the max cards a player can hold per game (free card included). The server charges this price; changes apply to the next card bought.</div>
+        <div id="gaRoot-bingo"><div class="empty-state">Loading...</div></div>
       </div>
     </div>
     <div class="tab-content" id="tab-petstore">
@@ -1911,7 +1919,7 @@ const CHECKIN_ENABLED = false;
 const BACKEND_URL = 'https://smb-bingo-backend.netlify.app';
 const COSMETICS_BACKEND_URL = 'https://smb-bingo-cosmetics.netlify.app';
 const CARDS_BACKEND_URL = 'https://smb-bingo-cards.netlify.app'; // buy-card: 5 tokens, max 10 cards/game
-const CARD_PRICE = 5;
+let CARD_PRICE = 5; // phase2: real value comes from the server (bingo-games config → bingo)
 // Admin PIN check, admin settings and Slack posting (secrets live server-side only)
 const BINGO_ADMIN_URL = 'https://ebeggngsggwnxufovkco.supabase.co/functions/v1/bingo-admin';
 let _adminPinSession = '';   // PIN typed at admin login, kept in memory only (never saved)
@@ -1922,7 +1930,7 @@ async function bingoAdminCall(body){
   let j={}; try{ j=await r.json(); }catch(e){}
   return j;
 }
-const MAX_CARDS_PER_GAME = 10;
+let MAX_CARDS_PER_GAME = 10;
 
 let _dbLoaded = false; // tracks whether the very first load has completed
 
@@ -2287,7 +2295,7 @@ function switchAdminTab(name) {
   if(name==='petrace') prAdminLoad();
   if(name==='blessings') blAdminLoad();
   if(name==='lucky9'){ if(typeof _bsaSub !== 'undefined' && _bsaSub === 'bs') bsAdminLoad(); else l9AdminLoad(); }
-  if(['spin','highlow','rps','pets','shop','petstore'].includes(name)) gaAdminLoad(name);
+  if(['spin','highlow','rps','pets','shop','petstore','bingo'].includes(name)) gaAdminLoad(name);
   if(name==='pets'){ evoChartRender(); adminPetsRender(); }
 }
 
@@ -4062,7 +4070,7 @@ const CASHIN_MESSAGES = [
 ];
 const BUYCARD_MESSAGES = [
   'Namili si {name} ng 1 Bingo Card. May lamang ka na. 🙂',
-  '🎟️ Si {name} ay nag-invest ng 5 SMB Tokens para sa extra card. Bet na bet!',
+  '🎟️ Si {name} ay nag-invest ng SMB Tokens para sa extra card. Bet na bet!',
   'Isa pang card para kay {name}! Swerte na lang ang kailangan ngayon. 🍀',
   '{name} said "one more chance" — bought an extra card! 🎫',
 ];
@@ -6248,7 +6256,7 @@ async function clearLeaderboard(){
 //  ADMIN: SMB TOKEN TRANSACTION HISTORY TAB
 // ════════════════════════════════════════════════════════════
 const TOKEN_EVENT_LABELS = {
-  cash_in: '💰 Cash In', buy_card: '🎟️ Buy Card', give: '🎁 Give', ask: '🙏 Ask', shop_purchase: '🛒 Shop Purchase',
+  cash_in: '💰 Cash In', rewards_claim: '🎟️ SMB Rewards claim', buy_card: '🎟️ Buy Card', give: '🎁 Give', ask: '🙏 Ask', shop_purchase: '🛒 Shop Purchase',
   spin_wheel: '🎡 Spin the Wheel', cosmetic_purchase: '✨ Cosmetic Purchase', title_purchase: '🏷️ Title Purchase',
   team_battle_entry: '⚔️ Team Battle Entry', team_battle_payout: '🏆 Team Battle Payout', team_battle_refund: '↩️ Team Battle Refund',
   avatar_gender_switch: '👤 Avatar Gender Switch', pet_egg: '🐣 Pet Egg', pet_care: '🐾 Pet Care', pet_rename: '✏️ Pet Rename',
@@ -6292,6 +6300,7 @@ function renderTokenLog(){
       const label = TOKEN_EVENT_LABELS[e.type] || e.type;
       let detail = '';
       if(e.type === 'cash_in') detail = `${playerNameById(e.playerId)} converted ${e.pointsSpent} pts → ${e.amount} 🪙`;
+      else if(e.type === 'rewards_claim') detail = `${playerNameById(e.playerId)} claimed ${e.amount} 🪙 from SMB Rewards (portal)`;
       else if(e.type === 'buy_card') detail = `${playerNameById(e.playerId)} spent ${e.amount} 🪙 on an extra card`;
       else if(e.type === 'give') detail = `${playerNameById(e.fromPlayerId)} → ${playerNameById(e.toPlayerId)}: ${e.amount} 🪙`;
       else if(e.type === 'ask') detail = `${playerNameById(e.playerId)} asked the group for ${e.amount} 🪙`;
@@ -6810,7 +6819,7 @@ function gpEsc(x){ return String(x == null ? '' : x).replace(/[&<>"']/g, c => ({
 function gpGameLive(){ const g = DB && DB.game; return !!(g && g.active && !g.ended); }
 // Signed token effect of one tokenLog entry for player id (display only).
 const GP_SPEND = ['buy_card','shop_purchase','cosmetic_purchase','title_purchase','pet_care','pet_egg','pet_rename','rps_stake','team_battle_entry','race_spend','pet_evolve','pet_trade_fee','l9_pass','bs_void'];
-const GP_GAIN  = ['cash_in','ganzo_blessing','daily_pet_token_grant','rps_payout','rps_refund','team_battle_payout','team_battle_refund','race_refund','race_loot','race_clash','pet_trade_fee_in','l9_bounty','bs_win'];
+const GP_GAIN  = ['cash_in','rewards_claim','ganzo_blessing','daily_pet_token_grant','rps_payout','rps_refund','team_battle_payout','team_battle_refund','race_refund','race_loot','race_clash','pet_trade_fee_in','l9_bounty','bs_win'];
 function gpDelta(e, id){
   const a = Number(e.amount) || 0;
   if(e.type === 'give') return e.toPlayerId === id ? a : (e.fromPlayerId === id ? -a : null);
@@ -6831,6 +6840,7 @@ function gpLabel(e, id){
     case 'pet_rename': return `🐾 ${gpEsc(e.itemName || 'Pet rename')}`;
     case 'daily_pet_token_grant': return '🐾 Daily pet drop';
     case 'cash_in': return `💰 Cash In (${e.pointsSpent || '?'} pts)`;
+    case 'rewards_claim': return `🎟️ SMB Rewards claim`;
     case 'rps_stake': return `✊ RPS stake vs ${n(e.opponentId)}`;
     case 'rps_payout': return `✊ RPS win vs ${n(e.opponentId)}`;
     case 'rps_refund': return `✊ RPS refund (${gpEsc(e.reason || 'refund')})`;
@@ -7540,6 +7550,8 @@ function applyGamesConfig(cfg){
     RPS_STAKES = []; for(let v = rp.minStake; v <= rp.maxStake; v += Math.max(1, rp.stakeStep || 1)) RPS_STAKES.push(v);
     if(typeof _rpsNew !== 'undefined' && !RPS_STAKES.includes(_rpsNew.stake)) _rpsNew.stake = RPS_STAKES[0];
   }
+  const bc = cfg.bingo || {};
+  if(bc.cardPrice){ CARD_PRICE = Number(bc.cardPrice) || CARD_PRICE; MAX_CARDS_PER_GAME = Number(bc.maxCards) || MAX_CARDS_PER_GAME; }
   const ps = cfg.petstore || {};
   if(ps.minLevel !== undefined) PET_STORE_MIN_LEVEL = Number(ps.minLevel) || 30;
   if(ps.on !== undefined) PET_STORE_ON = ps.on !== false;
@@ -7590,10 +7602,11 @@ const GA_FIELDS = {
     ['renamePrice','Rename','num','tokens'],['firstRenameFree','First rename free','bool',''],['maxPets','Max pets per player','num','alive + eggs (1–10)'],['slack','Post to Slack','bool','eggs, hatches, level-ups, renames']],
   shop: [['on','Shop on','bool','Off = no purchases'],['genderFee','Avatar gender switch','num','tokens (first pick free)'],['featuredDiscount','Featured item discount','num','tokens off (min price 1)'],
     ['titleDays','Title lasts','num','days (1–30)'],['slack','Post purchases to Slack','bool','BINGO channel']],
+  bingo: [['cardPrice','Extra card price','num','SMB Tokens per card (1–1000)'],['maxCards','Max cards per game','num','per player, free card included (1–50)']],
   petstore: [['on','Pet Store open','bool','Off = players see "closed"; looks already worn stay on'],['minLevel','Minimum pet level','num','👑 Adult pets at this level and up (default 30)'],
     ['slack','Post to Slack','bool','"Mochi is now wearing 24K Golden"']],
 };
-const GA_TITLES = { spin:'🎡 Spin the Wheel', highlow:'📈 Higher or Lower', rps:'✊ RPS Duel', pets:'🐾 Pets', shop:'🛒 Shop & Cosmetics', petstore:'🐾 Pet Store' };
+const GA_TITLES = { spin:'🎡 Spin the Wheel', highlow:'📈 Higher or Lower', rps:'✊ RPS Duel', pets:'🐾 Pets', shop:'🛒 Shop & Cosmetics', petstore:'🐾 Pet Store', bingo:'🎟️ Card Price' };
 async function gaCall(adminAction, game, payload){
   if(!_adminPinSession){ alert('Please log in to admin again.'); return { ok:false }; }
   try {
@@ -7623,6 +7636,7 @@ function gaAdminNote(game, c){
     const e = gaHlEdge(c); if(!e) return '';
     return `Players see the number before guessing, so the obvious guess wins about <b>${Math.round(e.win * 100)}%</b> of rounds. Average gain ≈ <b>${e.ev >= 0 ? '+' : ''}${(e.ev * 100).toFixed(0)}%</b> of the bet per play → a smart player at max bet averages about <b>${e.ev >= 0 ? '+' : ''}${Math.round(e.ev * c.maxBet * c.perShift)} tokens per shift</b> (range −${c.maxBet * c.perShift} to +${c.maxBet * (c.winMult - 1) * c.perShift}).`;
   }
+  if(game === 'bingo') return c.nextPrice ? `Scheduled: price becomes <b>${c.nextPrice}</b> on ${new Date(c.nextFrom).toLocaleString('en-US',{timeZone:'Asia/Manila',weekday:'short',month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})} PHT. Saving here replaces the schedule and applies right away.` : `Cards already bought keep their place. A new price applies to the next card bought.`;
   if(game === 'rps') return `Open challenges keep the stake they were made with. New limits apply to new duels right away. The house cut is the only part that burns tokens.`;
   if(game === 'pets') return `Pet decay (−10 per meter per weekday shift, weekends skipped) and the nightly pet token drop are unchanged and not edited here.`;
   if(game === 'shop') return `Turning an item Off hides it from players who don't own it yet; owners keep it. Pick featured items in 🪙 Transaction History, same as before.`;
