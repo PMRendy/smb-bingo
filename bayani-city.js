@@ -1,6 +1,6 @@
 // ═══════════════════════════════════════════════════════════════════════════
 //  bayani-city.js — Bayani City: board page + admin controls · SMB Game Portal
-//  v2 · 2026-11-04 · load after avatar-studio.js. Backend: bingo-games action "city"
+//  v3 · 2026-11-06 · Admin Live Board + tap a player for their full avatar · load after avatar-studio.js. Backend: bingo-games action "city"
 //  (bayanicity.sql + vouchers.sql). API: see API.md.
 //
 //  Player side: Games → 🏙️ Bayani City
@@ -122,6 +122,32 @@ function rentOf(d, i){
 function ownsSet(d, pid, g){ return !!g && T.filter(x => x.group === g).every(x => d.spots[String(x.i)] && d.spots[String(x.i)].owner === pid); }
 function pname(d, id){ const p = (d.players || []).find(x => x.id === id); return p ? p.name : 'Someone'; }
 function head(id, size){ return typeof avatarHtml === 'function' ? avatarHtml(id, size || 20, false) : '🙂'; }
+// tap / hover a player's head → floating card with their full avatar
+function peekAttr(id, src){ return `onclick="bcPeek(event,'${esc(id)}','${src || 'p'}')" onmouseenter="bcPeek(event,'${esc(id)}','${src || 'p'}',1)" onmouseleave="bcPeekOff(1)"`; }
+function peekData(src){ return src === 'a' ? (BA.data && BA.data.current && BA.data.current.live) : BC.data; }
+let peekHoverOnly = false;
+window.bcPeekOff = hover => { if(hover && !peekHoverOnly) return; const el = document.getElementById('bcPeek'); if(el) el.remove(); };
+window.bcPeek = (ev, id, src, hover) => {
+  ev.stopPropagation();
+  if(hover && window.matchMedia && !window.matchMedia('(hover:hover)').matches) return;   // phones: tap only
+  let el = document.getElementById('bcPeek');
+  if(!hover && el && el.dataset.id === id && !peekHoverOnly){ el.remove(); return; }
+  const d = peekData(src) || {}, p = (d.players || []).find(x => x.id === id);
+  const th = (d.season && d.season.settings && d.season.settings.theme) || cfg().theme || 'classic';
+  if(!el){ el = document.createElement('div'); el.id = 'bcPeek'; el.className = 'bc-peek'; document.body.appendChild(el); }
+  el.dataset.id = id; peekHoverOnly = !!hover;
+  el.innerHTML = `${typeof avatarHtml === 'function' ? avatarHtml(id, 120, false) : ''}
+    <div class="bc-peek-n">${esc(p ? p.name : pname(d, id))}</div>
+    ${p ? `<div class="bc-peek-s">📍 ${esc(tileName(p.pos, th))}<br>🪙 ${p.coins} coins · 🏙️ worth ${p.worth} · 🏠 ${p.spots}</div>` : ''}
+    ${hover ? '' : '<small>tap anywhere to close</small>'}`;
+  const r = ev.currentTarget.getBoundingClientRect(), w = 170, h = el.offsetHeight || 230;
+  let x = r.left + r.width / 2 - w / 2, y = r.top - h - 8;
+  if(y < 6) y = r.bottom + 8;
+  x = Math.max(6, Math.min(x, window.innerWidth - w - 6));
+  el.style.left = x + 'px'; el.style.top = Math.max(6, Math.min(y, window.innerHeight - h - 6)) + 'px';
+};
+document.addEventListener('click', () => { const el = document.getElementById('bcPeek'); if(el && !peekHoverOnly) el.remove(); });
+window.addEventListener('scroll', () => { const el = document.getElementById('bcPeek'); if(el) el.remove(); }, { passive:true });
 
 function evText(e, d, th){
   const x = e.data || {}, who = e.player ? esc(pname(d, e.player)) : '', tn = i => esc(tileName(i, th));
@@ -169,9 +195,9 @@ function boardHtml(d, th, noTokens){
   const tiles = T.map(t => {
     const bar = t.group ? GC[t.group] : TC[t.type], sp = spots[String(t.i)];
     const sub = t.type === 'spot' || t.type === 'transit' ? (sp && sp.owner ? `rent ${rentOf(d, t.i)}` : `${t.price}`) : t.type === 'tax' ? `pay ${t.price}` : t.type === 'start' ? '+200' : '';
-    const own = sp && sp.owner ? `<span class="bc-own" title="${esc(pname(d, sp.owner))}">${head(sp.owner, 16)}${sp.level ? `<em>${'●'.repeat(sp.level)}</em>` : ''}</span>` : '';
+    const own = sp && sp.owner ? `<span class="bc-own" title="${esc(pname(d, sp.owner))}" ${d ? peekAttr(sp.owner) : ''}>${head(sp.owner, 16)}${sp.level ? `<em>${'●'.repeat(sp.level)}</em>` : ''}</span>` : '';
     const here = (byPos[t.i] || []);
-    const toks = here.slice(0, 4).map(id => `<span class="bc-tk${id === myId ? ' me' : ''}">${head(id, 22)}</span>`).join('') + (here.length > 4 ? `<span class="bc-more">+${here.length - 4}</span>` : '');
+    const toks = here.slice(0, 4).map(id => `<span class="bc-tk${id === myId ? ' me' : ''}" ${d ? peekAttr(id) : ''}>${head(id, 22)}</span>`).join('') + (here.length > 4 ? `<span class="bc-more">+${here.length - 4}</span>` : '');
     return `<div class="bc-tile${t.type === 'start' ? ' start' : ''}${BC.sel === t.i ? ' sel' : ''}${d && d.me && t.i === myPos ? ' here' : ''}" style="grid-column:${t.col};grid-row:${t.row}" onclick="bcSel(${t.i})">
       <i style="background:${bar}"></i><b>${t.type !== 'spot' && ICON[t.type] ? ICON[t.type] + ' ' : ''}${esc(tileName(t.i, th))}</b>${sub ? `<span>${sub}</span>` : ''}${own}
       ${toks ? `<div class="bc-toks">${toks}</div>` : ''}</div>`;
@@ -310,7 +336,7 @@ function render(){
   const mySpots = m ? T.filter(t => d.spots[String(t.i)] && d.spots[String(t.i)].owner === myId) : [];
   const spotsCard = m ? `<div class="bc-card"><div class="bc-h">🏠 My spots <small>tap one on the board</small></div>${mySpots.length ? mySpots.map(t => { const sp = d.spots[String(t.i)];
       return `<div class="bc-kv bc-click" onclick="bcSel(${t.i})"><span><i class="bc-dot" style="background:${t.group ? GC[t.group] : TC[t.type]}"></i>${esc(tileName(t.i, th))}${sp.level ? ` · ${LEVELS[sp.level]}` : ''}</span><b>rent ${rentOf(d, t.i)}</b></div>`; }).join('') : '<small>None yet. Land on a spot to buy it.</small>'}</div>` : '';
-  const stand = `<div class="bc-card"><div class="bc-h">🏆 Standings</div>${(d.players || []).map((p, i) => `<div class="bc-kv${p.id === myId ? ' mine' : ''}"><span>${i + 1}. ${head(p.id, 18)} ${esc(p.name)}${p.inOvertime ? ' ⏰' : ''}</span><b>${p.worth}</b></div>`).join('')}
+  const stand = `<div class="bc-card"><div class="bc-h">🏆 Standings</div>${(d.players || []).map((p, i) => `<div class="bc-kv${p.id === myId ? ' mine' : ''}"><span>${i + 1}. <span class="bc-ph" ${peekAttr(p.id)}>${head(p.id, 18)}</span> ${esc(p.name)}${p.inOvertime ? ' ⏰' : ''}</span><b>${p.worth}</b></div>`).join('')}
     <small>Season payout: worth ÷ ${(d.season.settings || {}).payoutRate ?? 150} = SMB Tokens (max ${(d.season.settings || {}).payoutCap ?? 50}). Top 3 also get vouchers.</small></div>`;
   const feed = `<div class="bc-card"><div class="bc-h">📰 City feed</div><div class="bc-feed">${(d.feed || []).map(e => `<div>${evText(e, d, th)}</div>`).join('') || '<small>Quiet pa.</small>'}</div></div>`;
   root.innerHTML = `<div class="bc">
@@ -423,7 +449,7 @@ const RULES = [
   ['tradesPerWeek','Trades per player per week',''],['tradeExpiryHours','Offers expire after','hours'],['payoutRate','Payout rate','worth ÷ this = SMB Tokens'],
   ['payoutCap','Payout cap','max SMB Tokens per player'],['weeklyPrize','Week-1 top earner prize','SMB Tokens'],
 ];
-const SLACK = [['season','Season open / over'],['fullSet','Full color set'],['office','Office built'],['trade','Trade closed'],['weekly','Week-1 top earner']];
+const SLACK = [['season','Season open / over'],['fullSet','Full color set'],['office','Office built'],['trade','Trade closed'],['weekly','Week-1 top earner'],['roll','Every roll (live feed)'],['recap','5:55 AM shift recap']];
 const VKINDS = [['bingo_card','🎟️ Free BINGO card'],['spin','🎡 Free spin'],['pet_care_pack','🐾 Pet Care Pack (3 uses)']];
 
 async function adminCall(action, payload){ const j = await gaCall(action, null, payload || {}); return j || { ok:false, error:'No response' }; }
@@ -432,20 +458,86 @@ async function bcAdminLoad(){
   if(!BA.data) el.innerHTML = '<div class="panel"><div class="empty-state">Loading season controls…</div></div>';
   const j = await adminCall('city_get');
   if(!j.ok){ el.innerHTML = `<div class="panel"><div class="empty-state">⚠ ${esc(j.error || 'Could not load Bayani City admin.')}</div></div>`; return; }
-  BA.data = j; bcAdminRender();
+  BA.data = j; BA.liveAt = Date.now(); bcAdminRender();
 }
 window.bcAdminLoad = bcAdminLoad;
 function amsg(k){ const m = BA.msg[k]; return m ? `<span class="pra-msg" style="color:${m.ok ? 'var(--success)' : 'var(--danger)'}">${esc(m.t)}</span>` : '<span class="pra-msg"></span>'; }
 function setMsg(k, j, okText){ BA.msg[k] = { ok:!!j.ok, t: j.ok ? okText : ('⚠ ' + (j.error || 'Failed')) }; }
 function rosterOpts(sel){ return (DB.players || []).filter(p => p.active !== false).map(p => `<option value="${esc(p.id)}" ${sel === p.id ? 'selected' : ''}>${esc(p.name)}</option>`).join(''); }
 
+// ── Admin Live Board: who is on which tile, read-only, refreshes every 60 s ──
+const PAL = ['#e76f51','#2a9d8f','#c99a2e','#8338ec','#3a86ff','#ff006e','#fb5607','#06a77d','#118ab2','#ef476f','#7b2cbf','#43aa8b','#f3722c','#577590','#f94144','#6a994e','#c77dff','#0096c7','#bc6c25','#4d7c0f','#d62828','#4361ee','#b5179e','#2d6a4f','#9d4edd','#e85d04'];
+function liveColors(L){ const c = {}; [...(L.players || [])].sort((a, b) => a.name.localeCompare(b.name)).forEach((p, i) => c[p.id] = PAL[i % PAL.length]); return c; }
+function liveText(L, th){
+  const ps = L.players || [], by = {};
+  ps.forEach(p => (by[p.pos] = by[p.pos] || []).push(p.name));
+  const top = ps.slice(0, 5).map((p, i) => `${i + 1}. ${p.name} · ${p.worth}`).join('\n');
+  const pos = T.filter(t => by[t.i]).map(t => `${tileName(t.i, th)}: ${by[t.i].sort().join(', ')}`).join('\n');
+  const idle = ps.filter(p => !(L.rolls || {})[p.id]).map(p => p.name).sort();
+  return `🏙️ Bayani City · Season ${L.season.id}\n\n🏆 Top 5 (worth)\n${top}\n\n📍 Where everyone is\n${pos}` + (idle.length ? `\n\n😴 Hasn't rolled this shift: ${idle.join(', ')}` : '');
+}
+function liveHtml(cur){
+  const L = cur.live; if(!L || !L.season) return '';
+  const th = (L.season.settings || {}).theme || cfg().theme || 'classic', theme = themeOf(th), col = liveColors(L);
+  const ps = L.players || [], byPos = {}, rolls = L.rolls || {}, per = (L.season.settings || {}).rollsPerShift || 3;
+  [...ps].sort((a, b) => a.name.localeCompare(b.name)).forEach(p => (byPos[p.pos] = byPos[p.pos] || []).push(p));
+  const chip = (p, s) => `<span class="bcl-chip${s ? ' s' : ''}" style="background:${col[p.id]}" ${peekAttr(p.id, 'a')}>${esc(p.name)}</span>`;
+  const tiles = T.map(t => {
+    const sp = L.spots[String(t.i)], here = byPos[t.i] || [];
+    const own = sp && sp.owner ? `<div class="bcl-own">🏠 ${esc(pname(L, sp.owner))}${sp.level ? ' ' + '●'.repeat(sp.level) : ''}</div>` : '';
+    const toks = here.slice(0, here.length > 4 ? 3 : 4).map(p => chip(p, 1)).join('') + (here.length > 4 ? `<span class="bcl-chip s more" title="${esc(here.slice(3).map(p => p.name).join(', '))}" onclick="event.stopPropagation();alert(this.title)">+${here.length - 3} more</span>` : '');
+    return `<div class="bcl-tile" style="grid-column:${t.col};grid-row:${t.row}"><i style="background:${t.group ? GC[t.group] : TC[t.type]}"></i>
+      <b>${t.type !== 'spot' && ICON[t.type] ? ICON[t.type] + ' ' : ''}${esc(tileName(t.i, th))}</b>${own}<div class="bcl-toks">${toks}</div>${here.length ? `<em class="bcl-cnt">${here.length}</em>` : ''}</div>`;
+  }).join('');
+  const days = Math.max(1, Math.round((new Date(L.season.endsAt) - new Date(L.season.startsAt)) / 864e5));
+  const day = Math.min(days, Math.max(1, Math.ceil((Date.now() - new Date(L.season.startsAt)) / 864e5)));
+  const rolled = ps.filter(p => rolls[p.id]).length, lead = ps[0];
+  const owned = T.filter(t => L.spots[String(t.i)] && L.spots[String(t.i)].owner).length, ownable = T.filter(t => L.spots[String(t.i)]).length;
+  const ends = new Date(L.season.endsAt).toLocaleString('en-PH', { timeZone:'Asia/Manila', month:'short', day:'numeric', hour:'numeric', minute:'2-digit' }) + ' PHT';
+  const pill = (k, v) => `<div class="bcl-pill">${k}<b>${v}</b></div>`;
+  const rows = ps.map((p, i) => { const r = Math.min(per, rolls[p.id] || 0);
+    return `<tr><td>${i + 1}</td><td>${chip(p)}</td><td class="r">${p.worth.toLocaleString()}</td><td class="r">${p.coins.toLocaleString()}</td><td class="r">${p.spots}</td><td>${esc(tileName(p.pos, th))}${p.inOvertime ? ' ⏰' : ''}</td><td class="c">${'🎲'.repeat(r)}${'·'.repeat(per - r)}</td></tr>`; }).join('');
+  const feed = (L.feed || []).filter(e => ['bought','rent','swerte','upgraded','sold','trade_accepted'].includes(e.type)).slice(0, 8).map(e => `<li>${evText(e, L, th)}</li>`).join('') || '<li>Quiet pa.</li>';
+  const at = new Date(BA.liveAt || Date.now()).toLocaleTimeString('en-PH', { timeZone:'Asia/Manila', hour:'numeric', minute:'2-digit' });
+  return `<div class="panel bcl" id="bcaLive"><div class="panel-title" style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap"><span>🔴 Live Board</span>
+      <span class="bcl-btns"><button class="btn btn-outline btn-sm" onclick="bcLiveCopy()">📋 Copy board as text</button> <button class="btn btn-gold btn-sm" onclick="bcLiveFs()">${document.body.classList.contains('bcl-fs') ? '✕ Exit full screen' : '⛶ Full screen'}</button></span></div>
+    <div class="bcl-strip">${pill('Season', `Day ${day} of ${days}`)}${pill('Ends', ends)}${pill('This shift', `${rolled} / ${ps.length} rolled`)}${lead ? pill('Leader', `${esc(lead.name)} · ${lead.worth.toLocaleString()}`) : ''}${pill('Places owned', `${owned} / ${ownable}`)}${pill('Updated', `${at} · every 60 s`)}</div>
+    ${BA.liveMsg ? `<div class="pra-msg" style="color:var(--success);margin-bottom:6px">${esc(BA.liveMsg)}</div>` : ''}
+    <div class="bcl-main"><div class="bcl-board" style="background:${theme.bg}">${tiles}
+        <div class="bcl-center" style="background:${theme.center}"><div class="bc-logo">${esc(theme.title)}</div><div class="bc-tag">${theme.flag} Bayani City · Season ${L.season.id}</div>
+        <small>Name tags = where each player is standing · 🏠 owner · ● upgrades<br>Tap a name to see their avatar</small></div></div>
+      <div class="bcl-side"><div class="bc-card"><div class="bc-h">🏆 Standings</div><div class="pr-tbl"><table class="bcl-tbl"><thead><tr><th>#</th><th>Player</th><th class="r">Worth</th><th class="r">Coins</th><th class="r">Spots</th><th>On tile</th><th class="c">Rolls</th></tr></thead><tbody>${rows}</tbody></table></div></div>
+        <div class="bc-card"><div class="bc-h">📰 Latest</div><ul class="bcl-feed">${feed}</ul></div></div></div></div>`;
+}
+window.bcLiveFs = () => { document.body.classList.toggle('bcl-fs'); bcLivePaint(); };
+window.bcLiveCopy = async () => {
+  const cur = BA.data && BA.data.current; if(!cur || !cur.live) return;
+  const th = (cur.live.season.settings || {}).theme || cfg().theme || 'classic', txt = liveText(cur.live, th);
+  try { await navigator.clipboard.writeText(txt); BA.liveMsg = '✅ Copied. Paste it in Slack.'; }
+  catch(e){ window.prompt('Copy this:', txt); BA.liveMsg = ''; }
+  bcLivePaint(); setTimeout(() => { BA.liveMsg = ''; bcLivePaint(); }, 4000);
+};
+function bcLivePaint(){   // repaint only the Live Board, so forms below keep what you typed
+  const el = document.getElementById('bcaLive'), cur = BA.data && BA.data.current; if(!el || !cur) return;
+  const w = document.createElement('div'); w.innerHTML = liveHtml(cur); if(w.firstElementChild) el.replaceWith(w.firstElementChild);
+}
+setInterval(async () => {
+  const el = document.getElementById('bcaLive');
+  if(!el || el.offsetParent === null && !document.body.classList.contains('bcl-fs') || document.hidden) return;
+  const j = await adminCall('city_get'); if(!j.ok || !BA.data) return;
+  BA.data.current = j.current; BA.liveAt = Date.now(); bcLivePaint();
+}, 60000);
+document.addEventListener('keydown', e => { if(e.key === 'Escape' && document.body.classList.contains('bcl-fs')) bcLiveFs(); });
+
 function bcAdminRender(){
   const el = document.getElementById('bcAdminRoot'); if(!el || !BA.data) return;
+  if(!BA.liveAt) BA.liveAt = Date.now();
   const j = BA.data, cur = j.current, rules = j.rules || {}, rs = Object.assign({}, j.defaults || {}, rules.settings || {}), sl = rules.slack || {};
   const curTheme = BA.theme || (cur && cur.settings && cur.settings.theme) || rs.theme || 'classic';
   const fmt = s => s ? new Date(s).toLocaleString('en-PH', { month:'short', day:'numeric', hour:'numeric', minute:'2-digit' }) : '';
-  // 1. season
-  let h = `<div class="panel"><div class="panel-title">🗓️ Season</div>`;
+  // 0. live board, 1. season
+  let h = cur && cur.live && cur.status === 'active' ? liveHtml(cur) : '';
+  h += `<div class="panel"><div class="panel-title">🗓️ Season</div>`;
   if(cur){
     h += `<div style="font-size:13px;margin-bottom:8px">Season <b>${cur.id}</b> · <b>${cur.status === 'setup' ? 'Scheduled' : 'Running'}</b> · ${fmt(cur.startsAt)} → ${fmt(cur.endsAt)}</div>
       <div class="pr-tbl"><table class="roster-table"><thead><tr><th>#</th><th>Player</th><th>Worth</th><th>Spots</th></tr></thead><tbody>${(cur.standings || []).map((s, i) =>
@@ -591,6 +683,24 @@ const css = `
 .bca-theme{display:flex;flex-direction:column;gap:3px;text-align:left;background:var(--card-bg);border:2px solid rgba(255,255,255,.08);border-radius:12px;padding:8px;color:var(--white);cursor:pointer;font:inherit}
 .bca-theme.sel{border-color:var(--gold)}.bca-theme small{color:var(--muted);font-size:11px}.bca-ex{font-style:italic}
 .bca-sw{height:46px;border-radius:8px;display:flex;align-items:center;justify-content:center}.bca-sw span{border-radius:6px;padding:3px 10px;font-size:18px}
+.bc-tk,.bc-own,.bc-ph{cursor:pointer}
+.bc-peek{position:fixed;z-index:9999;width:170px;box-sizing:border-box;background:var(--card-bg,#111c33);border:1px solid rgba(245,200,66,.5);border-radius:14px;padding:10px;text-align:center;color:var(--white,#fff);box-shadow:0 10px 30px rgba(0,0,0,.5)}
+.bc-peek .avx-full{display:block;margin:0 auto}.bc-peek-n{font-weight:800;font-size:14px;margin-top:4px;color:var(--gold,#f5c842)}.bc-peek-s{font-size:11.5px;color:var(--muted,#aab);line-height:1.5;margin-top:2px}.bc-peek small{font-size:10px;color:var(--muted,#aab)}
+.bcl-strip{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}.bcl-pill{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:6px 10px;font-size:11px;color:var(--muted)}.bcl-pill b{display:block;font-size:14px;color:var(--white)}
+.bcl-main>*{min-width:0}.bcl-main{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(300px,1fr);gap:14px;align-items:start}
+.bcl-board{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));grid-template-rows:repeat(7,minmax(0,1fr));gap:4px;aspect-ratio:1/1;width:100%;border-radius:14px;padding:6px;box-sizing:border-box}
+.bcl-tile{position:relative;background:#fbf4e4;border-radius:7px;padding:9px 4px 3px;color:#2b1a12;overflow:hidden;display:flex;flex-direction:column;gap:2px;min-width:0}
+.bcl-tile i{position:absolute;left:0;right:0;top:0;height:6px}.bcl-tile b{font-size:clamp(8px,.95vw,12px);line-height:1.1;overflow-wrap:anywhere;padding-right:14px}
+.bcl-own{font-size:clamp(7px,.8vw,10.5px);color:#6b5a4a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bcl-toks{display:flex;flex-wrap:wrap;gap:2px;margin-top:auto}.bcl-chip{display:inline-block;color:#fff;border-radius:999px;padding:1px 7px;font-size:12px;font-weight:700;white-space:nowrap;text-shadow:0 1px 1px rgba(0,0,0,.35);cursor:pointer}
+.bcl-chip.s{font-size:clamp(7px,.78vw,10.5px);padding:0 5px}.bcl-chip.more{background:#374151}.bcl-toks{max-width:100%;overflow:hidden}
+.bcl-cnt{position:absolute;top:8px;right:3px;font-style:normal;background:#111827;color:#fff;border-radius:999px;font-size:9.5px;padding:0 5px;line-height:1.5}
+.bcl-center{grid-column:2/7;grid-row:2/7;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;text-align:center;padding:8px;color:#2b1a12}.bcl-center small{color:#6b4e2e;font-size:clamp(9px,1vw,12px)}
+.bcl-tbl{width:100%;border-collapse:collapse;font-size:12px}.bcl-tbl td,.bcl-tbl th{padding:3px 4px;border-bottom:1px solid rgba(255,255,255,.06);white-space:nowrap}.bcl-tbl th{text-align:left;color:var(--muted);font-weight:500}.bcl-tbl .r{text-align:right}.bcl-tbl .c{text-align:center;letter-spacing:1px}
+.bcl-feed{margin:0;padding-left:16px;font-size:12px;line-height:1.6}
+.bcl-btns .btn{width:auto}
+body.bcl-fs{overflow:hidden}body.bcl-fs #bcaLive{position:fixed;inset:0;z-index:9000;margin:0;border-radius:0;overflow:auto;background:var(--bg,#0b1426);padding:16px}
+@media(max-width:900px){.bcl-main{grid-template-columns:1fr}.bcl-tile b{font-size:8px}}
 .bca-mini{max-width:420px;margin:0 auto 6px}.bca-mini .bc-board{pointer-events:none}
 @media(max-width:900px){.bc-game{grid-template-columns:1fr}}
 @media(max-width:760px){.bc-hero{grid-template-columns:1fr}.bc-toks .avx-head{width:16px!important;height:16px!important}.bc-own .avx-head{width:12px!important;height:12px!important}}`;
