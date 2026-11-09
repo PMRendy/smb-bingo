@@ -1461,6 +1461,25 @@ async function badge(){
 if(typeof TOKEN_EVENT_LABELS !== 'undefined') Object.assign(TOKEN_EVENT_LABELS, { marathon_entry:'🏅 Marathon Entry', marathon_hint:'🏅 Marathon Hint', marathon_second:'🏅 Marathon Second Chance',
   marathon_extra:'🏅 Marathon Extra Race', marathon_gear:'🏅 Marathon Gear', marathon_pacer:'🏅 Marathon Pet Pacer', marathon_kahon:'🏅 Marathon Kahon', marathon_kahon_win:'🎁 Marathon Kahon Prize' });
 function boot(){ try { injectPlayer(); injectAdmin(); reorder(); if(typeof _gpView !== 'undefined' && _gpView === 'marathon'){ const a = ensure('player'); if(a) a.render(); } } catch(e){ console.error('bayani-marathon', e); } }
-boot(); setTimeout(boot, 1600); setTimeout(reorder, 3200); setTimeout(badge, 3500); setInterval(() => { if(!document.hidden) badge(); }, 180000);
+// ── 📘 How to Play links for the other games (frontend only). A link shows only once its PDF is in the repo. ──
+const HOWTO = [['gpv-city', 'bayani-city-how-to-play.pdf'], ['gpv-race', 'pet-race-how-to-play.pdf'], ['gpv-park', 'bayani-park-how-to-play.pdf']];
+const HOWTO_OK = {};
+function howtoLinks(){
+  HOWTO.forEach(([id, pdf]) => {
+    const sec = document.getElementById(id); if(!sec || sec.querySelector('.gp-howto')) return;
+    const add = () => {
+      if(sec.querySelector('.gp-howto')) return;
+      const bar = document.createElement('div'); bar.className = 'gp-howto'; bar.style.cssText = 'display:flex;justify-content:flex-end;margin:0 0 10px';
+      bar.innerHTML = `<a href="${pdf}" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:999px;background:#F5C842;color:#1a1205;font-weight:800;font-size:13px;text-decoration:none;box-shadow:0 2px 8px rgba(0,0,0,.25)">📘 How to Play</a>`;
+      sec.insertBefore(bar, sec.firstChild);
+    };
+    if(HOWTO_OK[pdf] === true) return add();
+    if(HOWTO_OK[pdf] === false || HOWTO_OK[pdf] === 'wait') return;
+    HOWTO_OK[pdf] = 'wait';
+    fetch(pdf, { method:'HEAD', cache:'no-store' }).then(r => { HOWTO_OK[pdf] = r.ok; if(r.ok) add(); }).catch(() => { HOWTO_OK[pdf] = false; });
+  });
+}
+boot(); setTimeout(boot, 1600); setTimeout(reorder, 3200); setTimeout(howtoLinks, 2000); setTimeout(howtoLinks, 5000);
+const _gpGo2 = window.gpGo; window.gpGo = function(){ const r = _gpGo2.apply(this, arguments); try { howtoLinks(); } catch(e){} return r; }; setTimeout(badge, 3500); setInterval(() => { if(!document.hidden) badge(); }, 180000);
 window.bayaniMarathon = { apps:APPS, ensure, reorder };
 })();
