@@ -344,7 +344,7 @@ function place(){
     el.querySelector('.ride').textContent=(rideIcon(p)||'')+(p===me&&S.equipped.has('trail')?'☁️':'');
     el.querySelector('.crown').textContent=p===L?'👑':'';
     el.querySelector('.prank').textContent=S.pranked&&S.pranked.id===p.id?PRANKS[S.pranked.type].icon:'';
-    el.querySelector('.tag').textContent=(p===me?'You · ':'')+p.name+(isAdmin()?' · '+fl(p):'')+(p===L&&!fogged(p)?' · bounty':'');
+    el.querySelector('.tag').textContent=(p===me&&!isAdmin()?'You · ':'')+p.name+(isAdmin()?' · '+fl(p):'')+(p===L&&!fogged(p)?' · bounty':'');
   }));
   root.querySelectorAll('.mys').forEach(m=>{const f=+m.dataset.mf;m.hidden=!(isAdmin()||found(f));m.classList.toggle('hidden',isAdmin()&&!found(f))});
   {const c=S.settings.countries,cur=Math.min(3,Math.floor(fl(me)/25));$('#routeStrip').innerHTML=c.map((k,i)=>`<span class="c ${!isAdmin()&&i===cur?'on':''}">${COUNTRIES[k].flag} ${COUNTRIES[k].name}</span>`+(i<3?`<span class="m">${MODES[hopMode(i)].icon}</span>`:'')).join('')}
@@ -1320,7 +1320,7 @@ function renderPlayerLive(){
 
 async function load(){
   if(BUSY) return;
-  if(MODE === 'admin'){ const j = await acall('state'); if(j && j.ok && j.racers){ applyLive(j); } else { LIVE = false; render(); } return; }
+  if(MODE === 'admin'){ const j = await acall('state'); if(j && j.ok && j.racers){ applyLive(j); } else { LIVE = false; players = DEMO_SNAPSHOT.players; me = DEMO_SNAPSHOT.me; applyRoster(); if(S.day === 'live') S.day = 12; SIG = ''; buildTower(); render(); } return; }
   const j = await call('state');
   if(j && j.ok && j.racers){ PREVIEW_STATUS = 'open'; if(S.chal.stage === 'q' && LIVE) { LD = j; return; } applyLive(j); return; }
   PREVIEW_STATUS = (j && j.ok) ? 'soon' : 'offline'; LIVE = false; players = DEMO_SNAPSHOT.players; me = DEMO_SNAPSHOT.me; applyRoster(); S.day = S.day === 'live' ? 12 : S.day; SIG = ''; buildTower(); render();
