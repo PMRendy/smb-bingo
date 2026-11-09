@@ -53,7 +53,7 @@ let players=NAMES.map((n,i)=>{
     ride:{12:RIDE_ICONS[Math.floor(rnd()*12)],27:RIDE_ICONS[Math.floor(rnd()*12)]}};
 });
 let me=players.find(p=>p.name===ME);
-const byName=n=>players.find(p=>p.name===n);
+const byName=n=>players.find(p=>(p.demoName||p.name)===n)||players.find(p=>p!==me)||me;
 function resetMe(){Object.assign(me,{floor:{12:22,27:88},climbs:{12:8,27:21},streak:{12:4,27:9},spent:{12:185,27:640},ride:{12:null,27:null},acc:'headset',outfit:'#e8a93a',style:1})}
 resetMe();
 const CLIMBS_TEAM={12:246,27:520};
@@ -163,7 +163,7 @@ const $=s=>root.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const peso=n=>'₱'+Math.round(n).toLocaleString('en-PH');
 const num=n=>Math.round(n).toLocaleString('en-US');
-function toast(msg){const t=$('#toast');t.textContent=msg;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),2600)}
+function toast(msg){const t=$('#toast');t.textContent=realize(msg);t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),2600)}
 function spend(amount,sink){S.tokens-=amount;S.burnLive[sink]+=amount;me.spent[S.day]+=amount}
 
 function avatarSVG(p){
@@ -437,7 +437,7 @@ function drawQ(){
   const hgt=lines.length*23+26;cv.style.height=hgt+'px';cv.width=w*dpr;cv.height=hgt*dpr;
   ctx.scale(dpr,dpr);ctx.fillStyle='#1b2436';ctx.fillRect(0,0,w,hgt);
   if(S.settings.ac.watermark){ctx.save();ctx.fillStyle='rgba(255,255,255,.05)';ctx.font='700 12px monospace';ctx.rotate(-0.25);
-    for(let y=0;y<hgt+80;y+=34)for(let x=-60;x<w;x+=170)ctx.fillText(`${ME} · S${sched()}`,x,y);ctx.restore()}
+    for(let y=0;y<hgt+80;y+=34)for(let x=-60;x<w;x+=170)ctx.fillText(`${me.name} · S${sched()}`,x,y);ctx.restore()}
   ctx.fillStyle='#e9edf5';ctx.font='700 16px "Nunito Sans", system-ui, sans-serif';
   lines.forEach((l,i)=>ctx.fillText(l,14,26+i*23));
 }
@@ -482,7 +482,7 @@ function tropaHTML(){
   const done={Jessa:S.chal.stage==='done',Bea:true,Nico:S.tropa.nico};
   const all=Object.values(done).every(Boolean);
   return `<h3>Tropa · Puyat Squad</h3><h2>${all?'Kumpleto! +'+S.settings.tropaBonus+' each':'Climb together tonight'}</h2><p class="sub">If all ${S.settings.tropaSize} of you climb this shift, everyone gets +${S.settings.tropaBonus} step. Still one cash winner.</p>
-   <div class="tropa">${mates.map(p=>`<div class="tm">${avatarSVG(p)}<b>${esc(p.name)}${p===me?' (you)':''}</b>${done[p.name]?'<span class="pill ok">Climbed ✓</span>':'<span class="pill warn">Not yet</span>'}</div>`).join('')}</div>
+   <div class="tropa">${mates.map(p=>`<div class="tm">${avatarSVG(p)}<b>${esc(p.name)}${p===me?' (you)':''}</b>${done[p.demoName||p.name]?'<span class="pill ok">Climbed ✓</span>':'<span class="pill warn">Not yet</span>'}</div>`).join('')}</div>
    <div class="row">${!S.tropa.nico?'<button class="btn ghost sm" id="nudge">Nudge Nico on Slack</button><button class="btn ghost sm" id="nicoClimb">Demo: Nico climbs</button>':''}${all&&S.tropa.bonus?'<span class="pill ok">+1 step added for the squad</span>':''}</div>`;
 }
 function bossHTML(){
@@ -634,7 +634,7 @@ function renderPlayer(){
   if(S.ptab==='shop')body=`<div class="card">${garageHTML()}</div><div class="two"><div class="card">${pranksHTML()}</div><div class="card">${cosmeticsHTML()}</div></div>`;
   if(S.ptab==='news')body=`<div class="card">${balitaHTML()}<div class="row"><button class="btn sky" id="wrappedBtn">Preview my Marathon Wrapped</button><button class="btn" id="revealBtn">Preview Finish Line Reveal</button></div></div>
      <div class="two"><div class="card">${leaderboardHTML()}</div><div class="stack"><div class="card">${auctionHTML()}</div><div class="card">${cipherHTML()}</div></div></div>`;
-  $('#side').innerHTML=tabs+body;
+  $('#side').innerHTML=realize(tabs+body);
   if(S.ptab==='climb'&&S.chal.stage==='q')drawQ();
 }
 
@@ -665,7 +665,7 @@ const ATABS=[['overview','Overview'],['burn','Token burn'],['season','Season & p
 function renderAdmin(){
   const tabs=`<div class="atabs" role="group" aria-label="Admin sections">${ATABS.map(([k,l])=>`<button data-atab="${k}" aria-pressed="${S.atab===k}">${l}</button>`).join('')}</div>`;
   const body={overview:adminOverview,burn:adminBurn,season:adminSeason,ladder:adminLadder,route:adminRoute,weather:adminWeather,shop:adminShop,events:adminEvents,slack:adminSlack,integrity:adminIntegrity,questions:adminQuestions}[S.atab]();
-  $('#side').innerHTML=tabs+(S.atab==='overview'?adminStatusCard():'')+body;
+  $('#side').innerHTML=realize(tabs+(S.atab==='overview'?adminStatusCard():'')+body);
 }
 function adminOverview(){
   const sorted=[...players].filter(p=>!p.ghost).sort((a,b)=>fl(b)-fl(a));
@@ -1289,7 +1289,7 @@ function joinHTML(){
 function noteText(){
   if(LIVE) return isAdmin() ? 'Live race data: exact steps for everyone and every mystery step.' : `You're racing as <b>${esc(me.name)}</b>${LD.me && LD.me.joined ? '' : ' · not joined yet'}.`;
   if(isAdmin()) return 'Preview with demo data. The race server isn\'t live yet.';
-  return PREVIEW_STATUS === 'soon' ? `🏁 Coming soon: the race starts ${fmtD(S.settings.start)}. This is a preview with sample racers.` : PREVIEW_STATUS === 'offline' ? 'Preview with sample racers. The race server isn\'t live yet.' : 'Loading the race…';
+  return PREVIEW_STATUS === 'soon' ? `🏁 Coming soon: the race starts ${fmtD(S.settings.start)}. Preview with your real team and sample progress.` : PREVIEW_STATUS === 'offline' ? 'Preview with your real team and sample progress. The race server isn\'t live yet.' : 'Loading the race…';
 }
 function noRaceHTML(){
   const ph = LD.season.phase;
@@ -1322,13 +1322,42 @@ async function load(){
   if(MODE === 'admin'){ const j = await acall('state'); if(j && j.ok && j.racers){ applyLive(j); } else { LIVE = false; render(); } return; }
   const j = await call('state');
   if(j && j.ok && j.racers){ PREVIEW_STATUS = 'open'; if(S.chal.stage === 'q' && LIVE) { LD = j; return; } applyLive(j); return; }
-  PREVIEW_STATUS = (j && j.ok) ? 'soon' : 'offline'; LIVE = false; players = DEMO_SNAPSHOT.players; me = DEMO_SNAPSHOT.me; S.day = S.day === 'live' ? 12 : S.day; SIG = ''; buildTower(); render();
+  PREVIEW_STATUS = (j && j.ok) ? 'soon' : 'offline'; LIVE = false; players = DEMO_SNAPSHOT.players; me = DEMO_SNAPSHOT.me; applyRoster(); S.day = S.day === 'live' ? 12 : S.day; SIG = ''; buildTower(); render();
 }
 let pollT = null;
 function startPolling(){ clearInterval(pollT); pollT = setInterval(() => { if(visible() && S.chal.stage !== 'q') load(); }, MODE === 'admin' ? 15000 : 20000); }
 document.addEventListener('fullscreenchange', () => { if(S.chal && S.chal.stage === 'q') setTimeout(() => { try { drawQ(); } catch(e){} }, 60); });
 const _scrollToMe0 = scrollToMe;
 scrollToMe = function(){ if(me && me.ghost){ const sc = $('#tscroll'); if(sc){ sc.style.scrollBehavior = 'auto'; sc.scrollTop = sc.scrollHeight; sc.style.scrollBehavior = ''; } return; } _scrollToMe0(); };
+
+// ── Preview uses the real roster: every active player takes one sample racer's spot ──
+let NAME_MAP = null, NAME_RE = null;
+function applyRoster(){
+  const ros = (typeof DB !== 'undefined' && Array.isArray(DB.players) ? DB.players : []).filter(p => p && p.active !== false && p.name);
+  const demo = DEMO_SNAPSHOT.players, meD = DEMO_SNAPSHOT.me;
+  demo.forEach(p => { if(!p.demoName) p.demoName = p.name; });
+  if(!ros.length){ players = demo; me = meD; return; }
+  const myId = cp() ? cp().id : null, mine = ros.find(r => r.id === myId), others = ros.filter(r => r !== mine);
+  NAME_MAP = {};
+  demo.forEach(p => { p.pid = null; p.name = p.demoName; });
+  const take = p => { const r = p === meD && mine ? mine : others.shift(); if(!r) return; p.name = r.name; p.pid = r.id; NAME_MAP[p.demoName] = r.name; };
+  take(meD); demo.filter(p => p !== meD).forEach(take);
+  players = demo.filter(p => p.pid); me = meD.pid ? meD : players[0];
+  NAME_RE = new RegExp('\\b(' + Object.keys(NAME_MAP).join('|') + ')\\b', 'g');
+  _avCache.clear();
+}
+function realize(str){ return (!LIVE && NAME_RE && typeof str === 'string') ? str.replace(NAME_RE, m => NAME_MAP[m] || m) : str; }
+const _showWrapped0 = showWrapped;
+showWrapped = function(){ _showWrapped0(); const o = $('#ovl'); if(o) o.innerHTML = realize(o.innerHTML); };
+
+// Windows doesn't draw flag emoji (it shows letters like "JP"), so hide flags there instead of showing letters.
+(function(){ try {
+  const c = document.createElement('canvas'); c.width = c.height = 24; const x = c.getContext('2d');
+  x.textBaseline = 'top'; x.font = '20px sans-serif'; x.fillStyle = '#000'; x.fillText('\u{1F1EF}\u{1F1F5}', 0, 0);
+  const d = x.getImageData(0, 0, 24, 24).data; let red = false;
+  for(let i = 0; i < d.length; i += 4) if(d[i + 3] > 0 && d[i] > 150 && d[i + 1] < 90 && d[i + 2] < 90){ red = true; break; }
+  if(!red) Object.values(COUNTRIES).forEach(v => v.flag = '');
+} catch(e){} })();
 
   buildTower(); render(); scrollToMe();
   load().then(() => { try { scrollToMe(); } catch(e){} });
