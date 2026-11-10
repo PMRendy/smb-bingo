@@ -65,7 +65,7 @@ body::before{content:'';position:fixed;inset:0;background-image:
 .back-link:hover{color:var(--teal);}
 
 /* ── APP SHELL ── */
-.app-shell{max-width:1440px;margin:0 auto;padding:16px;}
+.app-shell{max-width:none;width:100%;margin:0 auto;padding:16px 22px;}
 .top-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;padding-bottom:14px;border-bottom:1px solid rgba(227,166,62,.15);flex-wrap:wrap;gap:10px;}
 .top-bar-left{display:flex;align-items:center;gap:14px;}
 .top-bar h1{font-family:'Bebas Neue',sans-serif;font-size:28px;color:var(--gold);letter-spacing:3px;}
@@ -509,6 +509,8 @@ body::before{display:none}
 .prl-feed>div{padding:4px 0;border-bottom:1px dashed rgba(255,255,255,.1)}
 .prl-feed span{opacity:.6;margin-right:8px;font-size:11px}
 @media(max-width:700px){.prl-strip{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.fs-toggle{position:fixed;right:14px;bottom:14px;z-index:9999;background:rgba(14,17,26,.85);color:#f5c842;border:1px solid rgba(227,166,62,.45);border-radius:10px;padding:7px 11px;font:600 12px/1 system-ui,sans-serif;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.35);opacity:.75}
+.fs-toggle:hover{opacity:1}
 </style>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -8950,5 +8952,10 @@ async function bsaAct(kind, id, prize){
 <script src="vouchers.js"></script>
 <script src="bayani-park.js"></script>
 <script src="bayani-marathon.js"></script>
+<button class="fs-toggle" id="fsToggle" onclick="toggleFullScreen()" title="Fill the whole screen (Esc to exit)">⛶ Full screen</button>
+<script>
+function toggleFullScreen(){const el=document.documentElement;if(!document.fullscreenElement){const r=el.requestFullscreen||el.webkitRequestFullscreen;if(r){const p=r.call(el);if(p&&p.catch)p.catch(()=>{});}}else{(document.exitFullscreen||document.webkitExitFullscreen).call(document);}}
+document.addEventListener('fullscreenchange',()=>{const b=document.getElementById('fsToggle');if(b)b.textContent=document.fullscreenElement?'✕ Exit full screen':'⛶ Full screen';setTimeout(()=>window.dispatchEvent(new Event('resize')),150);});
+</script>
 </body>
 </html>
