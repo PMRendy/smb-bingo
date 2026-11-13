@@ -1490,6 +1490,173 @@ let HOWTO_OK = null;
 fetch('bayani-marathon-how-to-play.pdf', { method:'HEAD', cache:'no-store' }).then(r => { HOWTO_OK = r.ok; }).catch(() => { HOWTO_OK = false; });
 root.addEventListener('click', e => { const a = e.target.closest('#howto'); if(a && HOWTO_OK === false){ e.preventDefault(); toast('The How to Play guide is being uploaded. Check back soon!'); } });
 
+/* ═════════════ 🗣️ ASARAN (fun trash talk on the course) — frontend only, no backend needed ═════════════
+   Racers' avatars pop speech bubbles based on the real standings: leader brags, chasers taunt the one ahead,
+   passes trigger a jab. Auto-generated for fun (players can turn it off). Paused during the brain challenge. */
+{
+  const st = document.createElement('style');
+  st.textContent = `
+.av .talk{position:absolute;bottom:calc(100% + 16px);left:50%;transform:translateX(-50%) scale(.6);opacity:0;pointer-events:none;
+  width:max-content;max-width:190px;white-space:normal;text-align:left;font-size:12px;line-height:1.3;font-weight:700;color:#1a1205;
+  background:#fff7e3;border:2px solid var(--gold);border-radius:12px;padding:6px 9px;box-shadow:0 4px 14px rgba(0,0,0,.45);
+  transition:opacity .25s,transform .25s cubic-bezier(.3,1.5,.5,1);z-index:9}
+.av .talk::after{content:"";position:absolute;top:100%;left:var(--tail,50%);transform:translateX(-50%);border:7px solid transparent;border-top-color:var(--gold)}
+.av .talk b{color:#b35c00}
+.av .talk.l{left:0;transform:translateX(0) scale(.6);--tail:30px}
+.av .talk.r{left:auto;right:0;transform:translateX(0) scale(.6);--tail:calc(100% - 30px)}
+.av .talk.show{opacity:1;transform:translateX(-50%) scale(1)}
+.av .talk.l.show,.av .talk.r.show{transform:translateX(0) scale(1)}
+.av .talk.hot{background:#ffe1d6;border-color:var(--burn)}.av .talk.hot::after{border-top-color:var(--burn)}
+.av.talking{z-index:8}
+.asar{border:1px solid var(--line);background:var(--panel2);color:var(--fg);border-radius:99px;font-size:11.5px;font-weight:800;padding:3px 10px;cursor:pointer}
+.asar[aria-pressed="false"]{color:var(--muted);opacity:.8}
+@media (prefers-reduced-motion:reduce){.av .talk{transition:none}}`;
+  root.appendChild(st);
+
+  const KEY = 'bmAsaran';
+  let ON = true; try { ON = localStorage.getItem(KEY) !== 'off'; } catch(e){}
+  const leg = root.querySelector('.towerhead .legend');
+  if(leg){ const b = document.createElement('button'); b.className = 'asar'; b.id = 'asarBtn'; b.type = 'button';
+    b.title = 'Auto-generated asaran bubbles on the course, just for fun';
+    const lbl = () => { b.textContent = ON ? '🗣️ Asaran: ON' : '🔇 Asaran: OFF'; b.setAttribute('aria-pressed', String(ON)); };
+    lbl(); b.addEventListener('click', e => { e.stopPropagation(); ON = !ON; try { localStorage.setItem(KEY, ON ? 'on' : 'off'); } catch(e2){}
+      lbl(); if(!ON) root.querySelectorAll('.av .talk').forEach(x => x.remove()); toast(ON ? '🗣️ Asaran ON. Game face on!' : '🔇 Asaran OFF. Peace and quiet.'); });
+    leg.appendChild(b); }
+
+  const pick = a => a[Math.floor(Math.random() * a.length)];
+  const nm = p => `<b>${esc(p.name.split(' ')[0])}</b>`;
+  const L = {
+    leader: [
+      'Ang lamig dito sa unahan 👑 Habol pa kayo?',
+      'Wala akong nakikita sa likod… ay, kayo pala ’yan 😎',
+      'Pirmahan ko na lang mga autograph niyo sa finish line ✍️',
+      'Bounty sa ulo ko? Hulihin niyo muna ako 🏃💨',
+      'Sanay ako mag-overnight, sanay din ako mag-number one 🥇',
+      'Pa-picture tayo mamaya, kung aabot kayo 📸'],
+    ahead: [
+      '{t}, kita mo likod ko? Masanay ka na 😜',
+      'Hi {t}! Wave ako mula dito sa unahan 👋',
+      '{t}, tubig? Mukhang uhaw ka sa ranking 💧',
+      'Ingat ka {t}, baka maapakan mo alikabok ko 💨',
+      '{t}, hinay-hinay lang, marathon ’to hindi sprint 😏',
+      'Nandito lang ako {t}, sa unahan mo… as usual 🙃'],
+    behind: [
+      '{t}, pa-overtake ha! Beep beep 🚗',
+      'Uy {t}, kumapit ka. Parating na ako 🔥',
+      '{t}, ang bagal ng traffic dito, ikaw ba ’yan? 🚧',
+      'Konting steps na lang {t}, tapos bye bye ka na 👋',
+      '{t}, enjoy mo muna ’yang pwesto mo habang meron pa 😈',
+      'Hingal ka na ba {t}? Ako hindi pa 💪'],
+    tie: [
+      '{t}, tabi-tabi po! Isa lang pwede dito 😤',
+      'Sabay tayo {t}? Hanggang dito na lang ’yan 😏',
+      '{t}, pa-unahin mo na ako, mabait ka naman diba? 🥺',
+      'Isang step lang ’to {t}, pero sa akin ’to 😤'],
+    last: [
+      'Saving my energy lang, plot twist ’to mamaya 🍿',
+      'Slow and steady… pero mas cute 💅',
+      'Huwag kayo pakampante, comeback queen/king ako 👑',
+      'Warm-up pa lang ’to, wait lang kayo ⏳'],
+    ride: [
+      'Naka-{r} ako, kayo naglalakad pa rin? 😎',
+      'Vroom vroom! {r} lang malakas 💨',
+      'Gear check: {r} ✅. Kayo? 🤭'],
+    fog: [
+      'May naririnig akong yabang sa loob ng fog… 👀',
+      'Sino ’yang nagtatago sa fog? Lumabas ka diyan! 🌫️',
+      'Okay lang ’yang fog, aabutan ko rin kayo 🔦'],
+    climb: [
+      'Tama sagot ko! Utak at paa, sabay gumagana 🧠🏃',
+      'Isa na namang step closer sa ₱₱₱ 💸',
+      'Overnight shift, overnight champion 🌙',
+      'Sino sumunod? Wala? Okay 😌'],
+    passedMe: [
+      'Excuse me {t}, dadaan lang 👋💨',
+      'Bye {t}! Kita tayo sa finish line… kung aabot ka 😜',
+      'Overtake complete. Sorry not sorry {t} 😘',
+      '{t}, salamat sa pagpapadaan! 🫡'],
+    iPassed: [
+      'Bye {t}! Kita tayo sa finish line 👋',
+      'Overtaken! Sorry {t}, trabaho lang 😎',
+      '{t}, chill ka lang diyan, ako na bahala sa unahan 🏃💨'],
+    wx: {
+      rain: ['Ulan lang ’yan, mas basa pa ako sa swim leg 🌧️'],
+      storm: ['Bagyo? Mas malakas pa ako sa signal no. 3 ⛈️'],
+      heat: ['Ang init! Pero mas mainit pa rin ang performance ko 🔥'],
+      wind: ['Salamat sa habagat, tinutulak ako papuntang panalo 🌬️'],
+      clear: ['Ganda ng panahon, bagay sa pagkapanalo ko ☀️']
+    }
+  };
+  const fill = (s, t, r) => esc(s).replace('{t}', t ? nm(t) : '').replace('{r}', r || '');
+  // esc() would escape our <b>, so build after escaping the template
+  const say = (p, html, hot, ms) => {
+    if(!ON || !p || p.ghost) return false;
+    const el = avEls[p.id]; if(!el || el.style.display === 'none' || el.classList.contains('fogged')) return false;
+    let b = el.querySelector('.talk'); if(!b){ b = document.createElement('span'); b.className = 'talk'; el.appendChild(b); }
+    const left = parseInt(el.style.left) || 0, W = (G && G.W) || 400;
+    b.className = 'talk' + (left < 70 ? ' l' : left > W - 140 ? ' r' : '') + (hot ? ' hot' : '');
+    b.innerHTML = realize(html); el.classList.add('talking');
+    requestAnimationFrame(() => b.classList.add('show'));
+    clearTimeout(b._t); b._t = setTimeout(() => { b.classList.remove('show'); el.classList.remove('talking'); }, ms || 4800);
+    return true;
+  };
+  const racers = () => players.filter(p => !p.ghost);
+  const onScreen = p => { const el = avEls[p.id], sc = $('#tscroll'); if(!el || !sc) return false;
+    const t = parseInt(el.style.top) || 0; return t > sc.scrollTop - 20 && t < sc.scrollTop + sc.clientHeight - 60; };
+  function lineFor(p){
+    const all = racers(), f = fl(p), lead = leader(), wx = wxNow();
+    const near = all.filter(o => o !== p && !fogged(o) && Math.abs(fl(o) - f) <= 6);
+    const minF = Math.min(...all.map(fl));
+    const opts = [];
+    if(p === lead) opts.push(() => pick(L.leader));
+    if(near.length){
+      const o = pick(near), d = fl(o) - f;
+      opts.push(() => fill(pick(d === 0 ? L.tie : d > 0 ? L.behind : L.ahead), o), () => fill(pick(d === 0 ? L.tie : d > 0 ? L.behind : L.ahead), o));
+    }
+    if(f === minF && all.length > 3) opts.push(() => pick(L.last));
+    const r = rideIcon(p); if(r) opts.push(() => fill(pick(L.ride), null, r));
+    if(f >= 80 && f < 90 && all.some(fogged)) opts.push(() => pick(L.fog));
+    if(L.wx[wx] && Math.random() < .35) opts.push(() => pick(L.wx[wx]));
+    if(!opts.length) opts.push(() => pick(L.climb));
+    const out = pick(opts)();
+    return out.includes('<b>') ? out : esc(out);
+  }
+  // L.leader/last/fog/climb/wx lines have no {t} → escape them; fill() already escaped + bolded names
+  let snap = null, snapKey = '', lastSpeaker = null;
+  const paused = () => !ON || !visible() || (S.chal && S.chal.stage === 'q') || $('#ovl').innerHTML;
+  function checkPasses(){
+    const key = S.day + '|' + LIVE + '|' + racers().map(p => p.pid || p.id).join(',');
+    const now = {}; racers().forEach(p => now[p.id] = fl(p));
+    if(key !== snapKey || !snap){ snap = now; snapKey = key; return; }
+    if(paused()){ snap = now; return; }
+    if(me && !me.ghost && !isAdmin()){
+      const m0 = snap[me.id], m1 = now[me.id];
+      const passers = racers().filter(o => o !== me && snap[o.id] != null && snap[o.id] <= m0 && now[o.id] > m1 && !fogged(o));
+      const passed = racers().filter(o => o !== me && snap[o.id] != null && snap[o.id] >= m0 && now[o.id] < m1);
+      if(passers.length){ const o = passers[0], h = fill(pick(L.passedMe), me);
+        say(o, h, true, 6000); toast(`🗣️ ${o.name}: ${h.replace(/<[^>]+>/g, '')}`); }
+      else if(passed.length){ const o = passed[0]; setTimeout(() => say(me, fill(pick(L.iPassed), o), true, 6000), 1200); }
+      else if(m1 > m0) setTimeout(() => say(me, esc(pick(L.climb)), false, 5000), 1200);
+    }
+    snap = now;
+  }
+  function chatter(){
+    if(paused()) return;
+    let pool = racers().filter(p => !fogged(p) && onScreen(p) && p !== lastSpeaker);
+    if(!pool.length) pool = racers().filter(p => !fogged(p) && p !== lastSpeaker);
+    if(!pool.length) return;
+    // the leader and players near you talk a bit more
+    const lead = leader();
+    const w = pool.map(p => 1 + (p === lead ? 2 : 0) + (me && !me.ghost && p !== me && Math.abs(fl(p) - fl(me)) <= 6 ? 2 : 0) + (p === me ? -0.5 : 0));
+    let r = Math.random() * w.reduce((a, b) => a + b, 0), i = 0; while((r -= w[i]) > 0) i++;
+    const p = pool[Math.min(i, pool.length - 1)];
+    if(say(p, lineFor(p))) lastSpeaker = p;
+  }
+  setInterval(checkPasses, 1500);
+  setTimeout(chatter, 2500);
+  setInterval(() => { chatter(); if(Math.random() < .3) setTimeout(chatter, 2200); }, 6500);
+}
+
   buildTower(); render(); scrollToMe();
   load().then(() => { try { scrollToMe(); } catch(e){} });
   startPolling();
