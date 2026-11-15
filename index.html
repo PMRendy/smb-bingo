@@ -565,6 +565,25 @@ body::before{display:none}
 @keyframes prspin{to{transform:rotate(360deg)}}
 @keyframes prshake{0%,100%{transform:translateX(0)}50%{transform:translateX(3px)}}
 .pr-overlay{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:6;font-family:'Space Grotesk';font-size:32px;font-weight:700;color:var(--gold);text-shadow:0 3px 0 #000;background:rgba(11,24,40,.6);text-align:center}
+.prq-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,330px),1fr));gap:14px;margin-bottom:14px}
+.prq-tabs{display:flex;gap:6px;margin-bottom:10px}.prq-tabs button{flex:1;background:transparent;border:1px solid var(--line);color:var(--muted);border-radius:10px;padding:7px 6px;font-weight:700;font-size:12.5px;cursor:pointer}
+.prq-tabs button.on{background:var(--gold);color:#1b1305;border-color:var(--gold)}
+.prq-odds{color:var(--gold);font-weight:800}
+.prq-row{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:10px}.prq-row select{margin:0;max-width:100%;flex:1;min-width:140px}
+.prq-amt{background:transparent;border:1px solid var(--line);color:var(--white);border-radius:8px;padding:5px 9px;font-weight:700;font-size:12px;cursor:pointer}.prq-amt.on{border-color:var(--gold);color:var(--gold)}
+.prq-mine{margin-top:10px;padding:8px 10px;border-radius:10px;background:var(--pr-p2,rgba(255,255,255,.04));font-size:12.5px;display:flex;flex-direction:column;gap:4px}
+.prq-shop{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+.prq-shop button{background:var(--pr-p2,rgba(255,255,255,.04));border:1px solid var(--line);border-radius:10px;padding:8px;color:var(--white);cursor:pointer;text-align:center;font-size:12px}
+.prq-shop button.on{border-color:var(--gold);box-shadow:0 0 0 1px var(--gold) inset}.prq-shop b{display:block;font-size:20px}.prq-shop span{display:block;color:var(--muted);font-size:11px}.prq-shop i{display:block;font-style:normal;color:var(--gold);font-weight:700}
+.prq-bounty{display:flex;justify-content:space-between;align-items:center;gap:10px}.prq-pot{font-size:26px;font-weight:800;color:var(--gold)}
+.prq-wx{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px}.prq-wx div{flex:0 0 auto;min-width:52px;text-align:center;font-size:11px;background:var(--pr-p2,rgba(255,255,255,.04));border:1px solid var(--line);border-radius:10px;padding:5px 6px;color:var(--muted)}
+.prq-wx div b{display:block;font-size:18px}.prq-wx div.now{border-color:var(--gold);color:var(--white)}.prq-wx div.past{opacity:.45}
+.prq-bars div{display:grid;grid-template-columns:minmax(0,1fr);font-size:12px;margin-bottom:6px}.prq-bars i{display:block;height:7px;border-radius:6px;background:linear-gradient(90deg,var(--teal),var(--gold));margin-top:3px;min-width:4px}
+.prq-hz{position:absolute;right:30px;top:4px;z-index:5;font-size:16px;filter:drop-shadow(0 1px 1px #000)}
+.prq-worm{display:block;width:44px;height:44px;flex:0 0 auto}.pr-runner .prq-worm{width:46px;height:46px;animation:prbob .45s ease-in-out infinite alternate;filter:drop-shadow(0 3px 2px rgba(0,0,0,.4))}.pr-portrait .prq-worm{width:80%;height:80%}
+.prq-diff{display:flex;gap:6px}.prq-diff button{flex:1;border:1px solid var(--line);background:transparent;color:var(--muted);border-radius:12px;padding:10px;cursor:pointer}
+.prq-diff button small{display:block;font-size:11px;font-weight:400}.prq-diff button.on.d0{background:var(--success);color:#062}.prq-diff button.on.d1{background:var(--gold);color:#1b1305}.prq-diff button.on.d2{background:var(--danger);color:#fff}
+.prq-diff button:disabled{cursor:not-allowed;opacity:.7}.prq-burn{font-size:20px;font-weight:800;color:var(--gold)}
 .pr-trackfoot{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center;margin-top:10px;font-size:12px;color:var(--muted)}
 .prc-box{display:flex;gap:12px;align-items:center;background:linear-gradient(90deg,rgba(227,166,62,.16),transparent 75%),var(--card-bg,#1D2130);border:1px solid rgba(227,166,62,.35);border-radius:16px;padding:12px 14px;margin-bottom:14px}
 .prc-mic{font-size:26px;flex:0 0 auto}
@@ -7008,7 +7027,7 @@ function prNow(){ return Date.now() + _prSkew; }
 function prEsc(x){ return (typeof escapeHtml === 'function') ? escapeHtml(String(x == null ? '' : x)) : String(x == null ? '' : x).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 function prLane(sp){ return sp === 'parrot' ? 'sky' : (sp === 'arowana' || sp === 'goldfish') ? 'water' : 'grass'; }
 function prEmoji(sp){ try { return petSpecies(sp)[2]; } catch(e){ return '🐾'; } }
-function prPetImg(sp, o){ const em = prEmoji(sp); if(o && petIsAdult(o)){ const h = petAdultImg(sp, ''), own = o.gear ? o : petFindOwned(o), F = pgFilter(pgGear(own));
+function prPetImg(sp, o){ if(sp === 'worm' && typeof prqWormSvg === 'function') return prqWormSvg(); const em = prEmoji(sp); if(o && petIsAdult(o)){ const h = petAdultImg(sp, ''), own = o.gear ? o : petFindOwned(o), F = pgFilter(pgGear(own));
     return (F.style || F.rainbow) ? h.replace('<img ', `<img class="${F.rainbow ? 'pg-rainbow' : ''}" style="${F.style ? 'filter:' + F.style : ''}" `) : h; } return `<img src="${petBabySrc(encodeURIComponent(sp))}" alt="" onerror="this.outerHTML='<span class=&quot;emo&quot;>${em}</span>'">`; }
 function prFmtDur(ms){
   if(ms <= 0) return 'now';
@@ -7024,7 +7043,7 @@ async function prFetch(){
   if(!currentPlayer) return;
   try {
     const j = await prCall({action:'state', playerId: currentPlayer.id});
-    if(j && j.ok){ _pr = j; _prSkew = j.now - Date.now(); prBadge(); if(_gpView === 'race') prRender(); }
+    if(j && j.ok){ if(typeof prqMerge === 'function') prqMerge(j); _pr = j; _prSkew = j.now - Date.now(); prBadge(); if(_gpView === 'race') prRender(); }
   } catch(e){ const el = document.getElementById('prRoot'); if(el && !_pr) el.innerHTML = '<div class="gp-card"><div class="empty-state">Pet Race is unavailable — try ulit in a bit.</div></div>'; }
 }
 function prLoop(){
@@ -7107,10 +7126,12 @@ function prRender(){
     h += `<div class="pr-grid2"><div class="pr-wrap">${prMyCard(me)}${prObstacleCard(me)}</div><div class="pr-wrap">${prDiceCard(me)}${prShopCard(me)}</div></div>`;
   }
   h += prxCards(me, ph);
+  if(typeof prqCards === 'function') h += prqCards(me, ph);
   h += `<div class="pr-grid2">${prStandingsCard()}${prFeedCard()}</div>`;
   h += prRulesCard();
   root.innerHTML = h;
   prDrawTrack(true);
+  if(typeof prqTrackDecor === 'function') prqTrackDecor();
   if(document.getElementById('prLastTrack')) prAutoReplay();
 }
 
@@ -7134,7 +7155,7 @@ function prRegCard(){
     }
   }
   const list = (s.entries || []).map(e => prEsc(`${e.petName} (${e.playerName})`)).join(' • ') || 'No racers yet — be the first!';
-  return `<div class="gp-card"><div class="gp-hdr"><h3>📝 Registration</h3><span class="gp-badge">${(s.entries || []).length} registered • min ${Number(c.minRacers || 5)}</span></div>${body}
+  return `<div class="gp-card"><div class="gp-hdr"><h3>📝 Registration</h3><span class="gp-badge">${(s.entries || []).filter(e => !e.house).length} registered • min ${Number(c.minRacers || 5)}</span></div>${body}
     <div style="margin-top:10px;font-size:12.5px" class="pr-muted">Racers: ${list}</div></div>`;
 }
 
@@ -7219,8 +7240,8 @@ function prStandingsCard(){
     const mine = currentPlayer && e.playerId === currentPlayer.id;
     const st = e.dnf ? '<span class="pr-chip b">DNF</span>' : Number(e.evoLegs || 0) > 0 ? `<span class="pr-chip y">✨ ${prEsc(e.form || 'Evolved')}</span>` : e.blocked ? '<span class="pr-chip w">Blocked</span>' : e.lastEvent === 'backfire' ? '<span class="pr-chip b">Spun out</span>'
       : e.lastEvent === 'stumble' ? '<span class="pr-chip w">Stumbled</span>' : (e.lastBoost || 0) >= 12 ? '<span class="pr-chip y">🔥 Boost</span>' : '<span class="pr-chip g">Running</span>';
-    const cheer = canCheer && !mine && !e.dnf ? `<button class="pr-btn ghost" style="padding:3px 8px;font-size:11px" ${prDis((e.pendingCheer || 0) >= Number(c.cheerMax || 5) && 'Max cheers this leg')} onclick="prCheer(${e.id},'${prEsc(e.petName)}')">📣 ${Number(c.cheerPrice || 1)}</button>` : '';
-    return `<tr class="${mine ? 'me' : ''}"><td>${e.place || (e.dnf ? '–' : i + 1)}</td><td><b>${prEsc(e.petName)}</b>${petChampTag(e)}${e.swerte ? ' 🍀' : ''}<div class="pr-muted" style="font-size:11px">${prEsc(e.playerName)}${e.level ? ` • ${petStageOf(e.level,e)}` : ''}${prxEvoCfg().on && e.evoMeter !== undefined && !e.dnf ? ` • ⚡${Number(e.evoMeter)}` : ''}</div></td>
+    const cheer = canCheer && !mine && !e.dnf && !e.house ? `<button class="pr-btn ghost" style="padding:3px 8px;font-size:11px" ${prDis((e.pendingCheer || 0) >= Number(c.cheerMax || 5) && 'Max cheers this leg')} onclick="prCheer(${e.id},'${prEsc(e.petName)}')">📣 ${Number(c.cheerPrice || 1)}</button>` : '';
+    return `<tr class="${mine ? 'me' : ''}"><td>${e.place || (e.dnf ? '–' : i + 1)}</td><td><b>${prEsc(e.petName)}</b>${e.house ? ' <span class="pr-chip w">🪱 HOUSE</span>' : petChampTag(e)}${e.swerte ? ' 🍀' : ''}<div class="pr-muted" style="font-size:11px">${prEsc(e.playerName)}${e.level ? ` • ${petStageOf(e.level,e)}` : ''}${prxEvoCfg().on && e.evoMeter !== undefined && !e.dnf ? ` • ⚡${Number(e.evoMeter)}` : ''}</div></td>
       <td class="n">${Number(e.laps).toFixed(2)}</td><td class="n">${e.health ?? '—'}</td><td class="n">${e.walletUsed}/${wc}</td><td>${st}</td><td>${cheer}</td></tr>`;
   }).join('');
   return `<div class="gp-card"><div class="gp-hdr"><h3>📊 Standings</h3><span class="gp-badge">laps • speed health • wallet</span></div>
@@ -7253,6 +7274,7 @@ function prRulesCard(){
     • Speed health = lowest pet meter or ⚡ Stamina, whichever is lower. 90+ full speed • 70–89 ×0.9 • 50–69 ×0.75 • 20–49 ×0.5 and may stumble • real pet below 20 or gone = DNF.<br>
     • Race wallet cap ${Number(c.walletCap || 60)} 🪙 for boosts + dice, so tokens can't buy the win. Care beats spending.<br>
     ${prxEvoCfg().on ? `• ✨ Race Evolution: your ⚡ meter fills every leg (faster in the bottom half, +${Number(prxEvoCfg().clashWin || 0)} for a clash win). At 100, tap EVOLVE: ${Number(prxEvoCfg().legs || 2)} legs of +${Number(prxEvoCfg().pct || 0)}% speed, no stumbles, a free obstacle jump and ${Number(prxEvoCfg().lootMult || 1)}× loot chance. Once per race day. Pets change back after.<br>` : ''}
+    ${typeof prqRules === 'function' ? prqRules() : ''}
     • Most laps after leg 24 wins. Ties: higher health, then earlier registration. Prizes are paid in PHP by the admin.</div></details>`;
 }
 
@@ -7358,6 +7380,7 @@ function prcBuild(){
   _prcPrevLeader[rk] = L.id;
   if(leg === 0) out.push('Nasa starting line na ang lahat! Leg 1 na mamaya. Hingang malalim, mga alaga! 🐾');
   else if(gap <= 0.15 && S) out.push(`Dikit na dikit si ${N(L.petName)} at ${N(S.petName)}: ${gap.toFixed(2)} laps lang ang pagitan! 😱`);
+  else if(L.house) out.push(prcPick([`Ang Intern ang nangunguna! 🪱 Kanina pa niya sinusulatan kayo sa clipboard. 📋`, `Leg ${leg}: ${N(L.petName)} pa rin sa unahan. "For review" daw ang bilis ninyo. 😤`, `Sino ang tatalo sa Intern? May bonus 🪙 ang lahat ng makakalampas sa kanya!`], leg));
   else out.push(prcPick([`${N(L.petName)} ang nangunguna sa Leg ${leg}, ${gap.toFixed(2)} laps ang lamang. Kaya pa bang habulin? 🔥`, `Nasa unahan si ${N(L.petName)}. Si ${prEsc(L.playerName)}, kalmado lang kunwari. 😎`, `Leg ${leg}: ${N(L.petName)} pa rin ang lider. May sasabay pa ba? 👀`], leg));
   const rows = s.lastLegRows || [];
   if(rows.length){ const top = rows.slice().sort((a, b) => Number(b.gain) - Number(a.gain))[0], T = top && all.find(e => e.id === top.entryId);
@@ -7367,7 +7390,7 @@ function prcBuild(){
   all.filter(e => !e.dnf && (e.lastBoost || 0) >= 12).slice(0, 1).forEach(e => out.push(`🔥 Naka-boost si ${N(e.petName)}! Ang bilis, parang may deadline!`));
   all.filter(e => !e.dnf && Number(e.evoLegs || 0) > 0).slice(0, 1).forEach(e => out.push(`✨ NAG-EVOLVE si ${N(e.petName)} into ${N(e.form || 'Evolved')}! Iba na 'to, mga bes!`));
   all.filter(e => e.dnf).slice(0, 1).forEach(e => out.push(`Paalam muna kay ${N(e.petName)} (DNF). Pahinga ka na, champ. 💔`));
-  all.filter(e => !e.dnf && e.health != null && e.health < 70).slice(0, 1).forEach(e => out.push(`Psst, ${prEsc(e.playerName)}! Health ${e.health} lang si ${N(e.petName)}. Feed, play, bath na! 🍖`));
+  all.filter(e => !e.dnf && !e.house && e.health != null && e.health < 70).slice(0, 1).forEach(e => out.push(`Psst, ${prEsc(e.playerName)}! Health ${e.health} lang si ${N(e.petName)}. Feed, play, bath na! 🍖`));
   if(last && last !== L && live.length > 2) out.push(prcPick([`Nasa hulihan si ${N(last.petName)}. Kape pa more, bes! ☕`, `${N(last.petName)}, okay lang 'yan. Slow and steady... sana. 🐢`, `Huling pwesto si ${N(last.petName)}, pero mahaba pa ang karera! 💪`], leg));
   if(leg >= 20 && leg < 24) out.push(`Final stretch na! ${24 - leg} leg${24 - leg === 1 ? '' : 's'} na lang. Walang bibitaw! 🏁`);
   return out;
@@ -7464,7 +7487,7 @@ async function prAdminLoad(){
 // R15: Admin → Pet Race → 🏟️ Live Track (read-only; uses the public race GET, no admin PIN calls)
 let _praLive = null, _praLivePrev = {}, _praLiveTimer = null, _praLiveAt = 0;
 async function praLiveFetch(){
-  try { const r = await fetch(PR_URL + '?playerId=_admin'); const j = await r.json(); if(j && j.ok !== false){ _praLive = j; _praLiveAt = Date.now(); } }
+  try { const r = await fetch(PR_URL + '?playerId=_admin'); const j = await r.json(); if(j && j.ok !== false){ if(typeof prqMerge === 'function') prqMerge(j); _praLive = j; _praLiveAt = Date.now(); } }
   catch(e){}
   praLiveDraw();
 }
@@ -7534,7 +7557,7 @@ function prAdminSub(s){ _prAdminSub = s; prAdminRender(); }
 function prAdminRender(){
   const el = document.getElementById('prAdminRoot'); if(!el || !_prAdmin) return;
   const a = _prAdmin, st = a.state || {}, r = st.race || {}, c = a.settings || {};
-  const subs = [['live','🏟️ Live Track'],['set','⚙️ Settings'],['items','🛍️ Boost items'],['ent',`👥 Entrants (${(st.entries || []).length})`],['pay','💸 Payouts'],['audit','🔎 Audit'],['loot','🎒 Loot, Clash & Evolve'],['slack','💬 Slack']];
+  const subs = [['live','🏟️ Live Track'],['set','⚙️ Settings'],['items','🛍️ Boost items'],['ent',`👥 Entrants (${(st.entries || []).length})`],['pay','💸 Payouts'],['audit','🔎 Audit'],['loot','🎒 Loot, Clash & Evolve'],['xtra','🎰 Extras & Intern'],['slack','💬 Slack']];
   let h = `<div class="info-box" style="margin-bottom:12px">Race #${r.id || '—'} • <b>${prEsc(r.status || 'none')}</b> • mode <b>${prEsc(c.mode)}</b> • leg ${r.lastLeg || 0}/24${r.regOpenAt ? ` • registration ${new Date(r.regOpenAt).toLocaleString('en-PH',{timeZone:'Asia/Manila'})} → ${new Date(r.regCloseAt).toLocaleString('en-PH',{timeZone:'Asia/Manila'})}` : ''}. Changes during a race apply to the next race, except prizes.</div>`;
   h += `<div class="pra-sub">${subs.map(s => `<button class="${_prAdminSub === s[0] ? 'on' : ''}" onclick="prAdminSub('${s[0]}')">${s[1]}</button>`).join('')}</div>`;
   if(_prAdminSub === 'set'){
@@ -7575,6 +7598,7 @@ function prAdminRender(){
     h += `<div class="pra-sec">Purchases</div>${pur.length ? `<div class="pr-tbl" style="max-height:340px;overflow:auto"><table class="roster-table"><thead><tr><th>When</th><th>Player</th><th>Kind</th><th>Item</th><th>Cost</th><th>Wallet</th><th>Refunded</th></tr></thead><tbody>${pur.map(p => `<tr><td>${new Date(p.at).toLocaleString('en-PH',{timeZone:'Asia/Manila',month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})}</td><td>${prEsc(typeof playerNameById === 'function' ? playerNameById(p.playerId) : p.playerId)}</td><td>${prEsc(p.kind)}</td><td>${prEsc(p.item || (p.detail && p.detail.face !== undefined ? 'rolled ' + p.detail.face : ''))}</td><td>${p.cost}</td><td>${p.inWallet ? 'yes' : ''}</td><td>${p.refunded ? '↩️' : ''}</td></tr>`).join('')}</tbody></table></div>` : '<div class="empty-state">No purchases yet.</div>'}`;
   }
   if(_prAdminSub === 'loot') h += praxLootHtml();
+  if(_prAdminSub === 'xtra' && typeof praqHtml === 'function') h += praqHtml();
   if(_prAdminSub === 'live') h += praLiveHtml();
   if(['set','items','slack'].includes(_prAdminSub)) h += `<div class="pra-save"><span class="pra-msg" id="praMsg"></span><span><button class="btn btn-outline btn-sm" onclick="prAdminLoad()">Reload</button> <button class="btn btn-gold" onclick="praSave()">💾 Save Pet Race settings</button></span></div>`;
   el.innerHTML = h;
@@ -9073,6 +9097,7 @@ async function bsaAct(kind, id, prize){
 <script src="bayani-city.js"></script>
 <script src="vouchers.js"></script>
 <script src="bayani-park.js"></script>
+<script src="pet-race-extras.js"></script>
 <script src="bayani-raid.js"></script>
 <script src="bayani-marathon.js"></script>
 <button class="fs-toggle" id="fsToggle" onclick="toggleFullScreen()" title="Fill the whole screen (Esc to exit)">⛶ Full screen</button>
