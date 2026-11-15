@@ -566,6 +566,16 @@ body::before{display:none}
 @keyframes prshake{0%,100%{transform:translateX(0)}50%{transform:translateX(3px)}}
 .pr-overlay{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:6;font-family:'Space Grotesk';font-size:32px;font-weight:700;color:var(--gold);text-shadow:0 3px 0 #000;background:rgba(11,24,40,.6);text-align:center}
 .pr-trackfoot{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center;margin-top:10px;font-size:12px;color:var(--muted)}
+.prc-box{display:flex;gap:12px;align-items:center;background:linear-gradient(90deg,rgba(227,166,62,.16),transparent 75%),var(--card-bg,#1D2130);border:1px solid rgba(227,166,62,.35);border-radius:16px;padding:12px 14px;margin-bottom:14px}
+.prc-mic{font-size:26px;flex:0 0 auto}
+.prc-lab{font-size:11px;color:var(--muted);letter-spacing:.3px}
+.prc-line{font-weight:700;font-size:15px;color:var(--white);line-height:1.35;transition:opacity .35s}
+.prc-line.fade{opacity:0}
+.prc-dots{margin-left:auto;display:flex;gap:4px;flex:0 0 auto}.prc-dots i{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.18)}.prc-dots i.on{background:var(--gold)}
+.pr-pf{position:absolute;inset:0;z-index:7;pointer-events:none;background:#fff;opacity:0;animation:prPfFlash 1.1s ease-out}
+@keyframes prPfFlash{0%{opacity:0}8%{opacity:.95}100%{opacity:0}}
+.pr-pfbadge{display:inline-block;margin-top:6px;font-size:13px;background:#000;color:#fff;border:1px solid var(--gold);border-radius:999px;padding:3px 10px}
+@media (prefers-reduced-motion:reduce){.pr-pf{animation:none}.prc-line{transition:none}}
 .pr-row{display:flex;gap:12px;align-items:center}
 .pr-portrait{width:62px;height:62px;flex:none;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:34px;background:linear-gradient(135deg,#fbcf70,#ec7fa5 52%,#8069cc);border:3px solid rgba(255,255,255,.6);overflow:hidden}
 .pr-portrait img{width:100%;height:100%;object-fit:contain}
@@ -7089,6 +7099,7 @@ function prRender(){
   }
   if(ph.key === 'reg' || ph.key === 'soon' || (s.mode === 'preview' && r && r.status === 'registration')) h += prRegCard();
   if(ph.key === 'done' || ph.key === 'cancel' || (s.lastResult && Date.now() - s.lastResult.finishedAt < 6 * 86400000)) h += prResultsCard();
+  h += prcHtml();
   h += `<div class="gp-card"><div class="gp-hdr"><h3>🏟️ Track</h3><span class="gp-badge">${Number(c.totalLaps || 42)} laps • 24 hourly legs</span></div><div id="prTrack"></div>
      <div class="pr-trackfoot"><span>${r && r.obstacle ? `🚧 Day ${r.obstacle.day} obstacle at lap <b>${r.obstacle.lap}</b>` : 'No obstacle on the track right now'}</span>
      <span>Updates every 20 s while this tab is open</span></div></div>`;
@@ -7294,9 +7305,16 @@ function prReplayLast(auto){
     void tr.offsetWidth;
     list.forEach(e => { const rn = tr.querySelector(`[data-id="${e.id}"] .pr-runner`); if(rn){ rn.style.transition = reduce ? 'none' : 'left 4.5s linear'; rn.style.left = x(e.laps) + '%'; } });
     setTimeout(() => {
-      ov.style.background = 'rgba(11,24,40,.65)';
-      ov.innerHTML = win ? `🏆 ${prEsc(win.petName)} wins!<div style="font-size:15px;color:#fff">${prEsc(win.playerName)} • ${Number(win.laps).toFixed(2)} laps</div>` : 'Race over!';
-      setTimeout(() => ov.remove(), 3500);
+      const r2 = list.find(e => e.place === 2), margin = win && r2 ? Number(win.laps) - Number(r2.laps) : 99;
+      const photo = margin <= Number((_pr.settings || {}).photoGap || 0.1);
+      const showWin = () => { ov.style.background = 'rgba(11,24,40,.65)';
+        ov.innerHTML = win ? `🏆 ${prEsc(win.petName)} wins!<div style="font-size:15px;color:#fff">${prEsc(win.playerName)} • ${Number(win.laps).toFixed(2)} laps</div>${photo ? `<span class="pr-pfbadge">📸 Photo finish · won by ${margin.toFixed(2)} laps</span>` : ''}` : 'Race over!';
+        setTimeout(() => ov.remove(), photo ? 5000 : 3500); };
+      if(photo && !reduce){
+        const fl = document.createElement('div'); fl.className = 'pr-pf'; tr.appendChild(fl); setTimeout(() => fl.remove(), 1200);
+        ov.style.background = 'rgba(0,0,0,.55)'; ov.innerHTML = `📸 PHOTO FINISH!<div style="font-size:15px;color:#fff">Tinitingnan ang litrato...</div>`;
+        setTimeout(showWin, 2200);
+      } else showWin();
     }, reduce ? 300 : 4600);
   }, reduce ? 300 : 1500);
 }
@@ -7306,6 +7324,71 @@ function prAutoReplay(){
   const id = lr.id || lr.raceId, k = 'prSeenFinal';
   try { if(localStorage.getItem(k) === String(id)) return; localStorage.setItem(k, String(id)); } catch(e){ if(_prShownFinal === id) return; }
   _prShownFinal = id; setTimeout(prReplayLast, 300);
+}
+// ── Race commentator (front-end only: built from the state the server already sends)
+let _prcLines = [], _prcIdx = 0, _prcTimer = null, _prcPrevLeader = {}, _prcKey = '';
+function prcPick(a, seed){ return a[Math.abs(seed) % a.length]; }
+function prcBuild(){
+  const s = _pr; if(!s) return [];
+  const c = s.settings || {}, r = s.race, ph = prPhase(), N = x => `<b>${prEsc(x)}</b>`;
+  const all = s.entries || [], live = all.filter(e => !e.dnf).slice().sort((a, b) => Number(b.laps) - Number(a.laps));
+  const leg = r ? Number(r.lastLeg || 0) : 0, out = [];
+  if(!r || ph.key === 'none') return ['Wala pang karera ngayon. Pahinga muna ang mga paa ng ating mga alaga. 🐾'];
+  if(ph.key === 'soon') return ['Malapit nang magbukas ang registration! Ihanda na ang pinakamabilis mong alaga. 🏁'];
+  if(ph.key === 'reg'){
+    const n = all.length, min = Number(c.minRacers || 5);
+    out.push(n >= min ? `${n} racers na ang naka-register! Tuloy na tuloy ang karera. Sino pa ang hahabol? 🏁`
+      : `${n} pa lang ang naka-register. Kulang pa ng ${min - n} para tumuloy ang karera. Tara na, mga Bayani! 📣`);
+    all.slice(-3).forEach((e, i) => out.push(prcPick([`Pumasok na si ${N(e.petName)} ni ${prEsc(e.playerName)}. Mukhang seryoso 'to! 👀`, `${N(e.petName)} is in! Sabi ni ${prEsc(e.playerName)}, "practice lang 'to." Sure ka? 😏`, `Welcome sa track, ${N(e.petName)}! Wag mong kalimutang mag-stretch. 🧘`], i + n)));
+    return out;
+  }
+  if(ph.key === 'lineup') return [`Locked na ang lineup! ${all.length} racers, isang champion lang. 🔒`, 'Last chance mag-feed, play at bath bago ang Leg 1. Ang alagang busog, mabilis tumakbo! 🍖'];
+  if(ph.key === 'cancel') return ['Na-cancel ang karera. Refunded lahat ng tokens. Next time, mas marami na tayo! 🙏'];
+  if(!live.length) return ['Tahimik ang track... 🌙'];
+  const L = live[0], S = live[1], last = live[live.length - 1], gap = S ? Number(L.laps) - Number(S.laps) : 99;
+  const rk = r.id || r.raceId || 'r', prev = _prcPrevLeader[rk];
+  if(ph.key === 'done'){
+    const W = all.find(e => e.place === 1) || L, R2 = all.find(e => e.place === 2);
+    const m = R2 ? Number(W.laps) - Number(R2.laps) : 99;
+    out.push(m <= Number(c.photoGap || 0.1) ? `📸 PHOTO FINISH! ${N(W.petName)} ang nanalo by ${m.toFixed(2)} laps lang! Halos ilong lang ang lamang!` : `🏆 TAPOS NA! ${N(W.petName)} ni ${prEsc(W.playerName)} ang CHAMPION! Palakpakan! 👏`);
+    if(R2) out.push(`Saludo kay ${N(R2.petName)}. Second place pero first sa puso namin. 🥈`);
+    return out;
+  }
+  if(prev && prev !== L.id){ const P = all.find(e => e.id === prev); out.push(`OVERTAKE! ${N(L.petName)} ang bagong lider${P ? `, nilagpasan si ${N(P.petName)}` : ''}! Parang sweldo na dumating nang maaga! 💸`); }
+  _prcPrevLeader[rk] = L.id;
+  if(leg === 0) out.push('Nasa starting line na ang lahat! Leg 1 na mamaya. Hingang malalim, mga alaga! 🐾');
+  else if(gap <= 0.15 && S) out.push(`Dikit na dikit si ${N(L.petName)} at ${N(S.petName)}: ${gap.toFixed(2)} laps lang ang pagitan! 😱`);
+  else out.push(prcPick([`${N(L.petName)} ang nangunguna sa Leg ${leg}, ${gap.toFixed(2)} laps ang lamang. Kaya pa bang habulin? 🔥`, `Nasa unahan si ${N(L.petName)}. Si ${prEsc(L.playerName)}, kalmado lang kunwari. 😎`, `Leg ${leg}: ${N(L.petName)} pa rin ang lider. May sasabay pa ba? 👀`], leg));
+  const rows = s.lastLegRows || [];
+  if(rows.length){ const top = rows.slice().sort((a, b) => Number(b.gain) - Number(a.gain))[0], T = top && all.find(e => e.id === top.entryId);
+    if(T && !T.dnf) out.push(`Pinakamabilis last leg: ${N(T.petName)} (+${Number(top.gain).toFixed(2)} laps). Naka-kape yata! ☕`); }
+  all.filter(e => !e.dnf && e.lastEvent === 'stumble').slice(0, 2).forEach(e => out.push(`Aray! Natisod si ${N(e.petName)}! ${prEsc(e.playerName)}, alagaan mo naman. 🩹`));
+  all.filter(e => !e.dnf && e.lastEvent === 'backfire').slice(0, 1).forEach(e => out.push(`Nag-spin out si ${N(e.petName)}! Hindi pala lahat ng boost, swerte. 🌀`));
+  all.filter(e => !e.dnf && (e.lastBoost || 0) >= 12).slice(0, 1).forEach(e => out.push(`🔥 Naka-boost si ${N(e.petName)}! Ang bilis, parang may deadline!`));
+  all.filter(e => !e.dnf && Number(e.evoLegs || 0) > 0).slice(0, 1).forEach(e => out.push(`✨ NAG-EVOLVE si ${N(e.petName)} into ${N(e.form || 'Evolved')}! Iba na 'to, mga bes!`));
+  all.filter(e => e.dnf).slice(0, 1).forEach(e => out.push(`Paalam muna kay ${N(e.petName)} (DNF). Pahinga ka na, champ. 💔`));
+  all.filter(e => !e.dnf && e.health != null && e.health < 70).slice(0, 1).forEach(e => out.push(`Psst, ${prEsc(e.playerName)}! Health ${e.health} lang si ${N(e.petName)}. Feed, play, bath na! 🍖`));
+  if(last && last !== L && live.length > 2) out.push(prcPick([`Nasa hulihan si ${N(last.petName)}. Kape pa more, bes! ☕`, `${N(last.petName)}, okay lang 'yan. Slow and steady... sana. 🐢`, `Huling pwesto si ${N(last.petName)}, pero mahaba pa ang karera! 💪`], leg));
+  if(leg >= 20 && leg < 24) out.push(`Final stretch na! ${24 - leg} leg${24 - leg === 1 ? '' : 's'} na lang. Walang bibitaw! 🏁`);
+  return out;
+}
+function prcHtml(){
+  _prcLines = prcBuild(); const k = _prcLines.join('|');
+  if(k !== _prcKey){ _prcKey = k; _prcIdx = 0; }
+  if(!_prcLines.length) return '';
+  _prcIdx = _prcIdx % _prcLines.length;
+  prcStart();
+  return `<div class="prc-box"><div class="prc-mic">🎙️</div><div style="min-width:0"><div class="prc-lab">RACE COMMENTATOR</div><div class="prc-line" id="prcLine">${_prcLines[_prcIdx]}</div></div>
+    <div class="prc-dots" id="prcDots">${_prcLines.length > 1 ? _prcLines.map((_, i) => `<i class="${i === _prcIdx ? 'on' : ''}"></i>`).join('') : ''}</div></div>`;
+}
+function prcStart(){
+  if(_prcTimer) return;
+  _prcTimer = setInterval(() => {
+    const el = document.getElementById('prcLine'); if(!el || _gpView !== 'race' || _prcLines.length < 2) return;
+    el.classList.add('fade');
+    setTimeout(() => { _prcIdx = (_prcIdx + 1) % _prcLines.length; el.innerHTML = _prcLines[_prcIdx]; el.classList.remove('fade');
+      const d = document.getElementById('prcDots'); if(d) [...d.children].forEach((x, i) => x.classList.toggle('on', i === _prcIdx)); }, 350);
+  }, 7000);
 }
 // actions
 async function prAct(action, extra){
