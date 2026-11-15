@@ -850,6 +850,33 @@ table.blh th{color:var(--muted);font-weight:600;font-size:11px;text-transform:up
 .bs-mono{font-family:'IBM Plex Mono',monospace}
 
 </style>
+<!-- ═════ PORTAL THEMES (Dark / Light / Green / Pink / Blue) ═════ -->
+<style id="smb-themes">
+html[data-theme="light"]{--navy:#F4F2EC;--deep:#FFFFFF;--card-bg:#FFFFFF;--panel:#FAF8F3;--gold:#B7791F;--gold2:#8f5c12;--teal:#1F8F80;--teal2:#16706a;--white:#1E2230;--muted:#6A7080;--danger:#C2453B;--success:#2E8B57;--slate:#8a90a0;--line:rgba(20,24,40,.10);--side:#FFFFFF}
+html[data-theme="green"]{--navy:#08140F;--deep:#0E1F17;--card-bg:#13291F;--panel:#0E1F17;--gold:#D9B648;--gold2:#a8892a;--teal:#4FD18B;--teal2:#2fa86a;--white:#EAF4EC;--muted:#86A394;--success:#6EE7A0;--line:rgba(160,255,200,.08);--side:#0A1912}
+html[data-theme="pink"]{--navy:#170B14;--deep:#22101E;--card-bg:#2D1528;--panel:#22101E;--gold:#FFB86B;--gold2:#d18a3e;--teal:#FF6FB5;--teal2:#d94d93;--white:#FBEFF6;--muted:#B78FA8;--danger:#FF7A7A;--success:#7EE0A8;--line:rgba(255,160,210,.09);--side:#1C0D19}
+html[data-theme="blue"]{--navy:#0D1B2A;--deep:#112240;--card-bg:#1a2f4a;--panel:#16293f;--gold:#F5C842;--gold2:#c9a227;--teal:#2ECAD5;--teal2:#1a9aa3;--white:#EEF2F7;--muted:#7a92b0;--danger:#e05c5c;--success:#4ecb84;--line:rgba(120,180,255,.09);--side:#0F1E33}
+html[data-theme] body{transition:background-color .25s,color .25s}
+html[data-theme] .gp-side{background:var(--side,#0E111A)}
+/* Light theme: lift hard-coded dark surfaces + faint white overlays */
+html[data-theme="light"] .gp-card,html[data-theme="light"] .gp-stat{box-shadow:0 1px 3px rgba(20,24,40,.07)}
+html[data-theme="light"] [style*="background:#151824"],html[data-theme="light"] [style*="background:#1c1c1c"],html[data-theme="light"] [style*="background:#2a2f40"],html[data-theme="light"] [style*="background:#0E111A"]{background:var(--panel)!important}
+html[data-theme="light"] [style*="rgba(255,255,255,.07)"],html[data-theme="light"] [style*="rgba(255,255,255,.08)"],html[data-theme="light"] [style*="rgba(255,255,255,.1)"]{border-color:var(--line)!important}
+html[data-theme="light"] input,html[data-theme="light"] select,html[data-theme="light"] textarea{background:#fff;color:var(--white);border-color:var(--line)}
+/* Theme picker card (Player tab) */
+.smb-theme{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+.smb-theme h3{font-size:14px;margin:0}.smb-theme p{color:var(--muted);font-size:11px;margin:2px 0 0}
+.smb-sws{display:flex;gap:8px;flex-wrap:wrap}
+.smb-sw{border:2px solid var(--line);background:var(--panel);color:var(--white);border-radius:12px;padding:5px 10px 5px 5px;display:flex;align-items:center;gap:7px;cursor:pointer;font:600 12px Inter,sans-serif}
+.smb-sw:hover{border-color:var(--muted)}
+.smb-sw.on{border-color:var(--teal);box-shadow:0 0 0 3px color-mix(in srgb,var(--teal) 25%,transparent)}
+.smb-sw .c{width:24px;height:24px;border-radius:7px;display:grid;grid-template-columns:1fr 1fr;overflow:hidden;border:1px solid rgba(128,128,128,.3)}
+</style>
+<script>
+(function(){var t='dark';try{t=localStorage.getItem('smbTheme')||'dark'}catch(e){}document.documentElement.dataset.theme=t;})();
+function smbSetTheme(t){document.documentElement.dataset.theme=t;try{localStorage.setItem('smbTheme',t)}catch(e){}document.querySelectorAll('.smb-sw').forEach(function(b){b.classList.toggle('on',b.dataset.t===t)});}
+document.addEventListener('DOMContentLoaded',function(){smbSetTheme(document.documentElement.dataset.theme||'dark')});
+</script>
 </head>
 <body>
 
@@ -1381,6 +1408,18 @@ table.blh th{color:var(--muted);font-weight:600;font-size:11px;text-transform:up
           <div class="welcome" id="playerWelcome">Welcome! Handa ka na ba? 🎯</div>
         </div>
         <div id="playerTokenBalance" class="gp-balpill">🪙 0 SMB Tokens</div>
+      </div>
+
+      <!-- Portal theme picker -->
+      <div class="gp-card smb-theme">
+        <div><h3>🎨 Portal Theme</h3><p>Applies to the whole portal • saved on this device</p></div>
+        <div class="smb-sws">
+          <button class="smb-sw" data-t="dark" onclick="smbSetTheme('dark')"><span class="c"><i style="background:#0B0D12"></i><i style="background:#E3A63E"></i></span>Dark</button>
+          <button class="smb-sw" data-t="light" onclick="smbSetTheme('light')"><span class="c"><i style="background:#F4F2EC"></i><i style="background:#B7791F"></i></span>Light</button>
+          <button class="smb-sw" data-t="green" onclick="smbSetTheme('green')"><span class="c"><i style="background:#0E1F17"></i><i style="background:#4FD18B"></i></span>Green</button>
+          <button class="smb-sw" data-t="pink" onclick="smbSetTheme('pink')"><span class="c"><i style="background:#22101E"></i><i style="background:#FF6FB5"></i></span>Pink</button>
+          <button class="smb-sw" data-t="blue" onclick="smbSetTheme('blue')"><span class="c"><i style="background:#112240"></i><i style="background:#2ECAD5"></i></span>Blue</button>
+        </div>
       </div>
 
       <div class="gp-stats">
