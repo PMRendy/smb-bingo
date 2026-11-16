@@ -913,7 +913,7 @@ document.addEventListener('DOMContentLoaded',function(){smbSetTheme(document.doc
 <div id="screen-landing" class="screen active">
   <div class="eyebrow">🌙 Bayaning Puyat Series</div>
   <h1>SMB GAME PORTAL</h1>
-  <div class="sub">Overnight Shift Edition · 9PM – 5AM PHT<br><span class="gp-landing-games">🎱 BINGO · 🎡 Spin · 📈 Higher/Lower · ✊ RPS · 🏁 Pet Race · 🛒 Shop</span></div>
+  <div class="sub">Overnight Shift Edition · <span id="gpShiftHours">9PM – 5AM PHT</span><br><span class="gp-landing-games">🎱 BINGO · 🎡 Spin · 📈 Higher/Lower · ✊ RPS · 🏁 Pet Race · 🛒 Shop</span></div>
   <div class="landing-buttons">
     <button class="btn btn-gold" onclick="gotoAdminLogin()">🔐 Admin Portal</button>
     <button class="btn btn-teal" onclick="gotoPlayerLogin()">🎮 Player Login</button>
@@ -1106,7 +1106,7 @@ document.addEventListener('DOMContentLoaded',function(){smbSetTheme(document.doc
                 <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;">Next Auto-Draw</div>
                 <div class="timer-val" id="adminTimerDisplay">30:00</div>
               </div>
-              <div style="font-size:10px;color:var(--muted);text-align:right;" id="timerIntervalLabel">Every 30 min<br>9PM–5AM PHT</div>
+              <div style="font-size:10px;color:var(--muted);text-align:right;" id="timerIntervalLabel">Every 30 min<br>Shift hours PHT</div>
             </div>
 
             <!-- Prize for this game -->
@@ -3545,16 +3545,29 @@ function refreshDashboard(){
 //  AUTO-DRAW TIMER — completely self-contained
 // ════════════════════════════════════════════════════════════
 
-// 5AM PHT auto-reset
+// Shift end follows the US clients: always 5:00 PM US Eastern.
+// US daylight time (Mar–Nov) = 5AM PHT · US standard time (Nov–Mar) = 6AM PHT.
+// Shift is 8 hours: 9PM–5AM PHT or 10PM–6AM PHT.
+function shiftEndHourPHT(d = new Date()){
+  const etHour = Number(new Intl.DateTimeFormat('en-US', { timeZone:'America/New_York', hour:'numeric', hour12:false }).format(d)) % 24;
+  const etOffset = ((etHour - d.getUTCHours() + 36) % 24) - 12; // -4 (EDT) or -5 (EST)
+  return (17 - etOffset + 8) % 24;                               // 5 PM ET → PHT hour
+}
+function shiftStartHourPHT(d = new Date()){ return (shiftEndHourPHT(d) + 16) % 24; }
+function fmtHourPHT(h){ return ((h % 12) || 12) + (h < 12 ? 'AM' : 'PM'); }
+function shiftLabelPHT(d = new Date()){ return `${fmtHourPHT(shiftStartHourPHT(d))}–${fmtHourPHT(shiftEndHourPHT(d))} PHT`; }
+
+// Shift-end auto-stop (5AM or 6AM PHT, see shiftEndHourPHT)
 let _shiftResetFired = '';
 async function checkShiftReset(){
   const now = new Date();
-  const h = now.getHours();
+  const h = Number(new Intl.DateTimeFormat('en-US', { timeZone:'Asia/Manila', hour:'numeric', hour12:false }).format(now)) % 24;
+  const endH = shiftEndHourPHT(now);
   const todayKey = now.toISOString().slice(0,10);
-  // At 5AM: send closing message but DO NOT reset game — history and drawn numbers persist
-  if(h === 5 && _shiftResetFired !== todayKey){
+  // At shift end: send closing message but DO NOT reset game — history and drawn numbers persist
+  if(h === endH && _shiftResetFired !== todayKey){
     _shiftResetFired = todayKey;
-    adminLog('⏰ 5AM PHT — shift ended. Sending closing message. Game history preserved.','info');
+    adminLog(`⏰ ${fmtHourPHT(endH)} PHT — shift ended. Sending closing message. Game history preserved.`,'info');
     if(!_generatedClosingMsg) await generateClosingMessage();
     await sendClosingMessage();
     // Stop auto-draw timer — admin must manually restart next shift
@@ -3565,7 +3578,7 @@ async function checkShiftReset(){
 
 function updateTimerIntervalLabel(){
   const label = document.getElementById('timerIntervalLabel');
-  if(label) label.innerHTML = `Every ${DB.drawIntervalMin} min<br>after first draw`;
+  if(label) label.innerHTML = `Every ${DB.drawIntervalMin} min<br>${shiftLabelPHT()}`;
 }
 
 // ── COUNTDOWN DISPLAY ──
@@ -4764,7 +4777,7 @@ async function equipSkin(skinId){
 // Purchases/equips reuse the same generic buyCosmetic()/equipCosmetic() calls
 // as the Cosmetics Shop — only the gender toggle needs its own endpoint.
 // ─── Spin the Wheel: slices come from the spin settings (6–12, set in Admin → Games).
-// Shift boundary mirrors Marcus-Ganzo's graveyard shift (9PM-5AM PHT) so
+// Shift boundary mirrors Marcus-Ganzo's graveyard shift (9PM-5AM / 10PM-6AM PHT) so
 // "once per shift" lines up with the rest of the check-in system.
 let SPIN_WHEEL_SEGMENTS = [
   { mult: 0, color: '#4a1b24', inner: '#2c0f15', text: '#ff8f86', label: '0x' },
@@ -6455,7 +6468,7 @@ async function generateClosingMessage(){
 
 Context:
 - ${hasWinner ? `Tonight's BINGO winner was ${winner}, who won ${prize} after ${draws} draws.` : `No one won BINGO tonight after ${draws} draws. The game will continue next shift.`}
-- The team just finished an overnight shift (9PM–5AM PHT).
+- The team just finished an overnight shift (${shiftLabelPHT()}).
 - They are tired but dedicated.
 
 Write a closing message that:
@@ -9105,5 +9118,6 @@ async function bsaAct(kind, id, prize){
 function toggleFullScreen(){const el=document.documentElement;if(!document.fullscreenElement){const r=el.requestFullscreen||el.webkitRequestFullscreen;if(r){const p=r.call(el);if(p&&p.catch)p.catch(()=>{});}}else{(document.exitFullscreen||document.webkitExitFullscreen).call(document);}}
 document.addEventListener('fullscreenchange',()=>{const b=document.getElementById('fsToggle');if(b)b.textContent=document.fullscreenElement?'✕ Exit full screen':'⛶ Full screen';setTimeout(()=>window.dispatchEvent(new Event('resize')),150);});
 </script>
+<script>try{ const e=document.getElementById('gpShiftHours'); if(e && typeof shiftLabelPHT==='function') e.textContent = shiftLabelPHT().replace('–',' – '); }catch(e){}</script>
 </body>
 </html>
