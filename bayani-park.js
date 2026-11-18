@@ -624,7 +624,7 @@ function renderSide(){
   } else if(PK.tab === 'finds'){
     const items = (d.me || {}).items || [];
     body = items.length ? items.map(f => { const it = f.item || {}; return `<div class="bp-item" style="border-color:${TIER[it.tier] || 'var(--line)'}66"><span class="e">${it.emoji || '🎁'}</span>
-        <div style="flex:1"><b>${esc(it.label)}${it.kind === 'tokens' ? ` +${it.amount || 1} 🪙` : ''}</b><small><span style="color:${TIER[it.tier]};font-weight:800">${esc((it.tier || '').toUpperCase())}</span> · ${esc(PK.names[f.petId] || '')} · ${f.source === 'chest' ? 'Treasure Chest' : f.source === 'dig' ? 'you dug' : f.source === 'nap' ? 'nap find' : 'found it'} · ${phtTime(f.at)}</small></div>
+        <div style="flex:1"><b>${esc(it.label)}${it.kind === 'tokens' ? ` +${it.amount || 1} 🪙` : ''}</b><small><span style="color:${TIER[it.tier]};font-weight:800">${esc((it.tier || '').toUpperCase())}</span> · ${esc(PK.names[f.petId] || '')} · ${f.source === 'chest' ? 'Treasure Chest' : f.source === 'dig' ? 'you dug' : f.source === 'nap' ? 'nap find' : f.source === 'park_raid_chest' ? '🪱 Boss Raid MVP chest' : f.source === 'park_raid_final' ? '🪱 Boss Raid final blow' : 'found it'} · ${phtTime(f.at)}</small></div>
         <small>${it.kind === 'voucher' ? 'In My Vouchers' : it.kind === 'tokens' ? 'Added to wallet' : 'Collectible'}</small></div>`; }).join('')
       : '<div class="empty-state">No finds yet this shift. Your pet digs on its own, or tap ⛏️ Dig here.</div>';
   } else {
