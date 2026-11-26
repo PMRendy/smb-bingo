@@ -129,7 +129,7 @@ const S={view:'player',day:12,tokens:310,climbsTeam:{...CLIMBS_TEAM},atab:'overv
     start:'2026-11-16',length:25,days:[1,2,3,4,5],holidayMode:'extend',leaves:true,hook:'',theme:'auto',
     holidays:[{d:'2026-11-26',label:'Thanksgiving',who:'All US clients'},{d:'2026-11-27',label:'Day after Thanksgiving',who:'Some clients'},{d:'2026-12-25',label:'Christmas Day',who:'All US clients'}],
     weatherMode:'auto',weatherManual:'storm',weights:{clear:40,rain:20,wind:20,storm:10,heat:10},
-    ride:{cost:30,energy:40,minLv:30},pvp:{stake:10,range:5,dice:3,win:1,perShift:1,maxIn:2,auto:true,bounty:30,revenge:5},
+    ride:{cost:30,energy:40,minLv:30},race:{finish:240,shiftCap:10,oneBoost:true,slipGap:15,slipBonus:1,crown:1,sprintShifts:5,sprintUp:6,sprintDown:-3,sprintCap:12},pvp:{stake:10,range:5,dice:3,win:1,perShift:1,maxIn:2,auto:true,bounty:30,revenge:5},
     countries:['JP','FR','IT','GR'],hops:[null,null,null],pranksOn:true,prankLimit:1,mystDensity:20,kahonCost:25,bossDay:'Thursday',bossNeed:70,bossReward:2,tropaSize:3,tropaBonus:1,
     betCut:20,betMax:50,balitaOn:true,balitaTime:'04:50',wrappedOn:true,revealDate:'Dec 23, 9:30 PM',
     ac:{timer:60,strikes:2,fullscreen:true,image:true,shuffle:true,watermark:true,fast:4},burnTarget:32000},
@@ -182,6 +182,13 @@ function avatarSVG(p){
 }
 
 const fl=p=>p.floor[S.day];
+/* Fair Race v2: the server sends LD.race once it runs the new rules. Until then everything stays on the old 0–100 course. */
+function RACE(){try{return (LIVE&&LD&&LD.race)||null}catch(e){return null}}
+const FIN=()=>{const r=RACE();return r&&+r.finish>0?+r.finish:100};
+const toPos=st=>Math.round(st*1000/FIN())/10;      // real step -> course position 0–100 (drawing only)
+const toStep=f=>Math.round(f*FIN()/100);             // course position -> real step (labels)
+const stp=p=>p.step!=null?p.step:toStep(fl(p));      // real step for display
+const byRank=(a,b)=>fl(b)-fl(a)||(((a.finishedAt||a.reachedAt||0)-(b.finishedAt||b.reachedAt||0)))||a.name.localeCompare(b.name);
 const isAdmin=()=>S.view==='admin';
 const fogged=p=>!isAdmin()&&p!==me&&fl(p)>=90;
 const sched=()=>SHIFT[S.day];
@@ -191,7 +198,7 @@ const DEMO_WX={12:'rain',27:'wind'};
 const wxNow=()=>LIVE?LD.season.weather:S.settings.weatherMode==='manual'?S.settings.weatherManual:DEMO_WX[S.day];
 const rideIcon=p=>{if(p!==me)return p.ride[S.day];if(!S.ride)return null;return S.ride.key==='bike'&&S.equipped.has('goldtri')?'🌟🚴':S.ride.icon};
 const safeFloor=f=>[75,50,25,0].find(x=>x<=f);
-const leader=()=>[...players].filter(p=>!p.ghost).sort((a,b)=>fl(b)-fl(a))[0];
+const leader=()=>[...players].filter(p=>!p.ghost).sort(byRank)[0];
 function burnTotals(){const b=BURN_BASE[S.day],o={};let t=0;for(const k in b){o[k]=b[k]+S.burnLive[k];t+=o[k]}return {o,t}}
 const found=f=>FOUND_BASE[S.day].includes(f)||S.found.has(f);
 const pushOn=()=>sched()>S.settings.length-5;
@@ -400,11 +407,11 @@ function sceneSVG(g){
   for(let f=.6;f<100;f+=1.4){o+=`<circle cx="${(x(f)+(li%2?4:-4)).toFixed(1)}" cy="${(y(f)-5).toFixed(1)}" r="2.3" fill="${LC[li%4]}" class="xl"/>`;li++}
   o+=`</g>`;
   // markers
-  for(let f=5;f<100;f+=5){if(f%25===0)continue;const right=x(f)>cx;o+=`<circle cx="${x(f)}" cy="${y(f)}" r="${f%10?2:3}" fill="#fff" opacity=".85"/><text x="${x(f)+(right?-9:9)}" y="${y(f)+4}" text-anchor="${right?'end':'start'}" class="mk">${f}</text>`}
+  for(let f=5;f<100;f+=5){if(f%25===0)continue;const right=x(f)>cx;o+=`<circle cx="${x(f)}" cy="${y(f)}" r="${f%10?2:3}" fill="#fff" opacity=".85"/><text x="${x(f)+(right?-9:9)}" y="${y(f)+4}" text-anchor="${right?'end':'start'}" class="mk">${toStep(f)}</text>`}
   // transfers
   [1,2,3].forEach(i=>{const f=i*25,m=MODES[hopMode(i-1)],a1=C[i-1],b1=C[i];const yy=y(f);
     o+=`<rect x="0" y="${yy-19}" width="${W}" height="38" fill="#0b0f18" fill-opacity=".72"/><path d="M14 ${yy+8} Q${cx} ${yy-26} ${W-14} ${yy+8}" stroke="#ffd27a" stroke-opacity=".55" stroke-dasharray="4 5" fill="none"/>
-      <text x="${cx}" y="${yy+5}" text-anchor="middle" class="trf">${m.icon} TRANSFER ${f} · ${a1.flag} ${a1.name} → ${b1.flag} ${b1.name}</text>
+      <text x="${cx}" y="${yy+5}" text-anchor="middle" class="trf">${m.icon} TRANSFER ${toStep(f)} · ${a1.flag} ${a1.name} → ${b1.flag} ${b1.name}</text>
       <g class="xm" style="display:none"><text x="${W-18}" y="${yy+6}" text-anchor="middle" style="font-size:14px">⭐</text></g>`});
   // start + finish
   o+=`<rect x="${x(0)-46}" y="${y(0)+8}" width="92" height="17" rx="4" fill="#efb042"/><text x="${x(0)}" y="${y(0)+20}" text-anchor="middle" class="camp">START · ${C[0].city.toUpperCase()}</text>`;
@@ -416,8 +423,8 @@ function sceneSVG(g){
 function buildTower(){
   G=geo();const t=$('#tower');t.style.height=G.H+'px';t.style.width=G.W+'px';
   let h=sceneSVG(G)+'<div class="wx" id="wx"></div><div class="snow" id="snow" hidden></div>';
-  Object.entries(MYST).forEach(([f,k])=>{f=+f;if([25,50,75].includes(f))return;const right=G.x(f)>G.cx;
-    h+=`<span class="mys" data-mf="${f}" style="left:${G.x(f)+(right?-44:18)}px;top:${G.y(f)-36}px" title="${MYST_TYPES[k].name}">${MYST_TYPES[k].icon}</span>`});
+  Object.entries(MYST).forEach(([f,k])=>{f=+f;const ps=RACE()?toPos(f):f;if([25,50,75].includes(ps)||ps>=100)return;const right=G.x(ps)>G.cx;
+    h+=`<span class="mys" data-mf="${f}" style="left:${G.x(ps)+(right?-44:18)}px;top:${G.y(ps)-36}px" title="${MYST_TYPES[k].name}">${MYST_TYPES[k].icon}</span>`});
   h+=`<div class="fog" id="fog" style="height:${G.y(89.5)}px"><b>Fog zone · ranks hidden</b></div>`;
   t.innerHTML=h;
   players.forEach(p=>{
@@ -458,7 +465,7 @@ function place(){
     el.querySelector('.ride').textContent=(rideIcon(p)||'')+(p===me&&S.equipped.has('trail')?'☁️':'');
     el.querySelector('.crown').textContent=p===L?'👑':'';
     el.querySelector('.prank').textContent=S.pranked&&S.pranked.id===p.id?PRANKS[S.pranked.type].icon:'';
-    el.querySelector('.tag').textContent=(p===me&&!isAdmin()?'You · ':'')+p.name+(isAdmin()?' · '+fl(p):'')+(p===L&&!fogged(p)?' · bounty':'');
+    el.querySelector('.tag').textContent=(p===me&&!isAdmin()?'You · ':'')+p.name+(isAdmin()?' · '+stp(p):'')+(p===L&&!fogged(p)?' · bounty':'');
   }));
   root.querySelectorAll('.mys').forEach(m=>{const f=+m.dataset.mf;m.hidden=!(isAdmin()||found(f));m.classList.toggle('hidden',isAdmin()&&!found(f))});
   {const c=S.settings.countries,cur=Math.min(3,Math.floor(fl(me)/25));$('#routeStrip').innerHTML=c.map((k,i)=>`<span class="c ${!isAdmin()&&i===cur?'on':''}">${COUNTRIES[k].flag} ${COUNTRIES[k].name}</span>`+(i<3?`<span class="m">${MODES[hopMode(i)].icon}</span>`:'')).join('')}
@@ -468,7 +475,7 @@ function place(){
   $('#xpill').hidden=!pasko;
   $('#fog').hidden=isAdmin();
   $('#wx').className='wx '+wxNow();
-  $('#fogLegend').textContent=isAdmin()?'Fog (admin sees through)':'Fog 90–100';
+  $('#fogLegend').textContent=isAdmin()?'Fog (admin sees through)':`Fog ${toStep(90)}–${FIN()}`;
 }
 function flash(p,scroll=true,cls='flash'){
   const el=avEls[p.id];
@@ -478,6 +485,56 @@ function flash(p,scroll=true,cls='flash'){
 }
 function scrollToMe(){const sc=$('#tscroll');sc.style.scrollBehavior='auto';sc.scrollTop=parseInt(avEls[me.id].style.top)-sc.clientHeight/2;sc.style.scrollBehavior=''}
 let rsT=null;const reTower=()=>{clearTimeout(rsT);rsT=setTimeout(()=>{const ts=$('#tscroll');if(!ts||!ts.clientWidth)return;const w=Math.max(280,ts.clientWidth-2);if(G&&Math.abs(w-G.W)>4){try{buildTower();place();scrollToMe()}catch(e){}}},200)};window.addEventListener('resize',reTower);document.addEventListener('fullscreenchange',reTower);try{const ts0=$('#tscroll');if(ts0&&window.ResizeObserver)new ResizeObserver(reTower).observe(ts0)}catch(e){}
+
+/* ---------- Fair Race v2 ---------- */
+function raceCfg(){return Object.assign({},S.settings.race||{},RACE()||{})}
+function gapLine(){
+  const R=RACE();if(!R||!me||me.ghost)return '';
+  if(me.finishedAt)return '<b style="color:var(--gold2)">🏁 Finished</b> · ';
+  if(R.gap==null)return '';
+  if(R.gap<=0)return '<b style="color:var(--gold2)">👑 You lead</b> · ';
+  return `${R.gap} behind 👑${R.slip?' · <b style="color:var(--sky)">💨 Slipstream</b>':''} · `;
+}
+function raceRulesHTML(){
+  const R=raceCfg(),sprint=RACE()&&RACE().sprint,left=Math.max(0,(S.settings.length||25)-sched());
+  return `<h3>Fair Race rules</h3><h2>${sprint?'⚡ Athens Sprint is ON':'One finish line, one champion'}</h2>
+   <ul class="rules">
+    <li>🏁 <b>Finish line: step ${R.finish}</b>. First racer to cross it wins the season. If nobody crosses, the furthest eligible racer on the last shift wins.</li>
+    <li>⚖️ <b>Tie?</b> Same step means whoever reached it first ranks higher.</li>
+    <li>🎒 <b>${R.oneBoost?'One boost per race':'Boosts stack'}</b>${R.oneBoost?': gear <i>or</i> a pet pacer, not both.':''}</li>
+    <li>🧱 <b>Max +${R.shiftCap} steps per shift</b> from everything combined (answers, gear, bonuses, Kahon).</li>
+    <li>💨 <b>Slipstream</b>: ${R.slipGap}+ steps behind the 👑 leader? Every correct answer gives +${R.slipBonus} extra.</li>
+    <li>👑 <b>Crown pressure</b>: the leader loses ${R.crown} extra step on a wrong answer. Everyone is chasing you!</li>
+    <li>⚡ <b>Athens Sprint</b> (last ${R.sprintShifts} shifts): Hard pays +${R.sprintUp} / ${R.sprintDown}, cap goes up to +${R.sprintCap}. ${sprint?'<b style="color:var(--gold2)">It\'s on now!</b>':left>R.sprintShifts?`Starts in ${left-R.sprintShifts} shift${left-R.sprintShifts===1?'':'s'}.`:''}</li>
+    <li>🌫️ The top 10% (step ${toStep(90)}+) races in the fog: nobody sees the exact order until the Finish Line Reveal.</li>
+   </ul>`;
+}
+function raceBannerHTML(){
+  if(!RACE())return '';
+  return `<div class="card" style="border-color:rgba(239,176,66,.6)"><h3>📢 Course update</h3><h2>The finish line moved to Athens, step ${FIN()}</h2>
+   <p class="sub" style="margin:0">Nobody loses a step: everyone keeps their real steps, the course just got longer so the race stays open until the last shift. New rules: one boost per race, max +${raceCfg().shiftCap} per shift, Slipstream for the chasers, and the Athens Sprint in the final ${raceCfg().sprintShifts} shifts.</p></div><div class="card">${raceRulesHTML()}</div>`;
+}
+function adminFair(){
+  const R=raceCfg(),on=!!RACE();
+  const f=(id,l,v,h)=>`<div class="field"><label for="${id}">${l}</label><input id="${id}" type="number" value="${v}">${h?`<small class="sub">${h}</small>`:''}</div>`;
+  const ranked=[...players].filter(p=>!p.ghost).sort(byRank);
+  return `<div class="card"><h3>Fair race</h3><h2>${on?'🟢 Live on the server':'🟡 Waiting for the backend'}</h2>
+   <p class="sub">${on?'The server is running these rules.':'Saved values are stored now and take effect once Viktor deploys Fair Race v2 (see FAIR_RACE_HANDOFF.md). Until then players keep the old 0–100 course.'}</p>
+   <div class="fgrid">
+    ${f('frFin','Finish line (step)',R.finish,'Course length. Drawing scales to fit.')}
+    ${f('frCap','Max steps per shift',R.shiftCap,'All sources combined.')}
+    ${f('frSlipGap','Slipstream: steps behind leader',R.slipGap)}
+    ${f('frSlipB','Slipstream bonus per correct',R.slipBonus)}
+    ${f('frCrown','Crown pressure: extra loss on a miss',R.crown)}
+    ${f('frSpN','Athens Sprint: last N shifts',R.sprintShifts,'0 = off')}
+    ${f('frSpUp','Sprint Hard ✓',R.sprintUp)}
+    ${f('frSpDn','Sprint Hard ✗ (steps lost)',Math.abs(R.sprintDown))}
+    ${f('frSpCap','Sprint max steps per shift',R.sprintCap)}
+   </div>
+   <label style="display:flex;gap:8px;align-items:center;margin-top:8px"><input type="checkbox" id="frOne" ${R.oneBoost?'checked':''}> One boost per race (gear or pet pacer, not both)</label>
+   <div class="row"><button class="btn" id="saveBtn">Save</button></div></div>
+   <div class="card"><h3>Projection</h3><p class="sub">At max pace a racer gains ${R.shiftCap}/shift (${R.sprintCap} in the sprint). With ${Math.max(0,(S.settings.length||25)-sched())} shifts left, the current leader at step ${ranked[0]?stp(ranked[0]):0} can reach at most step ${(ranked[0]?stp(ranked[0]):0)+Math.max(0,(S.settings.length||25)-sched()-R.sprintShifts)*R.shiftCap+Math.min(R.sprintShifts,Math.max(0,(S.settings.length||25)-sched()))*R.sprintCap}. Finish line: ${R.finish}.</p></div>`;
+}
 
 /* ---------- Status bar ---------- */
 function renderStatus(){
@@ -493,7 +550,7 @@ function renderStatus(){
      ?`<div class="stat"><div class="k">Tokens burned</div><div class="v" style="color:var(--burn)">${num(bt)}</div><div class="meter"><i style="width:${Math.min(100,bt/S.settings.burnTarget*100)}%;background:var(--burn)"></i></div><div class="s">${Math.round(bt/S.settings.burnTarget*100)}% of ${num(S.settings.burnTarget)} target</div></div>
        <div class="stat"><div class="k">Cash-eligible</div><div class="v">${eligible}/${NP}</div><div class="s">${climbedNow}/${NP} climbed tonight</div></div>`
      :`<div class="stat"><div class="k">Climbed tonight</div><div class="v">${climbedNow}/${NP}</div><div class="meter"><i style="width:${climbedNow/Math.max(1,NP)*100}%;background:var(--sky)"></i></div></div>
-       <div class="stat"><div class="k">You · ${titleOf(fl(me))}</div><div class="v">Step ${fl(me)}</div><div class="s">${S.tokens} tokens · <span class="${elig(me)>=S.settings.elig?'up':'down'}">${elig(me)}% eligible</span></div></div>`}`;
+       <div class="stat"><div class="k">You · ${titleOf(fl(me))}</div><div class="v">Step ${stp(me)}${RACE()?`<small style="font-size:13px;color:var(--muted)"> / ${FIN()}</small>`:''}</div><div class="s">${gapLine()}${S.tokens} tokens · <span class="${elig(me)>=S.settings.elig?'up':'down'}">${elig(me)}% eligible</span></div></div>`}`;
 }
 
 /* ---------- Player: challenge ---------- */
@@ -619,7 +676,7 @@ function pvpHTML(){
   const marco=byName('Marco');
   let h=`<h3>Hamon · PvP duel</h3><h2>Bato, Papel, Gunting</h2><p class="sub">Challenge anyone within ±${P.range} steps, or the 👑 leader from anywhere. Both stake ${P.stake} tokens; the loser's stake is burned and they roll a ${P.dice}-sided die to fall 1–${P.dice} steps. Winner +${P.win}. Beat the leader for a ${P.bounty}-token bounty.</p>`;
   if(S.pvp.incoming){
-    h+=`<div class="incoming"><b>⚔️ ${esc(marco.name)}</b> (step ${fogged(marco)?'??':fl(marco)}) challenged you. Pick your move:
+    h+=`<div class="incoming"><b>⚔️ ${esc(marco.name)}</b> (step ${fogged(marco)?'??':stp(marco)}) challenged you. Pick your move:
       <div class="moves" style="margin-top:8px">${Object.entries(MOVES).map(([k,m])=>`<button class="move" data-inmove="${k}"><span>${m.i}</span>${m.n}</button>`).join('')}</div></div>`;
   }
   if(S.pvp.inLog!==undefined)h+=`<div class="result" id="inLog">${S.pvp.inLog}</div>`;
@@ -630,7 +687,7 @@ function pvpHTML(){
   if(S.pvp.sent){
     h+=`<div class="result" id="outLog">${S.pvp.log||'Waiting…'}</div><div class="row"><span class="pill gold">1 challenge per shift · next one tonight</span></div>`;
   } else {
-    h+=`<div class="field" style="margin-top:10px"><label for="pvpTarget">Opponent (${opps.length} available)</label><select id="pvpTarget">${opps.map(p=>`<option value="${p.id}" ${S.pvp.target==p.id?'selected':''}>${p===L&&!fogged(p)?'👑 ':''}${esc(p.name)} · step ${fogged(p)?'??':fl(p)}${rideIcon(p)?' '+rideIcon(p):''}${p===L?' · bounty '+P.bounty:''}</option>`).join('')}</select></div>
+    h+=`<div class="field" style="margin-top:10px"><label for="pvpTarget">Opponent (${opps.length} available)</label><select id="pvpTarget">${opps.map(p=>`<option value="${p.id}" ${S.pvp.target==p.id?'selected':''}>${p===L&&!fogged(p)?'👑 ':''}${esc(p.name)} · step ${fogged(p)?'??':stp(p)}${rideIcon(p)?' '+rideIcon(p):''}${p===L?' · bounty '+P.bounty:''}</option>`).join('')}</select></div>
       <div class="moves" style="margin-top:10px">${Object.entries(MOVES).map(([k,m])=>`<button class="move" data-move="${k}" aria-pressed="${S.pvp.move===k}"><span>${m.i}</span>${m.n}</button>`).join('')}</div>
       <div class="row"><button class="btn" id="pvpSend" ${!S.pvp.move||!opps.length||S.tokens<P.stake?'disabled':''}>Send challenge · ${P.stake} tokens</button></div>`;
   }
@@ -690,7 +747,7 @@ function pranksHTML(){
   const others=players.filter(p=>p!==me&&!fogged(p)).sort((a,b)=>fl(b)-fl(a));
   return `<h3>Kalokohan · pranks</h3><h2>Mess with a friend</h2><p class="sub">${S.settings.prankLimit} prank per player per week. The target sees it on the course but not who sent it, until the Balita recap.</p>
    ${S.pranked?`<div class="active">${PRANKS[S.pranked.type].icon} Planted on <b>${esc(players[S.pranked.id].name)}</b>. Watch their avatar on the course.</div>`:''}
-   <div class="field"><label for="prankTarget">Target</label><select id="prankTarget" ${S.prankUsed?'disabled':''}>${others.map(p=>`<option value="${p.id}">${esc(p.name)} · step ${fl(p)}</option>`).join('')}</select></div>
+   <div class="field"><label for="prankTarget">Target</label><select id="prankTarget" ${S.prankUsed?'disabled':''}>${others.map(p=>`<option value="${p.id}">${esc(p.name)} · step ${stp(p)}</option>`).join('')}</select></div>
    <div class="shop" style="margin-top:10px">${Object.entries(PRANKS).map(([k,v])=>`<div class="item"><span class="ic">${v.icon}</span><b>${v.name}</b><small>${v.fx}</small><button class="btn sm" data-prank="${k}" ${S.prankUsed||S.tokens<v.cost||!S.settings.pranksOn?'disabled':''}>Use · ${v.cost}</button></div>`).join('')}</div>`;
 }
 function cosmeticsHTML(){
@@ -720,13 +777,13 @@ function balitaHTML(){
   return `<h3>Balita sa Karera · posted 4:50 AM in Slack</h3><h2>Kagabi sa Karera</h2><ul class="news">${balitaLines().map(l=>`<li>${l}</li>`).join('')}</ul>`;
 }
 function leaderboardHTML(){
-  const sorted=[...players].filter(p=>!p.ghost).sort((a,b)=>fl(b)-fl(a)||a.name.localeCompare(b.name));
+  const sorted=[...players].filter(p=>!p.ghost).sort(byRank);
   const inFog=sorted.filter(fogged),rest=sorted.filter(p=>!fogged(p)),L=leader();
   const row=(p,rk,f)=>`<li data-pid="${p.id}" class="${p===me?'me':''}"><span class="rk">${rk}</span><span class="mini">${avatarSVG(p)}</span><span class="nm">${p===L&&!fogged(p)?'👑 ':''}${esc(p.name)}${p===me?' (you)':''} ${rideIcon(p)||''}<small>${fogged(p)?'In the fog':titleOf(fl(p))}</small></span><span class="st">🔥${p.streak[S.day]}</span><span class="fl2">${f}</span></li>`;
   let rows='';
   if(inFog.length){rows+=`<li class="grp">In the fog · ${inFog.length} climber${inFog.length>1?'s':''}, order hidden</li>`;rows+=[...inFog].sort((a,b)=>a.name.localeCompare(b.name)).map(p=>row(p,'?','??')).join('')}
-  rows+=rest.map((p,i)=>row(p,inFog.length+i+1,fl(p))).join('');
-  return `<h3>Leaderboard</h3><p class="sub">Titles: Baguhan → Mananakbo (25) → Mandirigma (50) → Iron Bayani (75) → Alamat ng Takbo (90) → Kampeon ng Mundo (100).</p><ul class="lb">${rows}</ul>`;
+  rows+=rest.map((p,i)=>row(p,inFog.length+i+1,stp(p))).join('');
+  return `<h3>Leaderboard</h3><p class="sub">Titles: Baguhan → Mananakbo (${toStep(25)}) → Mandirigma (${toStep(50)}) → Iron Bayani (${toStep(75)}) → Alamat ng Takbo (${toStep(90)}) → Kampeon ng Mundo (${FIN()}).${RACE()?' Same steps, same order: whoever got there first ranks higher.':''}</p><ul class="lb">${rows}</ul>`;
 }
 function cipherHTML(){
   const have=Math.min(10,Math.floor(fl(me)/10)),open=pushOn();
@@ -756,14 +813,14 @@ function renderPlayer(){
 /* ---------- Overlays ---------- */
 function showReveal(){
   if(!players.some(p=>!p.ghost)){toast('No racers yet');return}
-  const sorted=[...players].filter(p=>!p.ghost).sort((a,b)=>fl(b)-fl(a)).slice(0,5);
+  const sorted=[...players].filter(p=>!p.ghost).sort(byRank).slice(0,5);
   const champ=sorted.find(p=>elig(p)>=S.settings.elig)||sorted[0];
   $('#ovl').innerHTML=`<div class="overlay" role="dialog" aria-label="Finish Line Reveal"><div class="ovl"><span class="prem">Finish Line Reveal · ${esc(S.settings.revealDate)}</span><h2>The fog lifts…</h2><p class="sub">Revealing the top 5, from 5th to 1st. Plays live in the portal and posts to Slack. (Preview uses today's standings.)</p><ul class="rev" id="revList"></ul><div id="revFinal"></div><div class="row" style="justify-content:center"><button class="btn ghost" id="closeOvl">Close</button></div></div></div>`;
   let i=4;
   const step=()=>{const list=$('#revList');if(!list)return;
-    if(i<0){$('#revFinal').innerHTML=`<div class="winner" style="justify-content:center">${avatarSVG(champ)}<div style="text-align:left"><h2>🏆 ${esc(champ.name)} wins ${peso(pot())}!</h2><p class="sub" style="margin:0">${titleOf(fl(champ))} · step ${fl(champ)} · credited in the next payroll · + champion perks</p><p class="sub" style="margin:4px 0 0">🥈 ${esc(sorted.filter(p=>p!==champ)[0].name)} +${S.settings.cp2} tokens · 🥉 ${esc(sorted.filter(p=>p!==champ)[1].name)} +${S.settings.cp3} tokens</p></div></div>`;return}
+    if(i<0){$('#revFinal').innerHTML=`<div class="winner" style="justify-content:center">${avatarSVG(champ)}<div style="text-align:left"><h2>🏆 ${esc(champ.name)} wins ${peso(pot())}!</h2><p class="sub" style="margin:0">${titleOf(fl(champ))} · step ${stp(champ)} · credited in the next payroll · + champion perks</p><p class="sub" style="margin:4px 0 0">🥈 ${esc(sorted.filter(p=>p!==champ)[0].name)} +${S.settings.cp2} tokens · 🥉 ${esc(sorted.filter(p=>p!==champ)[1].name)} +${S.settings.cp3} tokens</p></div></div>`;return}
     const p=sorted[i];const li=document.createElement('li');li.className=p===champ?'champ':'';
-    li.innerHTML=`<span class="rk">#${i+1}</span>${avatarSVG(p)}<span><b>${esc(p.name)}</b><br><small class="sub">${titleOf(fl(p))}${elig(p)<S.settings.elig?' · not cash-eligible':''}</small></span><span class="mono" style="font-weight:700">${fl(p)}</span>`;
+    li.innerHTML=`<span class="rk">#${i+1}</span>${avatarSVG(p)}<span><b>${esc(p.name)}</b><br><small class="sub">${titleOf(fl(p))}${elig(p)<S.settings.elig?' · not cash-eligible':''}</small></span><span class="mono" style="font-weight:700">${stp(p)}</span>`;
     list.appendChild(li);i--;setTimeout(step,1100)};
   setTimeout(step,500);
 }
@@ -777,25 +834,25 @@ function showWrapped(){
 }
 
 /* ---------- Admin ---------- */
-const ATABS=[['overview','Overview'],['burn','Token burn'],['season','Season & prize'],['ladder','Prize ladder'],['route','World route'],['weather','Weather & theme'],['shop','Shop & PvP'],['events','Events'],['slack','Slack & finale'],['integrity','Anti-cheat'],['questions','Questions']];
+const ATABS=[['overview','Overview'],['burn','Token burn'],['season','Season & prize'],['ladder','Prize ladder'],['route','World route'],['weather','Weather & theme'],['shop','Shop & PvP'],['events','Events'],['slack','Slack & finale'],['integrity','Anti-cheat'],['questions','Questions'],['fair','Fair race']];
 function renderAdmin(){
   const tabs=`<div class="atabs" role="group" aria-label="Admin sections">${ATABS.map(([k,l])=>`<button data-atab="${k}" aria-pressed="${S.atab===k}">${l}</button>`).join('')}</div>`;
-  const body={overview:adminOverview,burn:adminBurn,season:adminSeason,ladder:adminLadder,route:adminRoute,weather:adminWeather,shop:adminShop,events:adminEvents,slack:adminSlack,integrity:adminIntegrity,questions:adminQuestions}[S.atab]();
+  const body={overview:adminOverview,burn:adminBurn,season:adminSeason,ladder:adminLadder,route:adminRoute,weather:adminWeather,shop:adminShop,events:adminEvents,slack:adminSlack,integrity:adminIntegrity,questions:adminQuestions,fair:adminFair}[S.atab]();
   $('#side').innerHTML=realize(tabs+(S.atab==='overview'?adminStatusCard():'')+body);
 }
 function adminOverview(){
-  const sorted=[...players].filter(p=>!p.ghost).sort((a,b)=>fl(b)-fl(a));
+  const sorted=[...players].filter(p=>!p.ghost).sort(byRank);
   const lead=sorted.find(p=>elig(p)>=S.settings.elig)||sorted[0];
   const st=p=>{const e=elig(p);return e>=S.settings.elig?'<span class="pill ok">Eligible</span>':e>=60?'<span class="pill warn">At risk</span>':'<span class="pill bad">Not eligible</span>'};
   const feed=[...S.feed,['4:12 AM','Gilda answered Hard ✓ and climbed +4'],['3:58 AM','Paolo planted 🍌 on Mae (35 tokens burned)'],['3:41 AM','Mae geared up with a 🚴 Carbon bike (70 tokens burned)'],['3:20 AM','Hamon: Kevin beat Rica, die roll 3'],['2:52 AM','Joy opened a 🎁 Kahon on step 31'],['2:47 AM','Rica rode 🐎 for 2 shifts (60 tokens burned)'],['1:05 AM','Puyat Squad completed: +1 each']].slice(0,14);
   return `
    <div class="card"><h3>Payroll winner preview</h3>
-     ${lead?`<div class="winner">${avatarSVG(lead)}<div style="min-width:0"><h2>${esc(lead.name)} · step ${fl(lead)}</h2><p class="sub" style="margin:0">Highest eligible racer right now. Prize if the season ended now: <b style="color:var(--gold2)">${peso(pot())}</b></p></div></div>`:`<p class="sub">No racers yet. The leader shows up here once people join.</p>`}
+     ${lead?`<div class="winner">${avatarSVG(lead)}<div style="min-width:0"><h2>${esc(lead.name)} · step ${stp(lead)}${lead.finishedAt?' · 🏁 finished':''}</h2><p class="sub" style="margin:0">Highest eligible racer right now. Prize if the season ended now: <b style="color:var(--gold2)">${peso(pot())}</b></p></div></div>`:`<p class="sub">No racers yet. The leader shows up here once people join.</p>`}
      <div class="row"><button class="btn" id="declareBtn">Declare winner &amp; send to payroll</button><button class="btn ghost" id="revealBtn">Preview Finish Line Reveal</button><button class="btn ghost" id="pauseBtn">Pause season</button></div>
      <div id="confirmBox"></div></div>
    <div class="card"><h3>Players &amp; eligibility</h3><p class="sub">Eligibility = free climbs ÷ scheduled shifts (${sched()} so far). Holidays${S.settings.leaves?' and approved leaves':''} don't count against anyone.</p>
      <div class="tbl"><table><thead><tr><th class="num">#</th><th>Player</th><th>Title</th><th class="num">Step</th><th>Ride</th><th class="num">Climbs</th><th class="num">Elig.</th><th class="num">Burned</th><th>Status</th></tr></thead>
-     <tbody>${sorted.map((p,i)=>`<tr data-pid="${p.id}" style="cursor:pointer"><td class="num">${i+1}</td><td><b>${i===0?'👑 ':''}${esc(p.name)}</b>${fl(p)>=90?' <span class="pill" style="background:rgba(200,214,240,.12);color:#c8d6f0">fog</span>':''}</td><td>${titleOf(fl(p))}</td><td class="num">${fl(p)}</td><td>${rideIcon(p)||'–'}</td><td class="num">${p.climbs[S.day]}/${sched()}</td><td class="num">${elig(p)}%</td><td class="num" style="color:var(--burn)">${num(p.spent[S.day])}</td><td>${st(p)}</td></tr>`).join('')}</tbody></table></div></div>
+     <tbody>${sorted.map((p,i)=>`<tr data-pid="${p.id}" style="cursor:pointer"><td class="num">${i+1}</td><td><b>${i===0?'👑 ':''}${esc(p.name)}</b>${fl(p)>=90?' <span class="pill" style="background:rgba(200,214,240,.12);color:#c8d6f0">fog</span>':''}</td><td>${titleOf(fl(p))}</td><td class="num">${stp(p)}${p.finishedAt?' 🏁':''}</td><td>${rideIcon(p)||'–'}</td><td class="num">${p.climbs[S.day]}/${sched()}</td><td class="num">${elig(p)}%</td><td class="num" style="color:var(--burn)">${num(p.spent[S.day])}</td><td>${st(p)}</td></tr>`).join('')}</tbody></table></div></div>
    <div class="card"><h3>Live activity</h3><ul class="feed">${feed.map(([t,m])=>`<li><time>${t}</time><span>${esc(m)}</span></li>`).join('')}</ul></div>`;
 }
 function adminBurn(){
@@ -1116,6 +1173,10 @@ const nv=(id,cur)=>{const v=parseInt(val(id),10);return isNaN(v)?cur:v};
 const chk=(id,cur)=>{const e=root.getElementById(id);return e?e.checked:cur};
 function saveForms(){
   const s=S.settings;
+  {const R=s.race=Object.assign({finish:240,shiftCap:10,oneBoost:true,slipGap:15,slipBonus:1,crown:1,sprintShifts:5,sprintUp:6,sprintDown:-3,sprintCap:12},s.race||{});
+   R.finish=Math.max(100,nv('frFin',R.finish));R.shiftCap=Math.max(4,nv('frCap',R.shiftCap));R.oneBoost=chk('frOne',R.oneBoost);
+   R.slipGap=Math.max(1,nv('frSlipGap',R.slipGap));R.slipBonus=Math.max(0,nv('frSlipB',R.slipBonus));R.crown=Math.max(0,nv('frCrown',R.crown));
+   R.sprintShifts=Math.max(0,nv('frSpN',R.sprintShifts));R.sprintUp=nv('frSpUp',R.sprintUp);R.sprintDown=-Math.abs(nv('frSpDn',R.sprintDown));R.sprintCap=Math.max(R.shiftCap,nv('frSpCap',R.sprintCap));}
   ['fixed','base','cap','bonus','bonusPct','elig','fee'].forEach(k=>s[k]=nv('s'+k[0].toUpperCase()+k.slice(1),s[k]));{const v=parseFloat(val('sPer'));if(!isNaN(v))s.per=v}
   s.cp2=nv('cp2',s.cp2);s.cp3=nv('cp3',s.cp3);s.cpMerit=nv('cpMerit',s.cpMerit);s.cpStart=nv('cpStart',s.cpStart);
   s.lateJoin=nv('sLate',s.lateJoin);s.length=Math.max(5,Math.min(60,nv('sLen',s.length)));
@@ -1208,7 +1269,7 @@ root.addEventListener('click',e=>{
     case 'tradeBtn':toast('Trade offer posted to the Marathon board (mock)');break;
     case 'cipherBtn':toast((val('cipherIn')||'').toUpperCase().replace(/\s+/g,'')==='ANGTUNAYNABAYANIAYGISINGKAHITHATINGGABI!'?'Correct phrase! +10 steps (mock)':'Not the phrase yet. Keep collecting fragments.');break;
     case 'addHol':{const d=val('hDate'),l=(val('hLabel')||'').trim();if(!d||!l){toast('Add a date and a holiday name');break}S.settings.holidays.push({d,label:l,who:val('hWho')});S.settings.holidays.sort((a,b)=>a.d.localeCompare(b.d));render();toast('Holiday added');break}
-    case 'declareBtn':{const sorted=[...players].filter(p=>!p.ghost).sort((a,b)=>fl(b)-fl(a));const lead=sorted.find(p=>elig(p)>=S.settings.elig)||sorted[0];if(!lead){toast('No racers yet');break}$('#confirmBox').innerHTML=`<div class="confirm">Send <b>${peso(pot())}</b> to <b>${esc(lead.name)}</b> as payroll line <b>"Incentive – Bayani World Marathon"</b>? This also posts the winner in Slack.<div class="row"><button class="btn" id="confirmYes">Confirm</button><button class="btn ghost" id="confirmNo">Cancel</button></div></div>`;break}
+    case 'declareBtn':{const sorted=[...players].filter(p=>!p.ghost).sort(byRank);const lead=sorted.find(p=>elig(p)>=S.settings.elig)||sorted[0];if(!lead){toast('No racers yet');break}$('#confirmBox').innerHTML=`<div class="confirm">Send <b>${peso(pot())}</b> to <b>${esc(lead.name)}</b> as payroll line <b>"Incentive – Bayani World Marathon"</b>? This also posts the winner in Slack.<div class="row"><button class="btn" id="confirmYes">Confirm</button><button class="btn ghost" id="confirmNo">Cancel</button></div></div>`;break}
     case 'confirmYes':$('#confirmBox').innerHTML='';toast('Winner sent to payroll (mock)');break;
     case 'confirmNo':$('#confirmBox').innerHTML='';break;
     case 'revealBtn':showReveal();break;
@@ -1282,7 +1343,7 @@ function applyLive(j){
   const days = (j.seasonDays || seasonCalc().days).filter(d => d.n && d.n <= SHIFT.live);
   days.forEach(d => DAILY_BURN.push((j.burnByShift || {})[d.iso] || 0)); if(!DAILY_BURN.length) DAILY_BURN.push(0);
   const pid = cp() ? cp().id : null;
-  players = (j.racers || []).map((r, i) => Object.assign({ id:i, pid:r.id, name:r.name, floor:{ live:r.step == null ? 90 + hash32(r.id) % 9 : r.step }, climbs:{ live:r.climbs || 0 },
+  players = (j.racers || []).map((r, i) => Object.assign({ id:i, pid:r.id, name:r.name, floor:{ live:r.step == null ? 90 + hash32(r.id) % 9 : (RACE() ? Math.min(100, toPos(r.step)) : r.step) }, step:r.step, reachedAt:r.reachedAt || 0, finishedAt:r.finishedAt || 0, climbs:{ live:r.climbs || 0 },
     streak:{ live:r.streak || 0 }, spent:{ live:r.spentTotal || 0 }, ride:{ live:r.ride || null }, elig:r.elig, title:r.title }, lookFor(r.id, i)));
   me = MODE === 'player' ? players.find(p => p.pid === pid) : null;
   if(!me){ me = Object.assign({ id:players.length, pid:pid || 'ghost', name:MODE === 'admin' ? 'Admin' : (cp() ? cp().name : 'You'), ghost:true, floor:{ live:0 }, climbs:{ live:0 }, streak:{ live:0 }, spent:{ live:0 }, ride:{ live:null }, elig:100 }, lookFor(pid || 'x', 0)); players.push(me); }
@@ -1384,7 +1445,7 @@ function adminLiveClick(t){
     acall('status', { status, betaIds:beta }).then(j => { if(j.ok){ applyLive(j); toast(status === 'open' ? '🟢 World Marathon is ON' : status === 'beta' ? '🟡 Beta: only testers can play' : '🔴 World Marathon is OFF'); }
       else toast(j.error === 'offline' || /unknown action/i.test(j.error || '') ? 'The backend isn\'t live yet. Ask Viktor to deploy it first.' : j.error); });
     return true; }
-  if(t.id === 'confirmYes'){ const lead = [...players].filter(p => !p.ghost).sort((a, b) => fl(b) - fl(a)).find(p => elig(p) >= S.settings.elig);
+  if(t.id === 'confirmYes'){ const lead = [...players].filter(p => !p.ghost).sort(byRank).find(p => elig(p) >= S.settings.elig);
     if(!lead) return true; acall('declare', { playerId:lead.pid }).then(j => { $('#confirmBox').innerHTML = ''; if(j.ok){ applyLive(j); toast(j.msg); } else toast(j.error); }); return true; }
   if(t.id === 'testSlack'){ acall('test_hook').then(j => toast(j.ok ? j.msg : j.error)); return true; }
   if(t.id === 'pauseBtn'){ acall('status', { status:'off' }).then(j => { if(j.ok){ applyLive(j); toast('Marathon turned off'); } else toast(j.error); }); return true; }
@@ -1433,10 +1494,10 @@ function renderPlayerLive(){
   const joined = LD.me && LD.me.joined;
   if(S.ptab === 'climb'){
     const main = !joined ? joinHTML() : (!LD.season.tonight && S.chal.stage !== 'done' && S.chal.stage !== 'q') ? noRaceHTML() : challengeHTML();
-    body = `<div class="card ${S.chal.stage === 'q' ? 'locked' : ''}" id="chalCard">${main}</div><div class="card">${soonHTML(['⚔️ Hamon (Bato, Papel, Gunting duels)', '🎲 Pustahan spectator bets', '👥 Tropa squads', '🧠 Boss Night with Sir Rendy'])}</div>`;
+    body = `<div class="card ${S.chal.stage === 'q' ? 'locked' : ''}" id="chalCard">${main}</div>${RACE() ? `<div class="card">${raceRulesHTML()}</div>` : ''}<div class="card">${soonHTML(['⚔️ Hamon (Bato, Papel, Gunting duels)', '🎲 Pustahan spectator bets', '👥 Tropa squads', '🧠 Boss Night with Sir Rendy'])}</div>`;
   }
   if(S.ptab === 'shop') body = `<div class="card">${joined ? garageHTML() : '<h3>Gear &amp; Pet Pacers</h3><p class="sub">Join the marathon to gear up.</p>'}</div><div class="card">${soonHTML(['🍌 Kalokohan pranks', '✨ Marathon Shop cosmetics'])}</div>`;
-  if(S.ptab === 'news') body = `<div class="card"><h3>Balita sa Karera</h3><h2>Latest on the course</h2><ul class="news">${S.feed.length ? S.feed.slice(0, 12).map(f => `<li><span class="mono" style="color:var(--muted)">${f[0]}</span> · ${esc(f[1])}</li>`).join('') : '<li>No news yet.</li>'}</ul>
+  if(S.ptab === 'news') body = `${raceBannerHTML()}<div class="card"><h3>Balita sa Karera</h3><h2>Latest on the course</h2><ul class="news">${S.feed.length ? S.feed.slice(0, 12).map(f => `<li><span class="mono" style="color:var(--muted)">${f[0]}</span> · ${esc(f[1])}</li>`).join('') : '<li>No news yet.</li>'}</ul>
       ${LIVE && LD.season.phase === 'ended' ? '<div class="row"><button class="btn" id="revealBtn">Finish Line Reveal</button></div>' : ''}</div>
     <div class="two"><div class="card">${leaderboardHTML()}</div><div class="card">${soonHTML(['🎟️ Friday Fast-Pass Auction', '🧩 Finish Line Cipher', '📊 Marathon Wrapped'])}</div></div>`;
   $('#side').innerHTML = tabs + body;
